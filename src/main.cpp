@@ -1,5 +1,5 @@
 
-//#include <Rcpp.h>
+#include <Rcpp.h>
 //#include "main.h"
 //#include "misc.h"
 //#include "probability.h"
