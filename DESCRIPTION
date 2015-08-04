@@ -1,11 +1,11 @@
 Package: RgeoProfile
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
+Title: Geographic profiling in R
+Version: 2.0
 Date: 2015-08-04
-Author: Your Name
-Maintainer: Your Name <your@email.com>
-Description: More about what it does (maybe more than one line)
+Author: Robert Verity
+Maintainer: Robert Verity <r.verity@imperial.ac.uk>
+Description: Can be used to infer multiple source locations from spatial data using a Dirichlet process mixture (DPM) modelling framework.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.11.5)
+Imports: Rcpp (>= 0.11.5), fftwtools
 LinkingTo: Rcpp
