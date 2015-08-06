@@ -391,8 +391,8 @@ geoProfile <- function(z) {
 #' @keywords bob
 #' @export
 #' @examples
-#' plotAllocation(MCMCoutput)
-plotAllocation <- function(allocation, colours, barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, xTicks_on=FALSE, xTicks_size=1, orderBy="group") {
+#' geoPlotAllocation(MCMCoutput)
+geoPlotAllocation <- function(allocation, colours, barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, xTicks_on=FALSE, xTicks_size=1, orderBy="group") {
     
     # check that orderBy is either 'group' or 'probability'
     if (!(orderBy%in%c("group","probability")))
@@ -443,8 +443,8 @@ plotAllocation <- function(allocation, colours, barBorderCol="white", barBorderW
 #' @keywords bob
 #' @export
 #' @examples
-#' plotSurface(surface)
-plotSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1:nrow(surface), surface) {
+#' geoPlotSurface(surface)
+geoPlotSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1:nrow(surface), surface) {
     
     image(longitude_midpoints,latitude_midpoints,t(surface)^0.2,col=heat.colors(50))
     
