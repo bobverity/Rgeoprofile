@@ -5,13 +5,15 @@
 
 using namespace Rcpp;
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP RgeoProfile_rcpp_hello_world() {
+// C_geoMCMC
+List C_geoMCMC(List data, List params);
+RcppExport SEXP RgeoProfile_C_geoMCMC(SEXP dataSEXP, SEXP paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    __result = Rcpp::wrap(rcpp_hello_world());
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< List >::type params(paramsSEXP);
+    __result = Rcpp::wrap(C_geoMCMC(data, params));
     return __result;
 END_RCPP
 }

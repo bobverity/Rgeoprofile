@@ -2,7 +2,6 @@
 #ifndef __RgeoProfile__main__
 #define __RgeoProfile__main__
 
-
 using namespace Rcpp;
 
 // carry out main MCMC

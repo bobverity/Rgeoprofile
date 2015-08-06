@@ -1,9 +1,9 @@
 
 #include <Rcpp.h>
-//#include "main.h"
-//#include "misc.h"
-//#include "probability.h"
-//#include "Hungarian.h"
+#include "main.h"
+#include "misc.h"
+#include "probability.h"
+#include "Hungarian.h"
 using namespace Rcpp;
 
 
@@ -11,7 +11,7 @@ using namespace Rcpp;
 // run main MCMC.
 // [[Rcpp::export]]
 List C_geoMCMC(List data, List params) {
-    /*
+    
     //read in input
     std::vector<double> data_x = as<std::vector<double> >(data["longitude"]);
     std::vector<double> data_y = as<std::vector<double> >(data["latitude"]);
@@ -255,13 +255,12 @@ List C_geoMCMC(List data, List params) {
     
     // return values
     return List::create(Named("alpha")=alpha_store, Named("allocation")=groupMat, Named("geoSurface")=geoSurface);
-    */
 }
 
 //*------------------------------------------------*
 // update group allocation
 void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double> &data_y, std::vector<int> &group, std::vector<int> &freqs, std::vector<double> &sum_x, std::vector<double> &sum_y, int &nextGroup, int &uniqueGroups, std::vector<double> &postVar, std::vector<double> &postMean_x, std::vector<double> &postMean_y, double &priorMean_x, double &priorMean_y, double &sigma2, double &tau2, std::vector<double> &probVec, std::vector<double> &logProbVec, double &alpha) {
-    /*
+    
     // remove point i from all objects
     freqs[group[i]-1] --;
     sum_x[group[i]-1] -= data_x[i];
@@ -328,13 +327,13 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
             nextGroup++;
         }
     }
-    */
+    
 }
 
 //*------------------------------------------------*
 // solve label switching problem
 void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vector<int> > &groupMat, std::vector<int> &bestPerm, std::vector<int> &bestPermOrder, std::vector<int> &group_reorder, std::vector<int> &freqs, std::vector<double> &sum_x, std::vector<double> &sum_y, std::vector<int> &freqs_reorder, std::vector<double> &sum_x_reorder, std::vector<double> &sum_y_reorder,  int &nextGroup) {
-    /*
+    
     // expand objects if necessary
     while ((freqs.size()-1)>bestPermOrder.size()) {
         for (int j=0; j<n; j++) {
@@ -376,5 +375,5 @@ void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vect
     sum_y = sum_y_reorder;
     if (nextGroup<freqs.size())
         nextGroup = bestPerm[nextGroup-1]+1;
-    */
+    
 }
