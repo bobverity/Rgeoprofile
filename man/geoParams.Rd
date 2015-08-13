@@ -4,11 +4,12 @@
 \alias{geoParams}
 \title{Create Rgeoprofile parameters object}
 \usage{
-geoParams(sigma = 1, priorMean_longitude = 0, priorMean_latitude = 0,
-  priorVar = 10, alpha_shape = 0.1, alpha_rate = 0.1, chains = 10,
-  burnin = 500, samples = 5000, burnin_printConsole = 100,
-  samples_printConsole = 1000, longitude_minMax = c(-10, 10),
-  latitude_minMax = c(-10, 10), longitude_cells = 50, latitude_cells = 50)
+geoParams(data = NULL, sigma = 1, priorMean_longitude = 0,
+  priorMean_latitude = 0, priorSD = 10, alpha_shape = 0.1,
+  alpha_rate = 0.1, chains = 10, burnin = 500, samples = 5000,
+  burnin_printConsole = 100, samples_printConsole = 1000,
+  longitude_minMax = c(-10, 10), latitude_minMax = c(-10, 10),
+  longitude_cells = 50, latitude_cells = 50)
 }
 \arguments{
 \item{sigma}{The standard deviation of the dispersal distribution}

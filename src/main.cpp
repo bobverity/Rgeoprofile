@@ -21,11 +21,12 @@ List C_geoMCMC(List data, List params) {
     Rcpp::List params_MCMC = params["MCMC"];
     Rcpp::List params_output = params["output"];
     
-    double sigma = as<double>(params_model["sigma"]);
+    double sigma = as<double>(params_model["sigma"])/40075*360;
+    print(sigma);
     double sigma2 = sigma*sigma;
     double priorMean_x = as<double>(params_model["priorMean_longitude"]);
     double priorMean_y = as<double>(params_model["priorMean_latitude"]);
-    double tau = as<double>(params_model["priorVar"]);
+    double tau = as<double>(params_model["priorSD"])/40075*360;
     double tau2 = tau*tau;
     double alpha_shape = as<double>(params_model["alpha_shape"]);
     double alpha_rate = as<double>(params_model["alpha_rate"]);

@@ -42,16 +42,72 @@ rDPM <- function(n, sigma=1,priorMean_x=0, priorMean_y=0, priorVar=10, alpha=1) 
 #' @export
 #' @examples
 #' geoParams()
-geoParams <- function(sigma=1, priorMean_longitude=0, priorMean_latitude=0, priorVar=10, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=c(-10,10), latitude_minMax=c(-10,10), longitude_cells=50, latitude_cells=50) {
+geoParams <- function(data=NULL, sigma=1, priorMean_longitude=0, priorMean_latitude=0, priorSD=10, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=c(-10,10), latitude_minMax=c(-10,10), longitude_cells=50, latitude_cells=50) {
+    
+# if data argument used then get map limits from data
+    if (!is.null(data)) {
+        
+        # check correct format of data
+        geoDataCheck(data)
+        
+		# get midpoints and ranges
+	    xmin = min(data$longitude); xmax = max(data$longitude)
+	    ymin = min(data$latitude); ymax = max(data$latitude)
+        xdiff = diff(range(data$longitude))
+        ydiff = diff(range(data$latitude))
+        xmid = xmin + xdiff/2
+        ymid = ymin + ydiff/2
+        
+        # calculate latitude upper and lower limits corresponding to a square map
+        delta = xdiff/2
+        lat_angle = ymid/360*2*pi
+        projection_mid = log(tan(pi/4+lat_angle/2))
+        projection_top = projection_mid + delta/360*2*pi
+        projection_bot = projection_mid - delta/360*2*pi
+        lat_angle_top = (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
+        lat_angle_bot = (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
+		
+		# if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases ass a 10% buffer zone.
+        if (ymin>=lat_angle_bot & ymax<=lat_angle_top) {
+        	frame_xmin = xmin-xdiff*0.1
+        	frame_xmax = xmax+xdiff*0.1
+			frame_ymin = (lat_angle_top+lat_angle_bot)/2-(lat_angle_top-lat_angle_bot)*0.6
+			frame_ymax = (lat_angle_top+lat_angle_bot)/2+(lat_angle_top-lat_angle_bot)*0.6
+        } else {
+        	lat_angle_bot = ymin
+        	lat_angle_top = ymax
+        	projection_bot = log(tan((lat_angle_bot/360*(2*pi)+pi/2)/2))
+        	projection_top = log(tan((lat_angle_top/360*(2*pi)+pi/2)/2))
+			projection_mid = (projection_bot+projection_top)/2
+			delta = (projection_top-projection_mid)*360/(2*pi)
+			frame_xmin = xmid - delta*1.1
+			frame_xmax = xmid + delta*1.1
+			frame_ymin = lat_angle_bot - delta*0.1
+			frame_ymax = lat_angle_top + delta*0.1
+        }
+        
+        # set output values
+		longitude_minMax = c(frame_xmin, frame_xmax)
+        latitude_minMax = c(frame_ymin, frame_ymax)
+    }
     
     # set model parameters
-    model = list(sigma=sigma, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorVar=priorVar, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
+    model = list(sigma=sigma, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
     
     # set MCMC parameters
     MCMC = list(chains=chains, burnin=burnin, samples=samples, burnin_printConsole=burnin_printConsole, samples_printConsole=samples_printConsole)
     
     # set output parameters
-    output = list(longitude_minMax=longitude_minMax, latitude_minMax=latitude_minMax, longitude_cells=longitude_cells, latitude_cells=latitude_cells)
+    xmin = longitude_minMax[1]; xmax = longitude_minMax[2]
+    ymin = latitude_minMax[1]; ymax = latitude_minMax[2]
+    xCells = longitude_cells
+    yCells = latitude_cells
+    xCellSize = (xmax-xmin)/xCells
+    yCellSize = (ymax-ymin)/yCells
+    xMids = xmin - xCellSize/2 + (1:xCells)*xCellSize
+    yMids = ymin - yCellSize/2 + (1:yCells)*yCellSize
+    
+    output = list(longitude_minMax=longitude_minMax, latitude_minMax=latitude_minMax, longitude_cells=longitude_cells, latitude_cells=latitude_cells, longitude_midpoints=xMids, latitude_midpoints=yMids)
     
     # combine and return
     params = list(model=model, MCMC=MCMC, output=output)
@@ -72,8 +128,8 @@ geoData <- function(longitude=NULL, latitude=NULL) {
     
     # generate dummy data if none read in
     if (is.null(longitude) & is.null(latitude)) {
-        longitude = c(1.3552866, 2.8332016, 1.5458939, 3.4439858, 0.1850686, 2.1763534, 0.6144457, 2.6072376, 1.4571848, 4.5698746, 4.0574786, 4.0210364, 4.0359571, 4.0343223, 4.0614972, 4.6414387, 2.5414649, -1.3519314, -2.2367752, -1.9417826, -2.2836110, -2.0883225, -1.7118926, -0.7698030, 5.3877648, 5.6224173, -16.3016122, -16.1339459, -14.6866445, -15.9828965, -15.7719747, -16.0328715, -14.4931409, -16.3640593, 0.8146278, -1.4039898, 3.5071933, 5.2664047, 4.8191548, 5.2940034, 5.6423132, 5.8105845, 6.0036396, 13.8852696, 12.8413242, -1.0211645, -1.9139261, 0.5087536, 17.7389148, 1.5007123)
-        latitude = c(11.5820227, 11.4602990, 10.0136256, 12.4405047, 11.7671286, 8.4943908, 11.2519649, 10.5894781, 12.3373432, -3.4205490, -3.0006835, -3.4391243, -1.6182644, -2.6239842, -3.0284404, -2.2300918, 12.4177397, -4.1720895, -3.2941502, -3.7335080, -2.9844355, -1.9521769, -2.6494257, -2.0376150, -8.2084885, -8.9080376, -0.4101773, -1.8466111, -2.6371649, -9.3363200, -8.8889480, -7.7863900, -10.9563316, -10.7300902, 19.7024929, 18.9879279, -0.8767754, -0.7894751, -1.5367136, -0.1503125, -1.5041463, -1.5992631, -3.1876078, 1.5872134, 2.2382692, -0.2236694, 2.1864671, 10.6193734, 6.1884289, -12.5835766)
+        longitude = c(-0.104545976281589, -0.102659272660916, -0.0967390020136406, -0.0996246226730725, -0.100775342233937, -0.101073477576196, -0.100932674617746, -0.0983001766339886, -0.0913571765598557, -0.100211479242536, -0.139508969429415, -0.14403082311245, -0.143607222414313, -0.137174795971723, -0.140884394738737, -0.142723755125487, -0.143380928147727, -0.136989691342132, -0.13837666855334, -0.138297288871952, -0.0773858357074935, -0.0818743917621333, -0.0738310357273188, -0.0744118149244568, -0.0757833597110897, -0.0762193916493531, -0.0810467015747727, -0.110052994420826, -0.106600836874167, -0.105104028808356, -0.101934241194567, -0.0683752111183375, -0.0758607240702608, -0.079153744918552, -0.087964365345432)
+        latitude = c(51.4996147329979, 51.4925230579844, 51.4947129689414, 51.4922683109254, 51.5007532206834, 51.4960640374896, 51.4996917836745, 51.4976936749008, 51.4977904998888, 51.4894186202378, 51.5002583182117, 51.5033510595094, 51.4984697991335, 51.5063306206839, 51.4961516950408, 51.4994464819411, 51.5067557678594, 51.4977275537675, 51.4988718377984, 51.4974782970503, 51.5137643501102, 51.5204498816501, 51.5213788858189, 51.5144343479237, 51.5212383455566, 51.5088225370868, 51.512547894056, 51.5144758355252, 51.5218865924773, 51.5218808497196, 51.5152330574081, 51.4836680563637, 51.4885211991595, 51.486842412489, 51.48845301363455)
     }
     
     # combine and return
@@ -114,8 +170,8 @@ geoParamsCheck <- function(params) {
         stop("params$model must contain parameter 'priorMean_longitude'")
     if (!("priorMean_latitude"%in%names(params$model)))
         stop("params$model must contain parameter 'priorMean_latitude'")
-    if (!("priorVar"%in%names(params$model)))
-        stop("params$model must contain parameter 'priorVar'")
+    if (!("priorSD"%in%names(params$model)))
+        stop("params$model must contain parameter 'priorSD'")
     if (!("alpha_shape"%in%names(params$model)))
         stop("params$model must contain parameter 'alpha_shape'")
     if (!("alpha_rate"%in%names(params$model)))
@@ -142,10 +198,10 @@ geoParamsCheck <- function(params) {
         stop("params$model$priorMean_longitude must be numeric and finite")
     if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
         stop("params$model$priorMean_latitude must be numeric and finite")
-    if (!is.numeric(params$model$priorVar) | !is.finite(params$model$priorVar))
-        stop("params$model$priorVar must be numeric and finite")
-    if (params$model$priorVar<=0)
-        stop("params$model$priorVar must be greater than 0")
+    if (!is.numeric(params$model$priorSD) | !is.finite(params$model$priorSD))
+        stop("params$model$priorSD must be numeric and finite")
+    if (params$model$priorSD<=0)
+        stop("params$model$priorSD must be greater than 0")
     if (!is.numeric(params$model$alpha_shape) | !is.finite(params$model$alpha_shape))
         stop("params$model$alpha_shape must be numeric and finite")
     if (params$model$alpha_shape<=0)
@@ -240,7 +296,7 @@ geoMCMC <- function(data, params) {
     sigma = params$model$sigma
     priorMean_longitude = params$model$priorMean_longitude
     priorMean_latitude = params$model$priorMean_latitude
-    priorVar = params$model$priorVar
+    priorSD = params$model$priorSD/40075*360
     samples = params$MCMC$samples
     longitude_cells = params$output$longitude_cells
     latitude_cells = params$output$latitude_cells
@@ -257,12 +313,11 @@ geoMCMC <- function(data, params) {
     yCells = latitude_cells
     xCellSize = (xmax-xmin)/xCells
     yCellSize = (ymax-ymin)/yCells
-    xMids = xmin - xCellSize/2 + (1:xCells)*xCellSize
-    yMids = ymin - yCellSize/2 + (1:yCells)*yCellSize
+    xMids = params$output$longitude_midpoints
+    yMids = params$output$latitude_midpoints
     xMids_mat = outer(rep(1,yCells),xMids)
     yMids_mat = outer(yMids,rep(1,xCells))
-    priorMat = dnorm(xMids_mat,priorMean_longitude,sd=sqrt(priorVar))*dnorm(yMids_mat,priorMean_latitude,sd=sqrt(priorVar))
-    
+    priorMat = dnorm(xMids_mat,priorMean_longitude,sd=priorSD)*dnorm(yMids_mat,priorMean_latitude,sd=priorSD)
     
     # finalise output format
     output = list()
@@ -274,9 +329,6 @@ geoMCMC <- function(data, params) {
     allocation = data.frame(allocation/samples)
     names(allocation) = paste("group",1:ncol(allocation),sep="")
     output$allocation = allocation
-    
-    output$longitude_midpoints = xMids
-    output$latitude_midpoints = yMids
     
     surface = priorMat*mean(alpha/(alpha+n)) + matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)/(xCellSize*yCellSize)/samples
     surface = surface/sum(surface)
@@ -436,16 +488,106 @@ geoPlotAllocation <- function(allocation, colours, barBorderCol="white", barBord
 }
 
 #*------------------------------------------------*
-#' Plot geoprofile
+# get optimal zoom level given x and y values
+getZoom <- function(x,y) {
+	
+	# calculate midpoint of range in x and y
+	xmid = min(x)+diff(range(x))/2
+	ymid = min(y)+diff(range(y))/2
+	
+	# calculate delta (half of longitude range) for a range of zoom levels
+	z = 20:2
+	delta = 445/(2^z)
+	
+	# calculate left and right longitude limits at all zoom levels
+	long_angle_left = xmid-delta
+	long_angle_right = xmid+delta
+	
+	# calculate top and bottom latitude limits at all zoom levels
+	lat_angle = ymid/360*2*pi
+	projection_mid = log(tan(pi/4+lat_angle/2))
+	projection_top = projection_mid + delta/360*2*pi
+	projection_bot = projection_mid - delta/360*2*pi
+	lat_angle_top = (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
+	lat_angle_bot = (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
+	
+	# find the most zoomed-in level that captures all points
+	zoomTest = (min(x)>long_angle_left) & (max(x)<long_angle_right) & (min(y)>lat_angle_bot) & (max(y)<lat_angle_top)
+    if (!any(zoomTest))
+        stop("values are outside of plotting range of earth")
+	bestZoom = z[which(zoomTest)[1]]
+    
+	return(bestZoom)
+}
+
+#*------------------------------------------------*
+#' Create geoprofile plot object
 #'
-#' Produces plot of posterior surface or geoprofile
+#' Creates geoprofile plotting object, for use with other ggplot2 elements.
 #' @param surface
 #' @keywords bob
 #' @export
 #' @examples
-#' geoPlotSurface(surface)
-geoPlotSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1:nrow(surface), surface) {
+#' geoSurface(surface)
+geoSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1:nrow(surface), surface) {
     
-    image(longitude_midpoints,latitude_midpoints,t(surface)^0.2,col=heat.colors(50))
+    image(longitude_midpoints, latitude_midpoints, t(surface)^0.2, col=heat.colors(50))
     
+}
+
+#*------------------------------------------------*
+#' Create quick geoprofile plot
+#'
+#' Creates quick geoprofile plot, choosing some parameters automatically.
+#' @param surface
+#' @keywords bob
+#' @export
+#' @examples
+#' geoQuickPlot(surface)
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,10,l=11), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
+    
+    # check that inputs make sense
+    geoParamsCheck(params)
+    if (!is.null(data))
+	    geoDataCheck(data)
+    
+    # if zoom=="auto" then set zoom level based on params
+    if (zoom=="auto")
+        zoom = getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
+    
+    # make zoom level appropriate to map source
+    if (source=="stamen")
+    	zoom = min(zoom,18)
+    
+    # make map
+    rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=source, maptype=maptype)
+    myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
+    
+    # overlay geoprofile
+    if (!is.null(surface)) {
+    	geoCols = colorRampPalette(c("#00008F","#0000FF","#0070FF","#00DFFF","#50FFAF","#BFFF40","#FFCF00","#FF6000","#EF0000","#800000"))
+    	
+		df = expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
+		df$z = as.vector(t(surface))
+		labs = paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
+		df$cut = cut(df$z, breakPercent/100*length(surface), labels=labs)
+		df_noNA = df[!is.na(df$cut),]
+		
+		myMap = myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
+		myMap = myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(11)))
+		
+		# add contours
+		if (plotContours) {
+			myMap = myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(m$profile), size=0.3, alpha=0.5, data=df)
+		}
+	}
+
+    # overlay data points
+    if (!is.null(data)) {
+    	p = data.frame(longitude=data$longitude, latitude=data$latitude)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, cex=1.5, col=data_borderCol)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=20, cex=1.5, col=data_fillCol)
+    }
+    
+    myMap
 }
