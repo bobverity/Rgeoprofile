@@ -42,13 +42,13 @@ rDPM <- function(n, sigma=1,priorMean_x=0, priorMean_y=0, priorVar=10, alpha=1) 
 #' @export
 #' @examples
 #' geoParams()
-geoParams <- function(data=NULL, sigma=1, priorMean_longitude=0, priorMean_latitude=0, priorSD=10, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=c(-10,10), latitude_minMax=c(-10,10), longitude_cells=50, latitude_cells=50) {
+geoParams <- function(data=NULL, sigma=1, priorMean_longitude=0, priorMean_latitude=0, priorSD=10, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=c(-10,10), latitude_minMax=c(-10,10), longitude_cells=500, latitude_cells=500) {
     
-# if data argument used then get map limits from data
+	# if data argument used then get map limits from data
     if (!is.null(data)) {
         
         # check correct format of data
-        geoDataCheck(data)
+        geoDataCheck(data, silent=TRUE)
         
 		# get midpoints and ranges
 	    xmin = min(data$longitude); xmax = max(data$longitude)
@@ -147,7 +147,7 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' @examples
 #' # tester
 #' geoParamsCheck(myParams)
-geoParamsCheck <- function(params) {
+geoParamsCheck <- function(params, silent=FALSE) {
     
     # check that params is a list
     if (!is.list(params))
@@ -234,7 +234,8 @@ geoParamsCheck <- function(params) {
         stop("params$MCMC$samples_printConsole must be greater than 0")
 
     # if passed all checks
-    cat("params file passed all checks\n")
+    if (!silent)
+	    cat("params file passed all checks\n")
 }
 
 #*------------------------------------------------*
@@ -247,7 +248,7 @@ geoParamsCheck <- function(params) {
 #' @examples
 #' # tester
 #' geoDataCheck(myData)
-geoDataCheck <- function(data) {
+geoDataCheck <- function(data, silent=FALSE) {
     
     # check that data is a list
     if (!is.list(data))
@@ -272,7 +273,8 @@ geoDataCheck <- function(data) {
         stop("data must contain at least two observations")
     
     # if passed all checks
-    cat("data file passed all checks\n")
+    if (!silent)
+	    cat("data file passed all checks\n")
 }
 
 #*------------------------------------------------*
