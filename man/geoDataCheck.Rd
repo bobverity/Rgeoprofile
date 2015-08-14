@@ -4,7 +4,7 @@
 \alias{geoDataCheck}
 \title{Check data}
 \usage{
-geoDataCheck(data)
+geoDataCheck(data, silent = FALSE)
 }
 \arguments{
 \item{data}{A list of data}

@@ -4,7 +4,7 @@
 \alias{geoParamsCheck}
 \title{Check parameters}
 \usage{
-geoParamsCheck(params)
+geoParamsCheck(params, silent = FALSE)
 }
 \arguments{
 \item{params}{A list of parameters}

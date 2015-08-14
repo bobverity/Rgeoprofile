@@ -22,7 +22,6 @@ List C_geoMCMC(List data, List params) {
     Rcpp::List params_output = params["output"];
     
     double sigma = as<double>(params_model["sigma"])/40075*360;
-    print(sigma);
     double sigma2 = sigma*sigma;
     double priorMean_x = as<double>(params_model["priorMean_longitude"]);
     double priorMean_y = as<double>(params_model["priorMean_latitude"]);
