@@ -10,6 +10,8 @@
 #' rDPM(10)
 rDPM <- function(n, sigma=1, priorMean_x=0, priorMean_y=0, priorSD=10, alpha=1) {
     
+    return(99)
+    
     # change units from km to degrees?
     
     # draw grouping

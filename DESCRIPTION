@@ -7,5 +7,9 @@ Author: Robert Verity
 Maintainer: Robert Verity <r.verity@imperial.ac.uk>
 Description: Can be used to infer multiple source locations from spatial data using a Dirichlet process mixture (DPM) modelling framework.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.11.5), fftwtools, ggplot2, ggmap, RColorBrewer
+Imports: Rcpp (>= 0.11.5),
+	fftwtools,
+	ggplot2,
+	ggmap,
+	RColorBrewer
 LinkingTo: Rcpp
