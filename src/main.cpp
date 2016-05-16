@@ -21,11 +21,11 @@ List C_geoMCMC(List data, List params) {
     Rcpp::List params_MCMC = params["MCMC"];
     Rcpp::List params_output = params["output"];
     
-    double sigma = as<double>(params_model["sigma"])/40075*360;
+    double sigma = as<double>(params_model["sigma"]);
     double sigma2 = sigma*sigma;
     double priorMean_x = as<double>(params_model["priorMean_longitude"]);
     double priorMean_y = as<double>(params_model["priorMean_latitude"]);
-    double tau = as<double>(params_model["priorSD"])/40075*360;
+    double tau = as<double>(params_model["priorSD"]);
     double tau2 = tau*tau;
     double alpha_shape = as<double>(params_model["alpha_shape"]);
     double alpha_rate = as<double>(params_model["alpha_rate"]);
@@ -70,7 +70,7 @@ List C_geoMCMC(List data, List params) {
     std::vector< std::vector<double> > C_probVec(chains,std::vector<double>(2));
     std::vector<int> C_nextGroup(chains,2);
     std::vector<int> C_uniqueGroups(chains,1);
-    double lambda;
+    double lambda, w;
     
     // objects involved in convergence testing
     std::vector< std::vector<double> > C_alphaRunningSum(chains,std::vector<double>(burnin));
@@ -107,8 +107,13 @@ List C_geoMCMC(List data, List params) {
             }
             
             // update alpha
-            lambda = rbeta1(C_alpha[chain],n);
-            C_alpha[chain] = rgamma1(alpha_shape+C_uniqueGroups[chain], alpha_rate-log(lambda));
+            lambda = rbeta1(C_alpha[chain]+1.0,n);
+            w = n/(n + (alpha_shape+C_uniqueGroups[chain]-1)/(alpha_rate-log(lambda)) );
+            if (runif1()<w) {
+                C_alpha[chain] = rgamma1(alpha_shape+C_uniqueGroups[chain]-1, alpha_rate-log(lambda));
+            } else {
+                C_alpha[chain] = rgamma1(alpha_shape+C_uniqueGroups[chain], alpha_rate-log(lambda));
+            }
             
             // GR diagnostic elements
             if (rep==0) {
@@ -226,6 +231,15 @@ List C_geoMCMC(List data, List params) {
         // solve label switching problem
         solveLabelSwitching(n, group, groupMat, bestPerm, bestPermOrder, group_reorder, freqs, sum_x, sum_y, freqs_reorder, sum_x_reorder, sum_y_reorder, nextGroup);
         
+        // update alpha
+        lambda = rbeta1(alpha+1.0,n);
+        w = n/(n + (alpha_shape+uniqueGroups-1)/(alpha_rate-log(lambda)) );
+        if (runif1()<w) {
+            alpha = rgamma1(alpha_shape+uniqueGroups-1, alpha_rate-log(lambda));
+        } else {
+            alpha = rgamma1(alpha_shape+uniqueGroups, alpha_rate-log(lambda));
+        }
+        
         // draw group means and add to geoSurface
         for (int j=0; j<freqs.size(); j++) {
             if (freqs[j]>0) {
@@ -235,14 +249,10 @@ List C_geoMCMC(List data, List params) {
                 double x_draw = rnorm1(postMean_x[j],sqrt(postVar[j]));
                 double y_draw = rnorm1(postMean_y[j],sqrt(postVar[j]));
                 if (x_draw>=x_min && x_draw<=x_max && y_draw>=y_min && y_draw<=y_max) {
-                    geoSurface[floor((y_draw-y_min)/double(y_cellSize))][floor((x_draw-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha);
+                    geoSurface[floor((y_draw-y_min)/double(y_cellSize))][floor((x_draw-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha)/samples;
                 }
             }
         }
-        
-        // update alpha
-        lambda = rbeta1(alpha,n);
-        alpha = rgamma1(alpha_shape+uniqueGroups, alpha_rate-log(lambda));
         
         // store some results
         alpha_store[rep] = alpha;

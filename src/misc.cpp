@@ -4,7 +4,7 @@
 using namespace Rcpp;
 
 
-//*------------------------------------------------*
+//------------------------------------------------
 // helper function for printing a single value (overloaded for int, double and string)
 void print(int x) {
     Rcout << x << "\n";
@@ -22,7 +22,7 @@ void print(std::string x) {
     R_ProcessEvents();
 }
 
-//*------------------------------------------------*
+//------------------------------------------------
 // helper function for printing contents of a vector (overloaded for int, double and string)
 void printVector(std::vector<int> x) {
     for (int i=0; i<x.size(); i++) {
@@ -49,7 +49,7 @@ void printVector(std::vector<std::string> x) {
     R_ProcessEvents();
 }
 
-//*------------------------------------------------*
+//------------------------------------------------
 // helper function for printing contents of a matrix (overloaded for int, double and string)
 void printMatrix(std::vector< std::vector<int> > M) {
     for (int i=0; i<M.size(); i++) {
@@ -85,21 +85,14 @@ void printMatrix(std::vector< std::vector<std::string> > M) {
     R_ProcessEvents();
 }
 
-//*------------------------------------------------*
+//------------------------------------------------
 // add two numbers together in log space. One number (but not both) is allowed to be -inf.
 double logSum(double logA, double logB) {
-    if (std::isinf(logA) && std::isinf(logB)) {
-        return(-1.0/0);
-    } else {
-        if (logA<logB) {
-            return(logB + log(1+exp(logA-logB)));
-        } else {
-            return(logA + log(1+exp(logB-logA)));
-        }
-    }
+    double output = (logA<logB) ? logB + log(1+exp(logA-logB)) : logA + log(1+exp(logB-logA));
+    return(output);
 }
 
-//*------------------------------------------------*
+//------------------------------------------------
 // take the mean of a vector
 double mean(std::vector<double> &x) {
     double m = 0;

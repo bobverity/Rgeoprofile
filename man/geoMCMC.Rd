@@ -7,9 +7,9 @@
 geoMCMC(data, params)
 }
 \arguments{
-\item{data}{A list of input data.}
+\item{data}{input data in the format defined by geoData}
 
-\item{params}{A list of input parameters.}
+\item{params}{input parameters in the format defined by geoParams}
 }
 \description{
 This function carries out the main MCMC under the Rgeoprofile model.

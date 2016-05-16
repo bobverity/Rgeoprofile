@@ -171,6 +171,48 @@ geoParams <- function(data=NULL, sigma=0.01, priorMean_longitude=-0.1277, priorM
 }
 
 #------------------------------------------------
+#' Check data
+#'
+#' Check that all data for use in Rgeoprofile MCMC is in the correct format.
+#'
+#' @param data A list of data
+#' @param silent Whether to report passing check to console
+#'
+#' @export
+#' @examples
+#' # tester
+#' geoDataCheck(myData)
+
+geoDataCheck <- function(data, silent=FALSE) {
+    
+    # check that data is a list
+    if (!is.list(data))
+    stop("data must be in list format")
+    
+    # check that contains longitude and latitude
+    if (!("longitude"%in%names(data)))
+    stop("data must contain element 'longitude'")
+    if (!("latitude"%in%names(data)))
+    stop("data must contain element 'latitude'")
+    
+    # check that data values are correct format and range
+    if (!is.numeric(data$longitude) | !all(is.finite(data$longitude)))
+    stop("data$longitude values must be numeric and finite")
+    if (!is.numeric(data$latitude) | !all(is.finite(data$latitude)))
+    stop("data$latitude values must be numeric and finite")
+    
+    # check same number of observations in logitude and latitude, and n>1
+    if (length(data$longitude)!=length(data$latitude))
+    stop("data$longitude and data$latitude must have the same length")
+    if (length(data$longitude)<=1)
+    stop("data must contain at least two observations")
+    
+    # if passed all checks
+    if (!silent)
+    cat("data file passed all checks\n")
+}
+
+#------------------------------------------------
 #' Check parameters
 #'
 #' Check that all parameters for use in Rgeoprofile MCMC are OK.
@@ -275,54 +317,12 @@ geoParamsCheck <- function(params, silent=FALSE) {
 }
 
 #------------------------------------------------
-#' Check data
-#'
-#' Check that all data for use in Rgeoprofile MCMC is in the correct format.
-#'
-#' @param data A list of data
-#' @param silent Whether to report passing check to console
-#'
-#' @export
-#' @examples
-#' # tester
-#' geoDataCheck(myData)
-
-geoDataCheck <- function(data, silent=FALSE) {
-    
-    # check that data is a list
-    if (!is.list(data))
-        stop("data must be in list format")
-    
-    # check that contains longitude and latitude
-    if (!("longitude"%in%names(data)))
-        stop("data must contain element 'longitude'")
-    if (!("latitude"%in%names(data)))
-        stop("data must contain element 'latitude'")
-    
-    # check that data values are correct format and range
-    if (!is.numeric(data$longitude) | !all(is.finite(data$longitude)))
-        stop("data$longitude values must be numeric and finite")
-    if (!is.numeric(data$latitude) | !all(is.finite(data$latitude)))
-        stop("data$latitude values must be numeric and finite")
-    
-    # check same number of observations in logitude and latitude, and n>1
-    if (length(data$longitude)!=length(data$latitude))
-        stop("data$longitude and data$latitude must have the same length")
-    if (length(data$longitude)<=1)
-        stop("data must contain at least two observations")
-    
-    # if passed all checks
-    if (!silent)
-	    cat("data file passed all checks\n")
-}
-
-#------------------------------------------------
 #' MCMC under Rgeoprofile model
 #'
 #' This function carries out the main MCMC under the Rgeoprofile model.
 #'
-#' @param data A list of input data.
-#' @param params A list of input parameters.
+#' @param data input data in the format defined by geoData
+#' @param params input parameters in the format defined by geoParams
 #'
 #' @export
 #' @examples
@@ -340,15 +340,15 @@ geoMCMC <- function(data, params) {
     sigma <- params$model$sigma
     priorMean_longitude <- params$model$priorMean_longitude
     priorMean_latitude <- params$model$priorMean_latitude
-    priorSD <- params$model$priorSD/40075*360
+    priorSD <- params$model$priorSD
     samples <- params$MCMC$samples
     longitude_cells <- params$output$longitude_cells
     latitude_cells <- params$output$latitude_cells
     
     # carry out MCMC
-    rawOutput <- .Call('RgeoProfile_C_geoMCMC', PACKAGE = 'RgeoProfile', data, params)
+    rawOutput <- C_geoMCMC(data, params)
     
-    # produce prior matrix
+    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
     xmin <- params$output$longitude_minMax[1]
     xmax <- params$output$longitude_minMax[2]
     ymin <- params$output$latitude_minMax[1]
@@ -361,22 +361,25 @@ geoMCMC <- function(data, params) {
     yMids <- params$output$latitude_midpoints
     xMids_mat <- outer(rep(1,yCells),xMids)
     yMids_mat <- outer(yMids,rep(1,xCells))
-    priorMat <- dnorm(xMids_mat,priorMean_longitude,sd=priorSD)*dnorm(yMids_mat,priorMean_latitude,sd=priorSD)
+    
+    priorMat <- dnorm(xMids_mat,priorMean_longitude,sd=priorSD)*dnorm(yMids_mat,priorMean_latitude,sd=priorSD)*(xCellSize*yCellSize)
     
     # finalise output format
     output <- list()
     
+    # alpha
     alpha <- rawOutput$alpha
     output$alpha <- alpha
     
+    # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
+    surface <- priorMat*mean(alpha/(alpha+n)) + matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
+    output$surface <- surface
+    
+    # posterior allocation
     allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
     allocation <- data.frame(allocation/samples)
     names(allocation) <- paste("group",1:ncol(allocation),sep="")
     output$allocation <- allocation
-    
-    surface <- priorMat*mean(alpha/(alpha+n)) + matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)/(xCellSize*yCellSize)/samples
-    surface <- surface/sum(surface)
-    output$surface <- surface
     
     return(output)
 }
