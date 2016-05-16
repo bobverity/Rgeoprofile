@@ -4,7 +4,7 @@
 \alias{rDPM}
 \title{Draw from Dirichlet process mixture model}
 \usage{
-rDPM(n, sigma = 1, priorMean_x = 0, priorMean_y = 0, priorVar = 10,
+rDPM(n, sigma = 1, priorMean_x = 0, priorMean_y = 0, priorSD = 10,
   alpha = 1)
 }
 \arguments{

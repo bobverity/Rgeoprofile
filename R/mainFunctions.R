@@ -8,7 +8,9 @@
 #' @export
 #' @examples
 #' rDPM(10)
-rDPM <- function(n, sigma=1,priorMean_x=0, priorMean_y=0, priorVar=10, alpha=1) {
+rDPM <- function(n, sigma=1, priorMean_x=0, priorMean_y=0, priorSD=10, alpha=1) {
+    
+    # change units from km to degrees?
     
     # draw grouping
 	group = rep(1,n)
@@ -22,8 +24,8 @@ rDPM <- function(n, sigma=1,priorMean_x=0, priorMean_y=0, priorVar=10, alpha=1) 
 	group = sort(group)
 	
 	# draw means and data
-	mu_x = rnorm(length(freqs),priorMean_x,sqrt(priorVar))
-	mu_y = rnorm(length(freqs),priorMean_y,sqrt(priorVar))
+	mu_x = rnorm(length(freqs),priorMean_x,priorSD)
+	mu_y = rnorm(length(freqs),priorMean_y,priorSD)
 	x = rnorm(n,mu_x[group],sigma)
 	y = rnorm(n,mu_y[group],sigma)
 	
