@@ -12,7 +12,7 @@ int sample1(std::vector<double> &p, double pSum=1);
 
 //------------------------------------------------
 // sample from gamma(alpha,beta) distribution
-double rgamma1(double alpha, double beta);
+double rgamma1(double shape, double rate);
 
 //------------------------------------------------
 // draw from beta(alpha,beta) distribution

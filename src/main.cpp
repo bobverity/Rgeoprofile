@@ -116,6 +116,7 @@ List C_geoMCMC(List data, List params) {
             }
             
             // GR diagnostic elements
+            /*
             if (rep==0) {
                 C_alphaRunningSum[chain][rep] = C_alpha[chain];
                 C_alphaRunningSumSquared[chain][rep] = C_alpha[chain]*C_alpha[chain];
@@ -126,10 +127,12 @@ List C_geoMCMC(List data, List params) {
             C_alpha_secondHalf_mean[chain] = (C_alphaRunningSum[chain][rep] - C_alphaRunningSum[chain][floor(rep/2.0)])/ceil(rep/2.0);
             C_alpha_secondHalf_sumSquared[chain] = C_alphaRunningSumSquared[chain][rep] - C_alphaRunningSumSquared[chain][floor(rep/2.0)];
             C_alpha_secondHalf_var[chain] = (C_alpha_secondHalf_sumSquared[chain]-ceil(rep/2.0)*C_alpha_secondHalf_mean[chain]*C_alpha_secondHalf_mean[chain])/ceil(rep/2.0-1.0);
+            */
             
         } // loop over chains
         
         // GR diagnostic calculation
+        /*
         GR_W = mean(C_alpha_secondHalf_var);
         GR_alpha_grandMean = mean(C_alpha_secondHalf_mean);
         GR_B = 0;
@@ -140,11 +143,14 @@ List C_geoMCMC(List data, List params) {
         GR_V = (1-1/ceil(rep/2.0))*GR_W + GR_B/ceil(rep/2.0);
         GR_R = sqrt(GR_V/GR_W);
         
+        
         if ((rep+1)>=100 && GR_R<1.1 && convergence_reached==false) {
             Rcout << "    convergence at the GR=1.1 level reached within " << rep+1 << " iterations\n";
             R_FlushConsole(); R_ProcessEvents();
             convergence_reached = true;
         }
+        */
+        
         
     } // loop over burnin iterations
     
@@ -215,7 +221,7 @@ List C_geoMCMC(List data, List params) {
     // MCMC: sampling
     print("Initiating sampling phase");
     for (int rep=0; rep<samples; rep++) {
-        
+     
         // print iteration
         if ((rep+1)%samples_printConsole==0) {
             Rcout << "  iteration: " << rep+1 << "\n";
@@ -256,7 +262,7 @@ List C_geoMCMC(List data, List params) {
         
         // store some results
         alpha_store[rep] = alpha;
-        
+     
     } // loop over sampling iterations
     
     // final message
@@ -267,7 +273,7 @@ List C_geoMCMC(List data, List params) {
     return List::create(Named("alpha")=alpha_store, Named("allocation")=groupMat, Named("geoSurface")=geoSurface);
 }
 
-//*------------------------------------------------*
+//------------------------------------------------
 // update group allocation
 void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double> &data_y, std::vector<int> &group, std::vector<int> &freqs, std::vector<double> &sum_x, std::vector<double> &sum_y, int &nextGroup, int &uniqueGroups, std::vector<double> &postVar, std::vector<double> &postMean_x, std::vector<double> &postMean_y, double &priorMean_x, double &priorMean_y, double &sigma2, double &tau2, std::vector<double> &probVec, std::vector<double> &logProbVec, double &alpha) {
     
@@ -292,16 +298,19 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
     // recalculate probabilities
     double logProbVec_sum = -1.0/0;
     for (int j=0; j<freqs.size(); j++) {
-        postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
-        postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*postVar[j];
-        postMean_y[j] = (sum_y[j]/sigma2+priorMean_y/tau2)*postVar[j];
-        logProbVec[j] = -log(postVar[j]+sigma2)-0.5/(postVar[j]+sigma2)*((data_x[i]-postMean_x[j])*(data_x[i]-postMean_x[j]) + (data_y[i]-postMean_y[j])*(data_y[i]-postMean_y[j]));
-        if (j==(nextGroup-1)) {
-            logProbVec[j] += log(alpha);
-        } else {
-            logProbVec[j] += log(double(freqs[j]));
+        logProbVec[j] = -1.0/0;
+        if (freqs[j]>0 || j==(nextGroup-1)) {
+            postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
+            postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*postVar[j];
+            postMean_y[j] = (sum_y[j]/sigma2+priorMean_y/tau2)*postVar[j];
+            logProbVec[j] = -log(postVar[j]+sigma2)-0.5/(postVar[j]+sigma2)*((data_x[i]-postMean_x[j])*(data_x[i]-postMean_x[j]) + (data_y[i]-postMean_y[j])*(data_y[i]-postMean_y[j]));
+            if (j==(nextGroup-1)) {
+                logProbVec[j] += log(alpha);
+            } else {
+                logProbVec[j] += log(double(freqs[j]));
+            }
+            logProbVec_sum = logSum(logProbVec_sum,logProbVec[j]);
         }
-        logProbVec_sum = logSum(logProbVec_sum,logProbVec[j]);
     }
     for (int j=0; j<freqs.size(); j++) {
         probVec[j] = exp(logProbVec[j]-logProbVec_sum);
