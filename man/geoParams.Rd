@@ -8,8 +8,8 @@ geoParams(data = NULL, sigma = 0.01, priorMean_longitude = -0.1277,
   priorMean_latitude = 51.5074, priorSD = 0.03, alpha_shape = 0.1,
   alpha_rate = 0.1, chains = 10, burnin = 500, samples = 5000,
   burnin_printConsole = 100, samples_printConsole = 1000,
-  longitude_minMax = c(-10, 10), latitude_minMax = c(-10, 10),
-  longitude_cells = 500, latitude_cells = 500)
+  longitude_minMax = NULL, latitude_minMax = NULL, longitude_cells = 500,
+  latitude_cells = 500)
 }
 \arguments{
 \item{sigma}{The standard deviation of the dispersal distribution}

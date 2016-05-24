@@ -255,7 +255,7 @@ List C_geoMCMC(List data, List params) {
                 double x_draw = rnorm1(postMean_x[j],sqrt(postVar[j]));
                 double y_draw = rnorm1(postMean_y[j],sqrt(postVar[j]));
                 if (x_draw>=x_min && x_draw<=x_max && y_draw>=y_min && y_draw<=y_max) {
-                    geoSurface[floor((y_draw-y_min)/double(y_cellSize))][floor((x_draw-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha)/samples;
+                    geoSurface[floor((y_draw-y_min)/double(y_cellSize))][floor((x_draw-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha);
                 }
             }
         }

@@ -95,7 +95,7 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' @examples
 #' geoParams()
 
-geoParams <- function(data=NULL, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=c(-10,10), latitude_minMax=c(-10,10), longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
 	# if data argument used then get map limits from data
     if (!is.null(data)) {
@@ -141,8 +141,16 @@ geoParams <- function(data=NULL, sigma=0.01, priorMean_longitude=-0.1277, priorM
         }
         
         # set output values
-		longitude_minMax <- c(frame_xmin, frame_xmax)
-        latitude_minMax <- c(frame_ymin, frame_ymax)
+        if (is.null(longitude_minMax))
+            longitude_minMax <- c(frame_xmin, frame_xmax)
+        if (is.null(latitude_minMax))
+            latitude_minMax <- c(frame_ymin, frame_ymax)
+        
+    } else {
+        if (is.null(longitude_minMax))
+            longitude_minMax <- c(-10,10)
+        if (is.null(latitude_minMax))
+            latitude_minMax <- c(-10,10)
     }
     
     # set model parameters
@@ -317,6 +325,17 @@ geoParamsCheck <- function(params, silent=FALSE) {
 }
 
 #------------------------------------------------
+# Scaled Student's t distribution
+# (not exported)
+
+dts <- function(x,df,scale=1,log=FALSE) {
+    output <- lgamma((df+1)/2)-lgamma(df/2)-0.5*log(pi*df*scale^2) - ((df+1)/2)*log(1 + x^2/(df*scale^2))
+    if (!log)
+    output <- exp(output)
+    return(output)
+}
+
+#------------------------------------------------
 #' MCMC under Rgeoprofile model
 #'
 #' This function carries out the main MCMC under the Rgeoprofile model.
@@ -348,21 +367,69 @@ geoMCMC <- function(data, params) {
     # carry out MCMC
     rawOutput <- C_geoMCMC(data, params)
     
-    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
-    xmin <- params$output$longitude_minMax[1]
-    xmax <- params$output$longitude_minMax[2]
-    ymin <- params$output$latitude_minMax[1]
-    ymax <- params$output$latitude_minMax[2]
-    xCells <- longitude_cells
-    yCells <- latitude_cells
-    xCellSize <- (xmax-xmin)/xCells
-    yCellSize <- (ymax-ymin)/yCells
-    xMids <- params$output$longitude_midpoints
-    yMids <- params$output$latitude_midpoints
-    xMids_mat <- outer(rep(1,yCells),xMids)
-    yMids_mat <- outer(yMids,rep(1,xCells))
+    surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
     
-    priorMat <- dnorm(xMids_mat,priorMean_longitude,sd=priorSD)*dnorm(yMids_mat,priorMean_latitude,sd=priorSD)*(xCellSize*yCellSize)
+    # get some basic properties of the surface
+    lon_min <- params$output$longitude_minMax[1]
+    lon_max <- params$output$longitude_minMax[2]
+    lat_min <- params$output$latitude_minMax[1]
+    lat_max <- params$output$latitude_minMax[2]
+    cells_lon <- longitude_cells
+    cells_lat <- latitude_cells
+    cellSize_lon <- (lon_max-lon_min)/cells_lon
+    cellSize_lat <- (lat_max-lat_min)/cells_lat
+    
+    # set lambda (bandwidth) increment size based on cell size
+    lambda_step <- min(cellSize_lon,cellSize_lat)/5
+    
+    # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
+    rail_lon <- ceiling(100*lambda_step/cellSize_lon)
+    rail_lat <- ceiling(100*lambda_step/cellSize_lat)
+    railMat_lon <- matrix(0,cells_lat,rail_lon)
+    railMat_lat <- matrix(0,rail_lat,cells_lon+2*rail_lon)
+    
+    surface_normalised <- surface_raw/sum(surface_raw)
+    surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
+    surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
+    f1 = fftw2d(surface_normalised)
+    
+    kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
+    kernel_lat <- cellSize_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
+    kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
+    kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
+    kernel_s_mat <- sqrt(kernel_lon_mat^2+kernel_lat_mat^2)
+    
+    logLike <- -Inf
+    for (i in 1:100) {
+        
+        lambda <- lambda_step*i
+        kernel <- dts(kernel_s_mat,df=3,scale=lambda)
+        f2 = fftw2d(kernel)
+        
+        #### carry out fast Fourier transform, combine, and take inverse
+        f3 = f1*f2
+        f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+        f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
+        f5[f5<0] <- 0
+        f5 <- f5/sum(f4)
+        f6 <- surface_normalised*log(f5)
+        
+        if (sum(f6,na.rm=T)<logLike)
+        break()
+        logLike <- sum(f6,na.rm=T)
+
+    }
+    f4 <- f4[,(rail_lon+1):(ncol(f4)-rail_lon)]
+    f4 <- f4[(rail_lat+1):(nrow(f4)-rail_lat),]
+    
+    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
+    lon_mids <- params$output$longitude_midpoints
+    lat_mids <- params$output$latitude_midpoints
+    lon_mids_mat <- outer(rep(1,cells_lat),lon_mids)
+    lat_mids_mat <- outer(lat_mids,rep(1,cells_lon))
+    
+    priorMat <- dnorm(lon_mids_mat,priorMean_longitude,sd=priorSD)*dnorm(lat_mids_mat,priorMean_latitude,sd=priorSD)*(cellSize_lon*cellSize_lat)
+    
     
     # finalise output format
     output <- list()
@@ -372,8 +439,8 @@ geoMCMC <- function(data, params) {
     output$alpha <- alpha
     
     # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
-    surface <- priorMat*mean(alpha/(alpha+n)) + matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
-    output$surface <- surface
+    output$surface_raw <- surface_raw
+    output$surface <-  f4 + priorMat*mean(alpha/(alpha+n))
     
     # posterior allocation
     allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
