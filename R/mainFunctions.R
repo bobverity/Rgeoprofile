@@ -383,8 +383,8 @@ geoMCMC <- function(data, params) {
     lambda_step <- min(cellSize_lon,cellSize_lat)/5
     
     # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
-    rail_lon <- ceiling(100*lambda_step/cellSize_lon)
-    rail_lat <- ceiling(100*lambda_step/cellSize_lat)
+    rail_lon <- ceiling(200*lambda_step/cellSize_lon)
+    rail_lat <- ceiling(200*lambda_step/cellSize_lat)
     railMat_lon <- matrix(0,cells_lat,rail_lon)
     railMat_lat <- matrix(0,rail_lat,cells_lon+2*rail_lon)
     
@@ -452,89 +452,14 @@ geoMCMC <- function(data, params) {
 }
 
 #------------------------------------------------
-#' Apply smoothing to surface
-#'
-#' Applies Gaussian smoothing to surface.
-#' @param z matrix on which to apply smoothing.
-#' @param bandwidth standard deviation of Gaussian smoothing kernel
-#' @keywords bob
-#' @export
-#' @examples
-#' geoSmooth(MCMCoutput$geoSurface)
-geoSmooth <- function(x, y, z, bandwidth) {
-    
-    # check that input arguments are finite and numeric
-    if (!all(is.finite(x)) | !all(is.numeric(x)))
-        stop("values in x must be finite and numeric")
-    if (!all(is.finite(y)) | !all(is.numeric(y)))
-        stop("values in y must be finite and numeric")
-    if (!all(is.finite(z)) | !all(is.numeric(z)))
-        stop("values in z must be finite and numeric")
-    if (!is.finite(bandwidth) | !is.numeric(bandwidth))
-        stop("bandwidth must be finite and numeric")
-    
-    # check that input arguments make sense
-    if (!is.vector(x) | !is.vector(y))
-        stop("x and y must be vectors")
-    if (!is.matrix(z))
-        stop("z must be a matrix")
-    if (length(x)!=ncol(z) | length(y)!=nrow(z))
-        stop("length of vectors x and y must correspond to columns and rows of matrix z, respectively")
-    
-    # padd x and y to avoid bleeding over edges (Fourier method assumes periodic domain)
-    diff_x <- x[2]-x[1]
-    x_pad <- ceiling(3*bandwidth/diff_x)
-    x_left <- seq(x[1]-x_pad*diff_x, x[1]-diff_x, diff_x)
-    x_right <- seq(x[length(x)]+diff_x, x[length(x)]+x_pad*diff_x, diff_x)
-    x <- c(x_left,x,x_right)
-    
-    z_leftRight <- matrix(0,length(y),x_pad)
-    z <- cbind(z_leftRight,z,z_leftRight)
-    
-    diff_y <- y[2]-y[1]
-    y_pad <- ceiling(3*bandwidth/diff_y)
-    y_left <- seq(y[1]-y_pad*diff_y, y[1]-diff_y, diff_y)
-    y_right <- seq(y[length(y)]+diff_y, y[length(y)]+y_pad*diff_y, diff_y)
-    y <- c(y_left,y,y_right)
-    
-    z_topBottom <- matrix(0,y_pad,length(x))
-    z <- rbind(z_topBottom,z,z_topBottom)
-    
-    # define distance matrices
-    dist_x <- x-x[1]
-    dist_x_rev <- -(x-x[length(x)])
-    dist_x[dist_x_rev<dist_x] <- dist_x_rev[dist_x_rev<dist_x]
-    dist_x_mat <- t(replicate(length(y),dist_x))
-    dist_y <- y-y[1]
-    dist_y_rev <- -(y-y[length(y)])
-    dist_y[dist_y_rev<dist_y] <- dist_y_rev[dist_y_rev<dist_y]
-    dist_y_mat <- replicate(length(x),dist_y)
-    
-    # define Gaussian kernel
-    k <- dnorm(dist_x_mat,sd=bandwidth)*dnorm(dist_y_mat,sd=bandwidth)
-    
-    # apply Fourier method
-    f1 <- fftw2d(z)
-    f2 <- fftw2d(k)
-    f3 <- f1*f2
-    f4 <- Re(fftw2d(f3,inverse=T))
-    f4[f4<0] <- 0
-    
-    # trim off padding
-    f4 <- f4[(y_pad+1):(length(y)-y_pad),(x_pad+1):(length(x)-x_pad)]
-    
-    return(f4)
-}
-
-#------------------------------------------------
 #' Calculate geoprofile from surface
 #'
 #' Converts surface to rank order geoprofile.
 #' @param z matrix to convert to geoprofile
-#' @keywords bob
 #' @export
 #' @examples
 #' geoProfile(MCMCoutput$geoSurface)
+
 geoProfile <- function(z) {
     
     # check that z is in correct format
@@ -554,10 +479,10 @@ geoProfile <- function(z) {
 #'
 #' Produces plot of posterior allocation, given output of MCMC.
 #' @param MCMCoutput output generated from an MCMC.
-#' @keywords bob
 #' @export
 #' @examples
 #' geoPlotAllocation(MCMCoutput)
+
 geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, xTicks_on=FALSE, xTicks_size=1, orderBy="group") {
     
     # check that orderBy is either 'group' or 'probability'
@@ -658,10 +583,10 @@ geoSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1
 #'
 #' Creates quick geoprofile plot, choosing some parameters automatically.
 #' @param surface
-#' @keywords bob
 #' @export
 #' @examples
 #' geoQuickPlot(surface)
+
 geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,10,l=11), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
     
     # check that inputs make sense

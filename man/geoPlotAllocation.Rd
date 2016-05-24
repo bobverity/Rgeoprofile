@@ -19,5 +19,4 @@ Produces plot of posterior allocation, given output of MCMC.
 \examples{
 geoPlotAllocation(MCMCoutput)
 }
-\keyword{bob}
 

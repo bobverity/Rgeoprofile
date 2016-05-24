@@ -15,5 +15,4 @@ Converts surface to rank order geoprofile.
 \examples{
 geoProfile(MCMCoutput$geoSurface)
 }
-\keyword{bob}
 
