@@ -23,7 +23,11 @@ std::vector< std::vector<double> > transpose(std::vector< std::vector<double> > 
 void subtractRows(std::vector< std::vector<double> > &M) {
     double minVal;
     for (int i=0; i<M.size(); i++) {
-        minVal = *min_element(begin(M[i]),end(M[i]));
+        minVal = M[i][0];
+        for (unsigned int j=1; j<M[i].size(); j++) {
+            if (M[i][j]<minVal)
+                minVal = M[i][j];
+        }
         for (unsigned int j=0; j<M[i].size(); j++) {
             M[i][j] -= minVal;
         }
@@ -33,12 +37,15 @@ void subtractRows(std::vector< std::vector<double> > &M) {
 //*------------------------------------------------*
 // for each column in a matrix, subtract smallest element in that column
 void subtractCols(std::vector< std::vector<double> > &M) {
-    std::vector< std::vector<double> > tM = transpose(M);
     double minVal;
-    for (int i=0; i<tM.size(); i++) {
-        minVal = *std::min_element(std::begin(tM[i]),std::end(tM[i]));
-        for (int j=0; j<tM[i].size(); j++) {
-            M[j][i] -= minVal;
+    for (int j=0; j<M[0].size(); j++) {
+        minVal = M[0][j];
+        for (unsigned int i=1; i<M.size(); i++) {
+            if (M[i][j]<minVal)
+                minVal = M[i][j];
+        }
+        for (unsigned int i=0; i<M.size(); i++) {
+            M[i][j] -= minVal;
         }
     }
 }
