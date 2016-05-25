@@ -9,9 +9,9 @@ using namespace Rcpp;
 // transpose matrix
 std::vector< std::vector<double> > transpose(std::vector< std::vector<double> > &M) {
     std::vector< std::vector<double> > tM(M[0].size());
-    for (int i=0; i<M[0].size(); i++) {
+    for (int i=0; i<int(M[0].size()); i++) {
         tM[i] = std::vector<double>(M.size());
-        for (int j=0; j<M.size(); j++) {
+        for (int j=0; j<int(M.size()); j++) {
             tM[i][j] = M[j][i];
         }
     }
@@ -22,13 +22,13 @@ std::vector< std::vector<double> > transpose(std::vector< std::vector<double> > 
 // for each row in a matrix, subtract smallest element in that row
 void subtractRows(std::vector< std::vector<double> > &M) {
     double minVal;
-    for (int i=0; i<M.size(); i++) {
+    for (int i=0; i<int(M.size()); i++) {
         minVal = M[i][0];
-        for (unsigned int j=1; j<M[i].size(); j++) {
+        for (unsigned int j=1; j<int(M[i].size()); j++) {
             if (M[i][j]<minVal)
                 minVal = M[i][j];
         }
-        for (unsigned int j=0; j<M[i].size(); j++) {
+        for (unsigned int j=0; j<int(M[i].size()); j++) {
             M[i][j] -= minVal;
         }
     }
@@ -38,13 +38,13 @@ void subtractRows(std::vector< std::vector<double> > &M) {
 // for each column in a matrix, subtract smallest element in that column
 void subtractCols(std::vector< std::vector<double> > &M) {
     double minVal;
-    for (int j=0; j<M[0].size(); j++) {
+    for (int j=0; j<int(M[0].size()); j++) {
         minVal = M[0][j];
-        for (unsigned int i=1; i<M.size(); i++) {
+        for (unsigned int i=1; i<int(M.size()); i++) {
             if (M[i][j]<minVal)
                 minVal = M[i][j];
         }
-        for (unsigned int i=0; i<M.size(); i++) {
+        for (unsigned int i=0; i<int(M.size()); i++) {
             M[i][j] -= minVal;
         }
     }
