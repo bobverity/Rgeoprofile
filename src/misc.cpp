@@ -25,7 +25,7 @@ void print(std::string x) {
 //------------------------------------------------
 // helper function for printing contents of a vector (overloaded for int, double and string)
 void printVector(std::vector<int> x) {
-    for (int i=0; i<x.size(); i++) {
+    for (int i=0; i<int(x.size()); i++) {
         Rcout << x[i] << " ";
     }
     Rcout << "\n";
@@ -33,7 +33,7 @@ void printVector(std::vector<int> x) {
     R_ProcessEvents();
 }
 void printVector(std::vector<double> x) {
-    for (int i=0; i<x.size(); i++) {
+    for (int i=0; i<int(x.size()); i++) {
         Rcout << x[i] << " ";
     }
     Rcout << "\n";
@@ -41,7 +41,7 @@ void printVector(std::vector<double> x) {
     R_ProcessEvents();
 }
 void printVector(std::vector<std::string> x) {
-    for (int i=0; i<x.size(); i++) {
+    for (int i=0; i<int(x.size()); i++) {
         Rcout << x[i] << " ";
     }
     Rcout << "\n";
@@ -52,8 +52,8 @@ void printVector(std::vector<std::string> x) {
 //------------------------------------------------
 // helper function for printing contents of a matrix (overloaded for int, double and string)
 void printMatrix(std::vector< std::vector<int> > M) {
-    for (int i=0; i<M.size(); i++) {
-        for (int j=0; j<M[i].size(); j++) {
+    for (int i=0; i<int(M.size()); i++) {
+        for (int j=0; j<int(M[i].size()); j++) {
             Rcout << M[i][j] << " ";
         }
         Rcout << "\n";
@@ -63,8 +63,8 @@ void printMatrix(std::vector< std::vector<int> > M) {
     R_ProcessEvents();
 }
 void printMatrix(std::vector< std::vector<double> > M) {
-    for (int i=0; i<M.size(); i++) {
-        for (int j=0; j<M[i].size(); j++) {
+    for (int i=0; i<int(M.size()); i++) {
+        for (int j=0; j<int(M[i].size()); j++) {
             Rcout << M[i][j] << " ";
         }
         Rcout << "\n";
@@ -74,8 +74,8 @@ void printMatrix(std::vector< std::vector<double> > M) {
     R_ProcessEvents();
 }
 void printMatrix(std::vector< std::vector<std::string> > M) {
-    for (int i=0; i<M.size(); i++) {
-        for (int j=0; j<M[i].size(); j++) {
+    for (int i=0; i<int(M.size()); i++) {
+        for (int j=0; j<int(M[i].size()); j++) {
             Rcout << M[i][j] << " ";
         }
         Rcout << "\n";
@@ -96,7 +96,7 @@ double logSum(double logA, double logB) {
 // take the mean of a vector
 double mean(std::vector<double> &x) {
     double m = 0;
-    for (int i=0; i<x.size(); i++) {
+    for (int i=0; i<int(x.size()); i++) {
         m += x[i];
     }
     return(m/double(x.size()));

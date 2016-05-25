@@ -247,7 +247,7 @@ List C_geoMCMC(List data, List params) {
         }
         
         // draw group means and add to geoSurface
-        for (int j=0; j<freqs.size(); j++) {
+        for (int j=0; j<int(freqs.size()); j++) {
             if (freqs[j]>0) {
                 postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
                 postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*postVar[j];
@@ -296,9 +296,9 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
     }
     
     // recalculate probabilities
-    double logProbVec_sum = -1.0/0;
-    for (int j=0; j<freqs.size(); j++) {
-        logProbVec[j] = -1.0/0;
+    double logProbVec_sum = log(0.0);
+    for (int j=0; j<int(freqs.size()); j++) {
+        logProbVec[j] = log(0.0);
         if (freqs[j]>0 || j==(nextGroup-1)) {
             postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
             postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*postVar[j];
@@ -312,7 +312,7 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
             logProbVec_sum = logSum(logProbVec_sum,logProbVec[j]);
         }
     }
-    for (int j=0; j<freqs.size(); j++) {
+    for (int j=0; j<int(freqs.size()); j++) {
         probVec[j] = exp(logProbVec[j]-logProbVec_sum);
     }
     
@@ -320,7 +320,7 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
     group[i] = sample1(probVec,1.0);
     
     // expand to accommodate new group if needed
-    if (group[i]==freqs.size()) {
+    if (group[i]==int(freqs.size())) {
         freqs.push_back(0);
         sum_x.push_back(0);
         sum_y.push_back(0);
@@ -340,7 +340,7 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
     if (group[i]==nextGroup) {
         uniqueGroups ++;
         nextGroup = 1;
-        for (int j=0; j<freqs.size(); j++) {
+        for (int j=0; j<int(freqs.size()); j++) {
             if (freqs[j]==0)
                 break;
             nextGroup++;
@@ -367,14 +367,14 @@ void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vect
     // calculate cost matrix
     std::vector< std::vector<double> > costMat(groupMat[0].size(), std::vector<double>(groupMat[0].size()));
     for (int i=0; i<n; i++) {
-        for (int j=0; j<costMat.size(); j++) {
+        for (int j=0; j<int(costMat.size()); j++) {
             costMat[group[i]-1][j] -= groupMat[i][j];
         }
     }
     
     // calculate bestPerm and bestPermOrder
     bestPerm = hungarian(costMat);
-    for (int j=0; j<bestPerm.size(); j++) {
+    for (int j=0; j<int(bestPerm.size()); j++) {
         bestPermOrder[bestPerm[j]] = j;
     }
     
@@ -383,7 +383,7 @@ void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vect
         group_reorder[i] = bestPerm[group[i]-1]+1;
         groupMat[i][group_reorder[i]-1] ++;
     }
-    for (int j=0; j<bestPermOrder.size(); j++) {
+    for (int j=0; j<int(bestPermOrder.size()); j++) {
         freqs_reorder[j] = freqs[bestPermOrder[j]];
         sum_x_reorder[j] = sum_x[bestPermOrder[j]];
         sum_y_reorder[j] = sum_y[bestPermOrder[j]];
@@ -392,7 +392,7 @@ void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vect
     freqs = freqs_reorder;
     sum_x = sum_x_reorder;
     sum_y = sum_y_reorder;
-    if (nextGroup<freqs.size())
+    if (nextGroup<int(freqs.size()))
         nextGroup = bestPerm[nextGroup-1]+1;
     
 }
