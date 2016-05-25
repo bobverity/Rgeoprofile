@@ -397,6 +397,11 @@ geoMCMC <- function(data, params) {
     surface_normalised <- surface_raw/sum(surface_raw)
     surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
     surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
+    
+    print(surface_normalised)
+    print(dim(surface_normalised))
+    print(any(is.na(surface_normalised)))
+    
     f1 = fftw2d(surface_normalised)
     
     print("foo4")
