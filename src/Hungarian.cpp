@@ -36,7 +36,7 @@ void subtractCols(std::vector< std::vector<double> > &M) {
     std::vector< std::vector<double> > tM = transpose(M);
     double minVal;
     for (int i=0; i<tM.size(); i++) {
-        minVal = *std::min_element(begin(tM[i]),end(tM[i]));
+        minVal = *std::min_element(std::begin(tM[i]),std::end(tM[i]));
         for (int j=0; j<tM[i].size(); j++) {
             M[j][i] -= minVal;
         }
