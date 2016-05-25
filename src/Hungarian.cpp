@@ -58,7 +58,7 @@ std::vector<int> augmentLeft(int i, std::vector< std::vector<double> > &M, std::
     std::vector<int> output(1,-1);
     
     // search all unmatched edges
-    for (int j=0; j<M.size(); j++) {
+    for (int j=0; j<int(M.size()); j++) {
         if (M[i][j]==0 && edgesRight[j]!=i && blockedRight[j]==0) {
             
             // if edge leads to augmented path then add current node to path and return
@@ -153,7 +153,7 @@ std::vector<int> hungarian(std::vector< std::vector<double> > &M) {
                     if (path[0]>=0) {
                         continueAugmenting = true;
                         numberAssigned ++;
-                        for (int j=0; j<(path.size()/2); j++) {
+                        for (int j=0; j<int(path.size()/2); j++) {
                             edgesLeft[path[j*2+1]] = path[j*2];
                             edgesRight[path[j*2]] = path[j*2+1];
                         }
