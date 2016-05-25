@@ -24,11 +24,11 @@ void subtractRows(std::vector< std::vector<double> > &M) {
     double minVal;
     for (int i=0; i<int(M.size()); i++) {
         minVal = M[i][0];
-        for (unsigned int j=1; j<int(M[i].size()); j++) {
+        for (int j=1; j<int(M[i].size()); j++) {
             if (M[i][j]<minVal)
                 minVal = M[i][j];
         }
-        for (unsigned int j=0; j<int(M[i].size()); j++) {
+        for (int j=0; j<int(M[i].size()); j++) {
             M[i][j] -= minVal;
         }
     }
@@ -40,11 +40,11 @@ void subtractCols(std::vector< std::vector<double> > &M) {
     double minVal;
     for (int j=0; j<int(M[0].size()); j++) {
         minVal = M[0][j];
-        for (unsigned int i=1; i<int(M.size()); i++) {
+        for (int i=1; i<int(M.size()); i++) {
             if (M[i][j]<minVal)
                 minVal = M[i][j];
         }
-        for (unsigned int i=0; i<int(M.size()); i++) {
+        for (int i=0; i<int(M.size()); i++) {
             M[i][j] -= minVal;
         }
     }
