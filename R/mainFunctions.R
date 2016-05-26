@@ -95,7 +95,7 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' @examples
 #' geoParams()
 
-geoParams <- function(data=NULL, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma=0.008, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
 	# if data argument used then get map limits from data
     if (!is.null(data)) {
@@ -369,8 +369,6 @@ geoMCMC <- function(data, params) {
     
     surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
     
-    print("foo1")
-    
     # get some basic properties of the surface
     lon_min <- params$output$longitude_minMax[1]
     lon_max <- params$output$longitude_minMax[2]
@@ -381,8 +379,6 @@ geoMCMC <- function(data, params) {
     cellSize_lon <- (lon_max-lon_min)/cells_lon
     cellSize_lat <- (lat_max-lat_min)/cells_lat
     
-    print("foo2")
-    
     # set lambda (bandwidth) increment size based on cell size
     lambda_step <- min(cellSize_lon,cellSize_lat)/5
     
@@ -392,21 +388,10 @@ geoMCMC <- function(data, params) {
     railMat_lon <- matrix(0,cells_lat,rail_lon)
     railMat_lat <- matrix(0,rail_lat,cells_lon+2*rail_lon)
     
-    print("foo3")
-    
     surface_normalised <- surface_raw/sum(surface_raw)
     surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
     surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
-    
-    print(surface_raw)
-    print(dim(surface_raw))
-    print(range(surface_raw))
-    print(any(is.na(surface_raw)))
-    print(sum(surface_raw))
-    
     f1 = fftw2d(surface_normalised)
-    
-    print("foo4")
     
     kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
     kernel_lat <- cellSize_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
