@@ -368,6 +368,8 @@ geoMCMC <- function(data, params) {
     rawOutput <- C_geoMCMC(data, params)
     
     surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
+    
+    surface_raw[1,1] <- 1
     print(dim(surface_raw))
     print(colSums(surface_raw))
     
