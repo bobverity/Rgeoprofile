@@ -391,6 +391,8 @@ geoMCMC <- function(data, params) {
     surface_normalised <- surface_raw/sum(surface_raw)
     surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
     surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
+    print(surface_normalised)
+    print("foo")
     f1 = fftw2d(surface_normalised)
     
     kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
