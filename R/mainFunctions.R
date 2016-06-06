@@ -148,9 +148,9 @@ geoParams <- function(data=NULL, sigma=0.008, priorMean_longitude=-0.1277, prior
         
     } else {
         if (is.null(longitude_minMax))
-            longitude_minMax <- c(-10,10)
+            longitude_minMax <- -0.1277 + c(-0.1,0.1)
         if (is.null(latitude_minMax))
-            latitude_minMax <- c(-10,10)
+            latitude_minMax <- 51.5074 + c(-0.1,0.1)
     }
     
     # set model parameters
