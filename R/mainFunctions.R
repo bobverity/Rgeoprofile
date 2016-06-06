@@ -401,6 +401,7 @@ geoMCMC <- function(data, params) {
     
     logLike <- -Inf
     for (i in 1:100) {
+        print(i)
         
         lambda <- lambda_step*i
         kernel <- dts(kernel_s_mat,df=3,scale=lambda)
