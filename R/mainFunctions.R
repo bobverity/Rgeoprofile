@@ -369,7 +369,7 @@ geoMCMC <- function(data, params) {
     
     surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
     print(dim(surface_raw))
-    print(head(surface_raw))
+    print(colSums(surface_raw))
     
     # get some basic properties of the surface
     lon_min <- params$output$longitude_minMax[1]
@@ -393,9 +393,11 @@ geoMCMC <- function(data, params) {
     surface_normalised <- surface_raw/sum(surface_raw)
     surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
     surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
+    
     print(dim(surface_normalised))
-    print(head(surface_normalised))
+    print(colSums(surface_normalised))
     print("foo")
+    
     f1 = fftw2d(surface_normalised)
     
     kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
