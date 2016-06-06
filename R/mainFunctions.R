@@ -367,11 +367,10 @@ geoMCMC <- function(data, params) {
     # carry out MCMC
     rawOutput <- C_geoMCMC(data, params)
     
+    # extract raw draws and check that at least one draw in chosen region
     surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
-    
-    surface_raw[1,1] <- 1
-    print(dim(surface_raw))
-    print(colSums(surface_raw))
+    if (all(surface_raw==0))
+        stop('chosen lat/long window contains no posterior draws')
     
     # get some basic properties of the surface
     lon_min <- params$output$longitude_minMax[1]
@@ -396,10 +395,6 @@ geoMCMC <- function(data, params) {
     surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
     surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
     
-    print(dim(surface_normalised))
-    print(colSums(surface_normalised))
-    print("foo")
-    
     f1 = fftw2d(surface_normalised)
     
     kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
@@ -410,7 +405,6 @@ geoMCMC <- function(data, params) {
     
     logLike <- -Inf
     for (i in 1:100) {
-        print(i)
         
         lambda <- lambda_step*i
         kernel <- dts(kernel_s_mat,df=3,scale=lambda)
