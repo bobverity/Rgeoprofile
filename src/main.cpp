@@ -116,23 +116,24 @@ List C_geoMCMC(List data, List params) {
             }
             
             // GR diagnostic elements
-            /*
             if (rep==0) {
+                // add current alpha to running sums
                 C_alphaRunningSum[chain][rep] = C_alpha[chain];
                 C_alphaRunningSumSquared[chain][rep] = C_alpha[chain]*C_alpha[chain];
             } else {
+                // add current alpha to running sums
                 C_alphaRunningSum[chain][rep] = C_alphaRunningSum[chain][rep-1] + C_alpha[chain];
                 C_alphaRunningSumSquared[chain][rep] = C_alphaRunningSumSquared[chain][rep-1] + C_alpha[chain]*C_alpha[chain];
+                
+                // calculate variance of second half of alpha estimates
+                C_alpha_secondHalf_mean[chain] = (C_alphaRunningSum[chain][rep] - C_alphaRunningSum[chain][floor(rep/2.0)])/ceil(rep/2.0);
+                C_alpha_secondHalf_sumSquared[chain] = C_alphaRunningSumSquared[chain][rep] - C_alphaRunningSumSquared[chain][floor(rep/2.0)];
+                C_alpha_secondHalf_var[chain] = (C_alpha_secondHalf_sumSquared[chain]-ceil(rep/2.0)*C_alpha_secondHalf_mean[chain]*C_alpha_secondHalf_mean[chain])/ceil(rep/2.0-1.0);
             }
-            C_alpha_secondHalf_mean[chain] = (C_alphaRunningSum[chain][rep] - C_alphaRunningSum[chain][floor(rep/2.0)])/ceil(rep/2.0);
-            C_alpha_secondHalf_sumSquared[chain] = C_alphaRunningSumSquared[chain][rep] - C_alphaRunningSumSquared[chain][floor(rep/2.0)];
-            C_alpha_secondHalf_var[chain] = (C_alpha_secondHalf_sumSquared[chain]-ceil(rep/2.0)*C_alpha_secondHalf_mean[chain]*C_alpha_secondHalf_mean[chain])/ceil(rep/2.0-1.0);
-            */
             
         } // loop over chains
         
         // GR diagnostic calculation
-        /*
         GR_W = mean(C_alpha_secondHalf_var);
         GR_alpha_grandMean = mean(C_alpha_secondHalf_mean);
         GR_B = 0;
@@ -149,7 +150,6 @@ List C_geoMCMC(List data, List params) {
             R_FlushConsole(); R_ProcessEvents();
             convergence_reached = true;
         }
-        */
         
         
     } // loop over burnin iterations
