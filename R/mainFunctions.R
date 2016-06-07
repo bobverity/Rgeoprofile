@@ -625,7 +625,7 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		
 		# add contours
 		if (plotContours) {
-			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(m$profile), size=0.3, alpha=0.5, data=df)
+			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=0.5, data=df)
 		}
 	}
 
