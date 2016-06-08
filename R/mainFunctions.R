@@ -501,8 +501,12 @@ geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white
     k <- ncol(allocation)
     
     # replace colours if default
-    if (colours=="default")
-        colours <- brewer.pal(n=11,name="RdYlBu")
+    if (colours=="default") {
+        rawCols <- brewer.pal(n=11,name="RdYlBu")
+        myPal <- colorRampPalette(rawCols)
+        colours <- myPal(k)
+        colours <- colours[c(2*(1:ceiling(k/2))-1,2*(1:floor(k/2)))]
+    }
     
     # if ordered by group
     if (orderBy=="group") {
@@ -519,7 +523,7 @@ geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white
     if (orderBy=="probability") {
         
         plot(0, type='n', xlim=c(0,n), ylim=c(0,1), xlab=xlab, ylab=ylab, xaxs="i", yaxs="i",axes=FALSE, main=mainTitle)
-        tM <- t(MCMCoutput$allocation)
+        tM <- t(allocation)
         for (i in 1:n) {
             temp <- tM
             temp[,-i] <- NA
