@@ -1,8 +1,4 @@
 
-bobTest1 <- function() {
-    return('foobar')
-}
-
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
