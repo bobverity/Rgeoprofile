@@ -15,5 +15,4 @@ Creates quick geoprofile plot, choosing some parameters automatically.
 \examples{
 geoQuickPlot(surface)
 }
-\keyword{bob}
 
