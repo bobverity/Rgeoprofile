@@ -4,25 +4,28 @@
 #include "misc.h"
 #include "probability.h"
 #include "Hungarian.h"
-using namespace Rcpp;
+
+using namespace std;
 
 
-//*------------------------------------------------*
+//------------------------------------------------
 // run main MCMC.
 // [[Rcpp::export]]
-List C_geoMCMC(List data, List params) {
+Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     
     //read in input
-    std::vector<double> data_x = as<std::vector<double> >(data["longitude"]);
-    std::vector<double> data_y = as<std::vector<double> >(data["latitude"]);
+    vector<double> data_x = as<vector<double> >(data["longitude"]);
+    vector<double> data_y = as<vector<double> >(data["latitude"]);
     int n = data_x.size();
     
     Rcpp::List params_model = params["model"];
     Rcpp::List params_MCMC = params["MCMC"];
     Rcpp::List params_output = params["output"];
     
-    double sigma = as<double>(params_model["sigma"]);
-    double sigma2 = sigma*sigma;
+    double sigma_alpha = as<double>(params_model["sigma_alpha"]);
+    double sigma_beta = as<double>(params_model["sigma_beta"]);
+    //double sigma = 0.008;
+    //double sigma2 = sigma*sigma;
     double priorMean_x = as<double>(params_model["priorMean_longitude"]);
     double priorMean_y = as<double>(params_model["priorMean_latitude"]);
     double tau = as<double>(params_model["priorSD"]);
@@ -36,10 +39,10 @@ List C_geoMCMC(List data, List params) {
     int burnin_printConsole = as<int>(params_MCMC["burnin_printConsole"]);
     int samples_printConsole = as<int>(params_MCMC["samples_printConsole"]);
     
-    std::vector<double> x_minMax = as<std::vector<double> >(params_output["longitude_minMax"]);
+    vector<double> x_minMax = as<vector<double> >(params_output["longitude_minMax"]);
     double x_min = x_minMax[0];
     double x_max = x_minMax[1];
-    std::vector<double> y_minMax = as<std::vector<double> >(params_output["latitude_minMax"]);
+    vector<double> y_minMax = as<vector<double> >(params_output["latitude_minMax"]);
     double y_min = y_minMax[0];
     double y_max = y_minMax[1];
     int x_cells = as<int>(params_output["longitude_cells"]);
@@ -50,34 +53,36 @@ List C_geoMCMC(List data, List params) {
     
     //## MCMC: burnin #################################################
     // create objects for burn-in phase of MCMC (multiple chains)
-    std::vector< std::vector<int> > C_group(chains,std::vector<int>(n,1));
-    std::vector< std::vector<int> > C_freqs(chains,std::vector<int>(2));
-    std::vector< std::vector<double> > C_sum_x(chains,std::vector<double>(2));
-    std::vector< std::vector<double> > C_sum_y(chains,std::vector<double>(2));
-    std::vector<double> C_alpha(chains);
+    vector< vector<int> > C_group(chains,vector<int>(n,1));
+    vector< vector<int> > C_freqs(chains,vector<int>(2));
+    vector< vector<double> > C_sum_x(chains,vector<double>(2));
+    vector< vector<double> > C_sum_y(chains,vector<double>(2));
+    vector<double> C_sigma2(chains);
+    vector<double> C_alpha(chains);
     for (int chain=0; chain<chains; chain++) {
         for (int i=0; i<n; i++) {
             C_freqs[chain][C_group[chain][i]-1] ++;
             C_sum_x[chain][C_group[chain][i]-1] += data_x[i];
             C_sum_y[chain][C_group[chain][i]-1] += data_y[i];
         }
+        C_sigma2[chain] = 1.0/rgamma1(sigma_alpha,sigma_beta);
         C_alpha[chain] = rgamma1(1.0,0.01);
     }
-    std::vector< std::vector<double> > C_postMean_x(chains,std::vector<double>(2));
-    std::vector< std::vector<double> > C_postMean_y(chains,std::vector<double>(2));
-    std::vector< std::vector<double> > C_postVar(chains,std::vector<double>(2));
-    std::vector< std::vector<double> > C_logProbVec(chains,std::vector<double>(2));
-    std::vector< std::vector<double> > C_probVec(chains,std::vector<double>(2));
-    std::vector<int> C_nextGroup(chains,2);
-    std::vector<int> C_uniqueGroups(chains,1);
+    vector< vector<double> > C_postMean_x(chains,vector<double>(2));
+    vector< vector<double> > C_postMean_y(chains,vector<double>(2));
+    vector< vector<double> > C_postVar(chains,vector<double>(2));
+    vector< vector<double> > C_logProbVec(chains,vector<double>(2));
+    vector< vector<double> > C_probVec(chains,vector<double>(2));
+    vector<int> C_nextGroup(chains,2);
+    vector<int> C_uniqueGroups(chains,1);
     double lambda, w;
     
     // objects involved in convergence testing
-    std::vector< std::vector<double> > C_alphaRunningSum(chains,std::vector<double>(burnin));
-    std::vector< std::vector<double> > C_alphaRunningSumSquared(chains,std::vector<double>(burnin));
-    std::vector<double> C_alpha_secondHalf_mean(chains);
-    std::vector<double> C_alpha_secondHalf_sumSquared(chains);
-    std::vector<double> C_alpha_secondHalf_var(chains);
+    vector< vector<double> > C_alphaRunningSum(chains,vector<double>(burnin));
+    vector< vector<double> > C_alphaRunningSumSquared(chains,vector<double>(burnin));
+    vector<double> C_alpha_secondHalf_mean(chains);
+    vector<double> C_alpha_secondHalf_sumSquared(chains);
+    vector<double> C_alpha_secondHalf_var(chains);
     double GR_W;
     double GR_alpha_grandMean;
     double GR_B;
@@ -103,8 +108,11 @@ List C_geoMCMC(List data, List params) {
             
             // update all group allocations
             for (int i=0; i<n; i++) {
-                updateGroup(i, n, data_x, data_y, C_group[chain], C_freqs[chain], C_sum_x[chain], C_sum_y[chain], C_nextGroup[chain], C_uniqueGroups[chain], C_postVar[chain], C_postMean_x[chain], C_postMean_y[chain], priorMean_x, priorMean_y, sigma2, tau2, C_probVec[chain], C_logProbVec[chain], C_alpha[chain]);
+                updateGroup(i, n, data_x, data_y, C_group[chain], C_freqs[chain], C_sum_x[chain], C_sum_y[chain], C_nextGroup[chain], C_uniqueGroups[chain], C_postVar[chain], C_postMean_x[chain], C_postMean_y[chain], priorMean_x, priorMean_y, C_sigma2[chain], tau2, C_probVec[chain], C_logProbVec[chain], C_alpha[chain]);
             }
+            
+            // update sigma2
+            
             
             // update alpha
             lambda = rbeta1(C_alpha[chain]+1.0,n);
@@ -173,8 +181,8 @@ List C_geoMCMC(List data, List params) {
     //## MCMC: sampling #################################################
     // create objects for sampling phase of MCMC
     // start by reordering burn-in group to be increasing
-    std::vector<int> group(n);
-    std::vector<int> burnin_reorder(C_freqs[0].size());
+    vector<int> group(n);
+    vector<int> burnin_reorder(C_freqs[0].size());
     int index1 = 0;
     for (int i=0; i<n; i++) {
         if (burnin_reorder[C_group[0][i]-1]==0) {
@@ -186,36 +194,40 @@ List C_geoMCMC(List data, List params) {
         }
     }
     
-    std::vector<int> freqs(index1+1);
-    std::vector<double> sum_x(index1+1);
-    std::vector<double> sum_y(index1+1);
+    vector<int> freqs(index1+1);
+    vector<double> sum_x(index1+1);
+    vector<double> sum_y(index1+1);
     for (int i=0; i<n; i++) {
         freqs[group[i]-1] ++;
         sum_x[group[i]-1] += data_x[i];
         sum_y[group[i]-1] += data_y[i];
     }
-    std::vector<double> postMean_x(index1+1);
-    std::vector<double> postMean_y(index1+1);
-    std::vector<double> postVar(index1+1);
-    std::vector<double> logProbVec(index1+1);
-    std::vector<double> probVec(index1+1);
+    vector<double> postMean_x(index1+1);
+    vector<double> postMean_y(index1+1);
+    vector<double> postVar(index1+1);
+    vector<double> logProbVec(index1+1);
+    vector<double> probVec(index1+1);
     int nextGroup = index1+1;
     int uniqueGroups = index1;
+    double sigma2 = C_sigma2[0];
+    double sigma_postAlpha;
+    double sigma_postBeta;
     double alpha = C_alpha[0];
     
     
     // create objects for dealing with label switching
-    std::vector< std::vector<int> > groupMat(n, std::vector<int>(1));
-    std::vector<int> bestPerm;
-    std::vector<int> bestPermOrder(1);
-    std::vector<int> group_reorder(n);
-    std::vector<int> freqs_reorder(2);
-    std::vector<double> sum_x_reorder(2);
-    std::vector<double> sum_y_reorder(2);
+    vector< vector<int> > groupMat(n, vector<int>(1));
+    vector<int> bestPerm;
+    vector<int> bestPermOrder(1);
+    vector<int> group_reorder(n);
+    vector<int> freqs_reorder(2);
+    vector<double> sum_x_reorder(2);
+    vector<double> sum_y_reorder(2);
     
     // create objects for storing results
-    std::vector<double> alpha_store(samples);
-    std::vector< std::vector<double> > geoSurface(y_cells, std::vector<double>(x_cells));
+    vector<double> sigma_store(samples);
+    vector<double> alpha_store(samples);
+    vector< vector<double> > geoSurface(y_cells, vector<double>(x_cells));
     
     
     // MCMC: sampling
@@ -236,6 +248,12 @@ List C_geoMCMC(List data, List params) {
         
         // solve label switching problem
         solveLabelSwitching(n, group, groupMat, bestPerm, bestPermOrder, group_reorder, freqs, sum_x, sum_y, freqs_reorder, sum_x_reorder, sum_y_reorder, nextGroup);
+        
+        // update sigma2
+        sigma_postAlpha = sigma_alpha;
+        sigma_postBeta = sigma_beta;
+        
+        sigma2 = 1.0/rgamma1(sigma_postAlpha,sigma_postBeta);
         
         // update alpha
         lambda = rbeta1(alpha+1.0,n);
@@ -261,6 +279,7 @@ List C_geoMCMC(List data, List params) {
         }
         
         // store some results
+        sigma_store[rep] = sqrt(sigma2);
         alpha_store[rep] = alpha;
      
     } // loop over sampling iterations
@@ -270,12 +289,12 @@ List C_geoMCMC(List data, List params) {
     R_FlushConsole(); R_ProcessEvents();
     
     // return values
-    return List::create(Named("alpha")=alpha_store, Named("allocation")=groupMat, Named("geoSurface")=geoSurface);
+    return Rcpp::List::create(Named("alpha")=alpha_store, Named("allocation")=groupMat, Named("geoSurface")=geoSurface);
 }
 
 //------------------------------------------------
 // update group allocation
-void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double> &data_y, std::vector<int> &group, std::vector<int> &freqs, std::vector<double> &sum_x, std::vector<double> &sum_y, int &nextGroup, int &uniqueGroups, std::vector<double> &postVar, std::vector<double> &postMean_x, std::vector<double> &postMean_y, double &priorMean_x, double &priorMean_y, double &sigma2, double &tau2, std::vector<double> &probVec, std::vector<double> &logProbVec, double &alpha) {
+void updateGroup(int &i, int &n, vector<double> &data_x, vector<double> &data_y, vector<int> &group, vector<int> &freqs, vector<double> &sum_x, vector<double> &sum_y, int &nextGroup, int &uniqueGroups, vector<double> &postVar, vector<double> &postMean_x, vector<double> &postMean_y, double &priorMean_x, double &priorMean_y, double &sigma2, double &tau2, vector<double> &probVec, vector<double> &logProbVec, double &alpha) {
     
     // remove point i from all objects
     freqs[group[i]-1] --;
@@ -349,9 +368,9 @@ void updateGroup(int &i, int &n, std::vector<double> &data_x, std::vector<double
     
 }
 
-//*------------------------------------------------*
+//------------------------------------------------
 // solve label switching problem
-void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vector<int> > &groupMat, std::vector<int> &bestPerm, std::vector<int> &bestPermOrder, std::vector<int> &group_reorder, std::vector<int> &freqs, std::vector<double> &sum_x, std::vector<double> &sum_y, std::vector<int> &freqs_reorder, std::vector<double> &sum_x_reorder, std::vector<double> &sum_y_reorder,  int &nextGroup) {
+void solveLabelSwitching(int &n, vector<int> &group, vector< vector<int> > &groupMat, vector<int> &bestPerm, vector<int> &bestPermOrder, vector<int> &group_reorder, vector<int> &freqs, vector<double> &sum_x, vector<double> &sum_y, vector<int> &freqs_reorder, vector<double> &sum_x_reorder, vector<double> &sum_y_reorder,  int &nextGroup) {
     
     // expand objects if necessary
     while ((freqs.size()-1)>bestPermOrder.size()) {
@@ -365,7 +384,7 @@ void solveLabelSwitching(int &n, std::vector<int> &group, std::vector< std::vect
     }
     
     // calculate cost matrix
-    std::vector< std::vector<double> > costMat(groupMat[0].size(), std::vector<double>(groupMat[0].size()));
+    vector< vector<double> > costMat(groupMat[0].size(), vector<double>(groupMat[0].size()));
     for (int i=0; i<n; i++) {
         for (int j=0; j<int(costMat.size()); j++) {
             costMat[group[i]-1][j] -= groupMat[i][j];
