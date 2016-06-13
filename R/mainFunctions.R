@@ -612,7 +612,12 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     
     # overlay geoprofile
     if (!is.null(surface)) {
-    	geoCols <- colorRampPalette(c("#00008F","#0000FF","#0070FF","#00DFFF","#50FFAF","#BFFF40","#FFCF00","#FF6000","#EF0000","#800000"))
+    	
+    	geoCols <- colorRampPalette(c("red","orange","yellow","white"))
+    	nbcol=length(breakPercent)-1 	
+    	color <- geoCols(nbcol)
+    	
+
     	
 		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
 		df$z <- as.vector(t(surface))
@@ -621,7 +626,8 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		df_noNA <- df[!is.na(df$cut),]
 		
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
-		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(11)))
+		myMap <- myMap + scale_fill_manual(name="HHitscore\npercentage", values=rev(geoCols(11)))
+
 		
 		# add contours
 		if (plotContours) {
