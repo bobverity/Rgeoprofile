@@ -13,7 +13,7 @@ rDPM(n, sigma = 0.01, priorMean_longitude = -0.1277,
 \item{sigma}{standard deviation of dispersal distribution, in units of degrees}
 }
 \description{
-This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve change!
+This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve experimenting with GitHUb desktop!
 }
 \examples{
 rDPM(10)
