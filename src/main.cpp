@@ -3,7 +3,7 @@
  TO DO
     - this script could do with some organising and reshuffling. Should make MCMCobject class and chain class, and get all MCMC functions within these. Would also allow to clean up burn-in vs. sampling phase.
     - group variable to start at 0
- 
+    
 */
 
 #include <Rcpp.h>
