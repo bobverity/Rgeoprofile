@@ -2,7 +2,7 @@
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
-#' This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve change!
+#' This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve experimenting with GitHUb desktop!
 #'
 #' @param n number of draws
 #' @param sigma standard deviation of dispersal distribution, in units of degrees
