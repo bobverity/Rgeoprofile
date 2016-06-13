@@ -591,7 +591,7 @@ geoSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1
 #' @examples
 #' geoQuickPlot(surface)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,10,l=11), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
     
     # check that inputs make sense
     geoParamsCheck(params)
