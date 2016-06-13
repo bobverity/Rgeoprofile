@@ -591,7 +591,7 @@ geoSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1
 #' @examples
 #' geoQuickPlot(surface)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -613,7 +613,7 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     # overlay geoprofile
     if (!is.null(surface)) {
     	
-    	geoCols <- colorRampPalette(c("red","orange","yellow","white"))
+    	geoCols <- colorRampPalette(contour_cols)
     	nbcol=length(breakPercent)-1 	
     	color <- geoCols(nbcol)
     	
