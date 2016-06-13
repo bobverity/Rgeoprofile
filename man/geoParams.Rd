@@ -4,15 +4,17 @@
 \alias{geoParams}
 \title{Create Rgeoprofile parameters object}
 \usage{
-geoParams(data = NULL, sigma = 0.008, priorMean_longitude = -0.1277,
-  priorMean_latitude = 51.5074, priorSD = 0.03, alpha_shape = 0.1,
-  alpha_rate = 0.1, chains = 10, burnin = 500, samples = 5000,
-  burnin_printConsole = 100, samples_printConsole = 1000,
-  longitude_minMax = NULL, latitude_minMax = NULL, longitude_cells = 500,
-  latitude_cells = 500)
+geoParams(data = NULL, sigma_mean = 0.008, sigma_var = 1e-04,
+  priorMean_longitude = -0.1277, priorMean_latitude = 51.5074,
+  priorSD = 0.03, alpha_shape = 0.1, alpha_rate = 0.1, chains = 10,
+  burnin = 500, samples = 5000, burnin_printConsole = 100,
+  samples_printConsole = 1000, longitude_minMax = NULL,
+  latitude_minMax = NULL, longitude_cells = 500, latitude_cells = 500)
 }
 \arguments{
-\item{sigma}{The standard deviation of the dispersal distribution}
+\item{sigma_mean}{The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)}
+
+\item{sigma_var}{The variance of the prior on sigma}
 
 \item{priorMean_longitude}{The position (longitude) of the mean of the prior distribution}
 

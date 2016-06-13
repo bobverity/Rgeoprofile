@@ -12,11 +12,11 @@
 #' rDPM(10)
 
 rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha=1) {
-    
-    # force n to be a scalar integer
-    n <- floor(n[1])
-    
-    # draw grouping
+  
+  # force n to be a scalar integer
+  n <- floor(n[1])
+  
+  # draw grouping
 	group <- rep(1,n)
 	freqs <- 1
     if (n>1) {
@@ -54,15 +54,15 @@ rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=
 
 geoData <- function(longitude=NULL, latitude=NULL) {
     
-    # generate dummy data if none read in
-    if (is.null(longitude) & is.null(latitude)) {
-        longitude <- c(-0.104545976281589, -0.102659272660916, -0.0967390020136406, -0.0996246226730725, -0.100775342233937, -0.101073477576196, -0.100932674617746, -0.0983001766339886, -0.0913571765598557, -0.100211479242536, -0.139508969429415, -0.14403082311245, -0.143607222414313, -0.137174795971723, -0.140884394738737, -0.142723755125487, -0.143380928147727, -0.136989691342132, -0.13837666855334, -0.138297288871952, -0.0773858357074935, -0.0818743917621333, -0.0738310357273188, -0.0744118149244568, -0.0757833597110897, -0.0762193916493531, -0.0810467015747727, -0.110052994420826, -0.106600836874167, -0.105104028808356, -0.101934241194567, -0.0683752111183375, -0.0758607240702608, -0.079153744918552, -0.087964365345432)
-        latitude <- c(51.4996147329979, 51.4925230579844, 51.4947129689414, 51.4922683109254, 51.5007532206834, 51.4960640374896, 51.4996917836745, 51.4976936749008, 51.4977904998888, 51.4894186202378, 51.5002583182117, 51.5033510595094, 51.4984697991335, 51.5063306206839, 51.4961516950408, 51.4994464819411, 51.5067557678594, 51.4977275537675, 51.4988718377984, 51.4974782970503, 51.5137643501102, 51.5204498816501, 51.5213788858189, 51.5144343479237, 51.5212383455566, 51.5088225370868, 51.512547894056, 51.5144758355252, 51.5218865924773, 51.5218808497196, 51.5152330574081, 51.4836680563637, 51.4885211991595, 51.486842412489, 51.48845301363455)
-    }
-    
-    # combine and return
-    data <- list(longitude=longitude, latitude=latitude)
-    return(data)
+  # generate dummy data if none read in
+  if (is.null(longitude) & is.null(latitude)) {
+    longitude <- c(-0.104545976281589, -0.102659272660916, -0.0967390020136406, -0.0996246226730725, -0.100775342233937, -0.101073477576196, -0.100932674617746, -0.0983001766339886, -0.0913571765598557, -0.100211479242536, -0.139508969429415, -0.14403082311245, -0.143607222414313, -0.137174795971723, -0.140884394738737, -0.142723755125487, -0.143380928147727, -0.136989691342132, -0.13837666855334, -0.138297288871952, -0.0773858357074935, -0.0818743917621333, -0.0738310357273188, -0.0744118149244568, -0.0757833597110897, -0.0762193916493531, -0.0810467015747727, -0.110052994420826, -0.106600836874167, -0.105104028808356, -0.101934241194567, -0.0683752111183375, -0.0758607240702608, -0.079153744918552, -0.087964365345432)
+    latitude <- c(51.4996147329979, 51.4925230579844, 51.4947129689414, 51.4922683109254, 51.5007532206834, 51.4960640374896, 51.4996917836745, 51.4976936749008, 51.4977904998888, 51.4894186202378, 51.5002583182117, 51.5033510595094, 51.4984697991335, 51.5063306206839, 51.4961516950408, 51.4994464819411, 51.5067557678594, 51.4977275537675, 51.4988718377984, 51.4974782970503, 51.5137643501102, 51.5204498816501, 51.5213788858189, 51.5144343479237, 51.5212383455566, 51.5088225370868, 51.512547894056, 51.5144758355252, 51.5218865924773, 51.5218808497196, 51.5152330574081, 51.4836680563637, 51.4885211991595, 51.486842412489, 51.48845301363455)
+  }
+  
+  # combine and return
+  data <- list(longitude=longitude, latitude=latitude)
+  return(data)
 }
 
 #------------------------------------------------
@@ -71,7 +71,8 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
 #'
 #' @param data
-#' @param sigma The standard deviation of the dispersal distribution
+#' @param sigma_mean The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)
+#' @param sigma_var The variance of the prior on sigma
 #' @param priorMean_longitude The position (longitude) of the mean of the prior distribution
 #' @param priorMean_latitude The position (latitude) of the mean of the prior distribution
 #' @param priorSD
@@ -91,49 +92,49 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' @examples
 #' geoParams()
 
-geoParams <- function(data=NULL, sigma=0.008, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
-	# if data argument used then get map limits from data
+  	# if data argument used then get map limits from data
     if (!is.null(data)) {
         
         # check correct format of data
         geoDataCheck(data, silent=TRUE)
-        
-		# get midpoints and ranges
-	    xmin <- min(data$longitude);
+            
+    		# get midpoints and ranges
+        xmin <- min(data$longitude);
         xmax <- max(data$longitude)
-	    ymin <- min(data$latitude);
+        ymin <- min(data$latitude);
         ymax <- max(data$latitude)
-        xdiff <- diff(range(data$longitude))
-        ydiff <- diff(range(data$latitude))
+        xdiff <- xmax-xmin
+        ydiff <- ymax-ymin
         xmid <- xmin + xdiff/2
         ymid <- ymin + ydiff/2
         
-        # calculate latitude upper and lower limits corresponding to a square map
+        # try to use x-limits to calculate latitude upper and lower limits corresponding to a square map
         delta <- xdiff/2
         projection_mid <- log(tan(pi/4+ymid/360*2*pi/2))
         projection_top <- projection_mid + delta/360*2*pi
         projection_bot <- projection_mid - delta/360*2*pi
         lat_angle_top <- (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
         lat_angle_bot <- (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
-		
-		# if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases ass a 10% buffer zone.
+    		
+    		# if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases add a 10% buffer zone.
         if (ymin>=lat_angle_bot & ymax<=lat_angle_top) {
-        	frame_xmin <- xmin-xdiff*0.1
-        	frame_xmax <- xmax+xdiff*0.1
-			frame_ymin <- (lat_angle_top+lat_angle_bot)/2-(lat_angle_top-lat_angle_bot)*0.6
-			frame_ymax <- (lat_angle_top+lat_angle_bot)/2+(lat_angle_top-lat_angle_bot)*0.6
+          	frame_xmin <- xmin-xdiff*0.1
+          	frame_xmax <- xmax+xdiff*0.1
+      			frame_ymin <- (lat_angle_top+lat_angle_bot)/2-(lat_angle_top-lat_angle_bot)*0.6
+      			frame_ymax <- (lat_angle_top+lat_angle_bot)/2+(lat_angle_top-lat_angle_bot)*0.6
         } else {
-        	lat_angle_bot <- ymin
-        	lat_angle_top <- ymax
-        	projection_bot <- log(tan((lat_angle_bot/360*(2*pi)+pi/2)/2))
-        	projection_top <- log(tan((lat_angle_top/360*(2*pi)+pi/2)/2))
-			projection_mid <- (projection_bot+projection_top)/2
-			delta <- (projection_top-projection_mid)*360/(2*pi)
-			frame_xmin <- xmid - delta*1.1
-			frame_xmax <- xmid + delta*1.1
-			frame_ymin <- lat_angle_bot - delta*0.1
-			frame_ymax <- lat_angle_top + delta*0.1
+          	lat_angle_bot <- ymin
+          	lat_angle_top <- ymax
+          	projection_bot <- log(tan((lat_angle_bot/360*(2*pi)+pi/2)/2))
+          	projection_top <- log(tan((lat_angle_top/360*(2*pi)+pi/2)/2))
+      			projection_mid <- (projection_bot+projection_top)/2
+      			delta <- (projection_top-projection_mid)*360/(2*pi)
+      			frame_xmin <- xmid - delta*1.1
+      			frame_xmax <- xmid + delta*1.1
+      			frame_ymin <- lat_angle_bot - delta*0.1
+      			frame_ymax <- lat_angle_top + delta*0.1
         }
         
         # set output values
@@ -142,15 +143,16 @@ geoParams <- function(data=NULL, sigma=0.008, priorMean_longitude=-0.1277, prior
         if (is.null(latitude_minMax))
             latitude_minMax <- c(frame_ymin, frame_ymax)
         
+    # if data argument not used then set limits from longitude_minMax and latitude_minMax arguments, or failing that set them automatically
     } else {
-        if (is.null(longitude_minMax))
-            longitude_minMax <- -0.1277 + c(-0.1,0.1)
-        if (is.null(latitude_minMax))
-            latitude_minMax <- 51.5074 + c(-0.1,0.1)
+      if (is.null(longitude_minMax))
+          longitude_minMax <- -0.1277 + c(-0.1,0.1)
+      if (is.null(latitude_minMax))
+          latitude_minMax <- 51.5074 + c(-0.1,0.1)
     }
     
     # set model parameters
-    model <- list(sigma=sigma, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
+    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
     
     # set MCMC parameters
     MCMC <- list(chains=chains, burnin=burnin, samples=samples, burnin_printConsole=burnin_printConsole, samples_printConsole=samples_printConsole)
@@ -189,30 +191,30 @@ geoParams <- function(data=NULL, sigma=0.008, priorMean_longitude=-0.1277, prior
 
 geoDataCheck <- function(data, silent=FALSE) {
     
-    # check that data is a list
-    if (!is.list(data))
+  # check that data is a list
+  if (!is.list(data))
     stop("data must be in list format")
-    
-    # check that contains longitude and latitude
-    if (!("longitude"%in%names(data)))
+  
+  # check that contains longitude and latitude
+  if (!("longitude"%in%names(data)))
     stop("data must contain element 'longitude'")
-    if (!("latitude"%in%names(data)))
+  if (!("latitude"%in%names(data)))
     stop("data must contain element 'latitude'")
-    
-    # check that data values are correct format and range
-    if (!is.numeric(data$longitude) | !all(is.finite(data$longitude)))
+  
+  # check that data values are correct format and range
+  if (!is.numeric(data$longitude) | !all(is.finite(data$longitude)))
     stop("data$longitude values must be numeric and finite")
-    if (!is.numeric(data$latitude) | !all(is.finite(data$latitude)))
+  if (!is.numeric(data$latitude) | !all(is.finite(data$latitude)))
     stop("data$latitude values must be numeric and finite")
-    
-    # check same number of observations in logitude and latitude, and n>1
-    if (length(data$longitude)!=length(data$latitude))
+  
+  # check same number of observations in logitude and latitude, and n>1
+  if (length(data$longitude)!=length(data$latitude))
     stop("data$longitude and data$latitude must have the same length")
-    if (length(data$longitude)<=1)
+  if (length(data$longitude)<=1)
     stop("data must contain at least two observations")
-    
-    # if passed all checks
-    if (!silent)
+  
+  # if passed all checks
+  if (!silent)
     cat("data file passed all checks\n")
 }
 
@@ -230,94 +232,180 @@ geoDataCheck <- function(data, silent=FALSE) {
 #' geoParamsCheck(myParams)
 
 geoParamsCheck <- function(params, silent=FALSE) {
-    
-    # check that params is a list
-    if (!is.list(params))
-        stop("params must be in list format")
-        
-    # check that contains 'model' and 'MCMC' as sublists
-    if (!("model"%in%names(params) & "MCMC"%in%names(params)))
-        stop("params must contain sublists 'model' and 'MCMC'")
+  
+  # check that params is a list
+  if (!is.list(params))
+    stop("params must be in list format")
+      
+  # check that contains 'model', 'MCMC' and 'output' as sublists
+  if (!"model"%in%names(params) | !"MCMC"%in%names(params) | !"output"%in%names(params))
+    stop("params must contain sublists 'model', 'MCMC' and 'output'")
 
-    # check that 'model' and 'MCMC' are indeed lists
-    if (!is.list(params$model))
-        stop("params$model must be in list format")
-    if (!is.list(params$MCMC))
-        stop("params$MCMC must be in list format")
+  # check that 'model', 'MCMC' and 'output' are indeed lists
+  if (!is.list(params$model))
+    stop("params$model must be in list format")
+  if (!is.list(params$MCMC))
+    stop("params$MCMC must be in list format")
+  if (!is.list(params$output))
+    stop("params$output must be in list format")
 
-    # check that params$model contains all necessary parameters
-    if (!("sigma"%in%names(params$model)))
-        stop("params$model must contain parameter 'sigma'")
-    if (!("priorMean_longitude"%in%names(params$model)))
-        stop("params$model must contain parameter 'priorMean_longitude'")
-    if (!("priorMean_latitude"%in%names(params$model)))
-        stop("params$model must contain parameter 'priorMean_latitude'")
-    if (!("priorSD"%in%names(params$model)))
-        stop("params$model must contain parameter 'priorSD'")
-    if (!("alpha_shape"%in%names(params$model)))
-        stop("params$model must contain parameter 'alpha_shape'")
-    if (!("alpha_rate"%in%names(params$model)))
-        stop("params$model must contain parameter 'alpha_rate'")
+  #---------------------------------------
 
-    # check that params$MCMC contains all necessary parameters
-    if (!("chains"%in%names(params$MCMC)))
-        stop("params$MCMC must contain parameter 'chains'")
-    if (!("burnin"%in%names(params$MCMC)))
-        stop("params$MCMC must contain parameter 'burnin'")
-    if (!("samples"%in%names(params$MCMC)))
-        stop("params$MCMC must contain parameter 'samples'")
-    if (!("burnin_printConsole"%in%names(params$MCMC)))
-        stop("params$MCMC must contain parameter 'burnin_printConsole'")
-    if (!("samples_printConsole"%in%names(params$MCMC)))
-        stop("params$MCMC must contain parameter 'samples_printConsole'")
-    
-    # check that params$model values are correct format and range
-    if (!is.numeric(params$model$sigma) | !is.finite(params$model$sigma))
-        stop("params$model$sigma must be numeric and finite")
-    if (params$model$sigma<=0)
-        stop("params$model$sigma must be greater than 0")
-    if (!is.numeric(params$model$priorMean_longitude) | !is.finite(params$model$priorMean_longitude))
-        stop("params$model$priorMean_longitude must be numeric and finite")
-    if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
-        stop("params$model$priorMean_latitude must be numeric and finite")
-    if (!is.numeric(params$model$priorSD) | !is.finite(params$model$priorSD))
-        stop("params$model$priorSD must be numeric and finite")
-    if (params$model$priorSD<=0)
-        stop("params$model$priorSD must be greater than 0")
-    if (!is.numeric(params$model$alpha_shape) | !is.finite(params$model$alpha_shape))
-        stop("params$model$alpha_shape must be numeric and finite")
-    if (params$model$alpha_shape<=0)
-        stop("params$model$alpha_shape must be greater than 0")
-    if (!is.numeric(params$model$alpha_rate) | !is.finite(params$model$alpha_rate))
-        stop("params$model$alpha_rate must be numeric and finite")
-    if (params$model$alpha_rate<=0)
-        stop("params$model$alpha_rate must be greater than 0")
+  # check that params$model contains all necessary parameters
+  if (!("sigma_mean"%in%names(params$model)))
+    stop("params$model must contain parameter 'sigma_mean'")
+  if (!("sigma_var"%in%names(params$model)))
+    stop("params$model must contain parameter 'sigma_var'")
+  if (!("priorMean_longitude"%in%names(params$model)))
+    stop("params$model must contain parameter 'priorMean_longitude'")
+  if (!("priorMean_latitude"%in%names(params$model)))
+    stop("params$model must contain parameter 'priorMean_latitude'")
+  if (!("priorSD"%in%names(params$model)))
+    stop("params$model must contain parameter 'priorSD'")
+  if (!("alpha_shape"%in%names(params$model)))
+    stop("params$model must contain parameter 'alpha_shape'")
+  if (!("alpha_rate"%in%names(params$model)))
+    stop("params$model must contain parameter 'alpha_rate'")
 
-    # check that params$MCMC values are correct format and range
-    if (!is.numeric(params$MCMC$chains) | !is.finite(params$MCMC$chains))
-        stop("params$MCMC$chains must be numeric and finite")
-    if (params$MCMC$chains<=1)
-        stop("params$MCMC$chains must be 2 or more")
-    if (!is.numeric(params$MCMC$burnin) | !is.finite(params$MCMC$burnin))
-        stop("params$MCMC$burnin must be numeric and finite")
-    if (params$MCMC$burnin<0)
-        stop("params$MCMC$burnin must be greater than or equal to 0")
-    if (!is.numeric(params$MCMC$samples) | !is.finite(params$MCMC$samples))
-        stop("params$MCMC$samples must be numeric and finite")
-    if (params$MCMC$samples<=0)
-        stop("params$MCMC$samples must be greater than 0")
-    if (!is.numeric(params$MCMC$burnin_printConsole) | !is.finite(params$MCMC$burnin_printConsole))
-        stop("params$MCMC$burnin_printConsole must be numeric and finite")
-    if (params$MCMC$burnin_printConsole<=0)
-        stop("params$MCMC$burnin_printConsole must be greater than 0")
-    if (!is.numeric(params$MCMC$samples_printConsole) | !is.finite(params$MCMC$samples_printConsole))
-        stop("params$MCMC$samples_printConsole must be numeric and finite")
-    if (params$MCMC$samples_printConsole<=0)
-        stop("params$MCMC$samples_printConsole must be greater than 0")
+  # check that params$model values are correct format and range
+  if (!is.numeric(params$model$sigma_mean) | !is.finite(params$model$sigma_mean))
+    stop("params$model$sigma_mean must be numeric and finite")
+  if (params$model$sigma_mean<=0)
+    stop("params$model$sigma_mean must be greater than 0")
+  if (!is.numeric(params$model$sigma_var) | !is.finite(params$model$sigma_var))
+    stop("params$model$sigma_var must be numeric and finite")
+  if (params$model$sigma_var<=0)
+    stop("params$model$sigma_var must be greater than 0")
+  if (!is.numeric(params$model$priorMean_longitude) | !is.finite(params$model$priorMean_longitude))
+    stop("params$model$priorMean_longitude must be numeric and finite")
+  if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
+    stop("params$model$priorMean_latitude must be numeric and finite")
+  if (!is.numeric(params$model$priorSD) | !is.finite(params$model$priorSD))
+    stop("params$model$priorSD must be numeric and finite")
+  if (params$model$priorSD<=0)
+    stop("params$model$priorSD must be greater than 0")
+  if (!is.numeric(params$model$alpha_shape) | !is.finite(params$model$alpha_shape))
+    stop("params$model$alpha_shape must be numeric and finite")
+  if (params$model$alpha_shape<=0)
+    stop("params$model$alpha_shape must be greater than 0")
+  if (!is.numeric(params$model$alpha_rate) | !is.finite(params$model$alpha_rate))
+    stop("params$model$alpha_rate must be numeric and finite")
+  if (params$model$alpha_rate<=0)
+    stop("params$model$alpha_rate must be greater than 0")
+  
+  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  
+  if (alpha>(1e3-1))
+    stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var')
 
-    # if passed all checks
-    if (!silent)
-	    cat("params file passed all checks\n")
+  #---------------------------------------
+
+  # check that params$MCMC contains all necessary parameters
+  if (!("chains"%in%names(params$MCMC)))
+    stop("params$MCMC must contain parameter 'chains'")
+  if (!("burnin"%in%names(params$MCMC)))
+    stop("params$MCMC must contain parameter 'burnin'")
+  if (!("samples"%in%names(params$MCMC)))
+    stop("params$MCMC must contain parameter 'samples'")
+  if (!("burnin_printConsole"%in%names(params$MCMC)))
+    stop("params$MCMC must contain parameter 'burnin_printConsole'")
+  if (!("samples_printConsole"%in%names(params$MCMC)))
+    stop("params$MCMC must contain parameter 'samples_printConsole'")
+  
+  # check that params$MCMC values are correct format and range
+  if (!is.numeric(params$MCMC$chains) | !is.finite(params$MCMC$chains))
+    stop("params$MCMC$chains must be numeric and finite")
+  if (params$MCMC$chains<=1)
+    stop("params$MCMC$chains must be 2 or more")
+  if (!is.numeric(params$MCMC$burnin) | !is.finite(params$MCMC$burnin))
+    stop("params$MCMC$burnin must be numeric and finite")
+  if (params$MCMC$burnin<0)
+    stop("params$MCMC$burnin must be greater than or equal to 0")
+  if (!is.numeric(params$MCMC$samples) | !is.finite(params$MCMC$samples))
+    stop("params$MCMC$samples must be numeric and finite")
+  if (params$MCMC$samples<=0)
+    stop("params$MCMC$samples must be greater than 0")
+  if (!is.numeric(params$MCMC$burnin_printConsole) | !is.finite(params$MCMC$burnin_printConsole))
+    stop("params$MCMC$burnin_printConsole must be numeric and finite")
+  if (params$MCMC$burnin_printConsole<=0)
+    stop("params$MCMC$burnin_printConsole must be greater than 0")
+  if (!is.numeric(params$MCMC$samples_printConsole) | !is.finite(params$MCMC$samples_printConsole))
+    stop("params$MCMC$samples_printConsole must be numeric and finite")
+  if (params$MCMC$samples_printConsole<=0)
+    stop("params$MCMC$samples_printConsole must be greater than 0")
+  
+  #---------------------------------------
+  
+  # check that params$output contains all necessary parameters
+  if (!("longitude_minMax"%in%names(params$output)))
+    stop("params$output must contain parameter 'longitude_minMax'")
+  if (!("latitude_minMax"%in%names(params$output)))
+    stop("params$output must contain parameter 'latitude_minMax'")
+  if (!("longitude_cells"%in%names(params$output)))
+    stop("params$output must contain parameter 'longitude_cells'")
+  if (!("latitude_cells"%in%names(params$output)))
+    stop("params$output must contain parameter 'latitude_cells'")
+  if (!("longitude_midpoints"%in%names(params$output)))
+    stop("params$output must contain parameter 'longitude_midpoints'")
+  if (!("latitude_cells"%in%names(params$output)))
+    stop("params$output must contain parameter 'latitude_cells'")
+  
+  # TODO: SOME MORE CHECKS ON FORMAT OF params$output?
+  
+  #---------------------------------------
+  
+  # if passed all checks
+  if (!silent)
+    cat("params file passed all checks\n")
+}
+
+#------------------------------------------------
+#' Plot prior and posterior distributions of sigma
+#'
+#' Plot prior and posterior distributions of sigma.
+#'
+#' @param params A list of parameters (defines prior on sigma)
+#' @param sigma A vector of posterior draws of sigma
+#'
+#' @export
+
+geoPlotSigma <- function(params, sigma) {
+  
+  # check params
+  geoParamsCheck(params)
+  
+  # extract parameters
+  sigma_mean <- params$model$sigma_mean
+  sigma_var <- params$model$sigma_var
+  
+  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  
+  # plot density of sigma and overlay prior
+  sigma_vec <- seq(0,1.2*max(sigma,na.rm=TRUE),l=501)
+  plot(density(sigma,from=0,to=1.2*max(sigma,na.rm=TRUE)), xlab='sigma', ylab='sigma')
+  lines(sigma_vec, dRIG(sigma_vec,alpha,beta), lty=2)
+  legend(x='topright', legend=c('prior','posterior'), lty=c(2,1))
+}
+
+#------------------------------------------------
+# Square-root-inverse-gamma distribution
+# (not exported)
+
+dRIG <- function(x,alpha,beta,log=FALSE) {
+  output <- log(2)+alpha*log(beta)-lgamma(alpha)-(2*alpha+1)*log(x)-beta/x^2
+  if (!log)
+    output <- exp(output)
+  return(output)
 }
 
 #------------------------------------------------
@@ -325,10 +413,10 @@ geoParamsCheck <- function(params, silent=FALSE) {
 # (not exported)
 
 dts <- function(x,df,scale=1,log=FALSE) {
-    output <- lgamma((df+1)/2)-lgamma(df/2)-0.5*log(pi*df*scale^2) - ((df+1)/2)*log(1 + x^2/(df*scale^2))
-    if (!log)
+  output <- lgamma((df+1)/2)-lgamma(df/2)-0.5*log(pi*df*scale^2) - ((df+1)/2)*log(1 + x^2/(df*scale^2))
+  if (!log)
     output <- exp(output)
-    return(output)
+  return(output)
 }
 
 #------------------------------------------------
@@ -344,111 +432,132 @@ dts <- function(x,df,scale=1,log=FALSE) {
 #' geoMCMC()
 
 geoMCMC <- function(data, params) {
+  
+  # check that data and parameters in correct format
+  geoDataCheck(data)
+  geoParamsCheck(params)
+  cat("\n")
+  
+  # extract some values from params
+  n <- length(data$longitude)
+  sigma_mean <- params$model$sigma_mean
+  sigma_var <- params$model$sigma_var
+  priorMean_longitude <- params$model$priorMean_longitude
+  priorMean_latitude <- params$model$priorMean_latitude
+  priorSD <- params$model$priorSD
+  samples <- params$MCMC$samples
+  longitude_cells <- params$output$longitude_cells
+  latitude_cells <- params$output$latitude_cells
+  
+  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  
+  params$model$sigma_alpha <- alpha
+  params$model$sigma_beta <- beta
+  
+  # carry out MCMC
+  rawOutput <- C_geoMCMC(data, params)
+  
+  # extract raw draws and check that at least one draw in chosen region
+  surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
+  if (all(surface_raw==0))
+      stop('chosen lat/long window contains no posterior draws')
+  
+  # get some basic properties of the surface
+  lon_min <- params$output$longitude_minMax[1]
+  lon_max <- params$output$longitude_minMax[2]
+  lat_min <- params$output$latitude_minMax[1]
+  lat_max <- params$output$latitude_minMax[2]
+  cells_lon <- longitude_cells
+  cells_lat <- latitude_cells
+  cellSize_lon <- (lon_max-lon_min)/cells_lon
+  cellSize_lat <- (lat_max-lat_min)/cells_lat
+  
+  # set lambda (bandwidth) increment size based on cell size
+  lambda_step <- min(cellSize_lon,cellSize_lat)/5
+  
+  # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
+  rail_lon <- ceiling(200*lambda_step/cellSize_lon)
+  rail_lat <- ceiling(200*lambda_step/cellSize_lat)
+  railMat_lon <- matrix(0,cells_lat,rail_lon)
+  railMat_lat <- matrix(0,rail_lat,cells_lon+2*rail_lon)
+  
+  surface_normalised <- surface_raw/sum(surface_raw)
+  surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
+  surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
+  
+  # calculate Fourier transform of posterior surface
+  f1 = fftw2d(surface_normalised)
+  
+  # calculate surface that kernel will be calculated over
+  kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
+  kernel_lat <- cellSize_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
+  kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
+  kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
+  kernel_s_mat <- sqrt(kernel_lon_mat^2+kernel_lat_mat^2)
+  
+  # loop through range of values of lambda
+  logLike <- -Inf
+  for (i in 1:100) {
+      
+    # calculate Fourier transform of kernel
+    lambda <- lambda_step*i
+    kernel <- dts(kernel_s_mat,df=3,scale=lambda)
+    f2 = fftw2d(kernel)
     
-    # check that data and parameters in correct format
-    geoDataCheck(data)
-    geoParamsCheck(params)
-    cat("\n")
+    # combine Fourier transformed surfaces and take inverse
+    f3 = f1*f2
+    f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+    f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
+    f5[f5<0] <- 0
+    f5 <- f5/sum(f4)
+    f6 <- surface_normalised*log(f5)
     
-    # extract some values from params
-    n <- length(data$longitude)
-    sigma <- params$model$sigma
-    priorMean_longitude <- params$model$priorMean_longitude
-    priorMean_latitude <- params$model$priorMean_latitude
-    priorSD <- params$model$priorSD
-    samples <- params$MCMC$samples
-    longitude_cells <- params$output$longitude_cells
-    latitude_cells <- params$output$latitude_cells
-    
-    # carry out MCMC
-    rawOutput <- C_geoMCMC(data, params)
-    
-    # extract raw draws and check that at least one draw in chosen region
-    surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
-    if (all(surface_raw==0))
-        stop('chosen lat/long window contains no posterior draws')
-    
-    # get some basic properties of the surface
-    lon_min <- params$output$longitude_minMax[1]
-    lon_max <- params$output$longitude_minMax[2]
-    lat_min <- params$output$latitude_minMax[1]
-    lat_max <- params$output$latitude_minMax[2]
-    cells_lon <- longitude_cells
-    cells_lat <- latitude_cells
-    cellSize_lon <- (lon_max-lon_min)/cells_lon
-    cellSize_lat <- (lat_max-lat_min)/cells_lat
-    
-    # set lambda (bandwidth) increment size based on cell size
-    lambda_step <- min(cellSize_lon,cellSize_lat)/5
-    
-    # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
-    rail_lon <- ceiling(200*lambda_step/cellSize_lon)
-    rail_lat <- ceiling(200*lambda_step/cellSize_lat)
-    railMat_lon <- matrix(0,cells_lat,rail_lon)
-    railMat_lat <- matrix(0,rail_lat,cells_lon+2*rail_lon)
-    
-    surface_normalised <- surface_raw/sum(surface_raw)
-    surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
-    surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
-    
-    f1 = fftw2d(surface_normalised)
-    
-    kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
-    kernel_lat <- cellSize_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
-    kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
-    kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
-    kernel_s_mat <- sqrt(kernel_lon_mat^2+kernel_lat_mat^2)
-    
-    logLike <- -Inf
-    for (i in 1:100) {
-        
-        lambda <- lambda_step*i
-        kernel <- dts(kernel_s_mat,df=3,scale=lambda)
-        f2 = fftw2d(kernel)
-        
-        #### carry out fast Fourier transform, combine, and take inverse
-        f3 = f1*f2
-        f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
-        f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
-        f5[f5<0] <- 0
-        f5 <- f5/sum(f4)
-        f6 <- surface_normalised*log(f5)
-        
-        if (sum(f6,na.rm=T)<logLike)
-        break()
-        logLike <- sum(f6,na.rm=T)
+    # break if min value found
+    if (sum(f6,na.rm=T)<logLike)
+      break()
+    logLike <- sum(f6,na.rm=T)
 
-    }
-    f4 <- f4[,(rail_lon+1):(ncol(f4)-rail_lon)]
-    f4 <- f4[(rail_lat+1):(nrow(f4)-rail_lat),]
-    
-    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
-    lon_mids <- params$output$longitude_midpoints
-    lat_mids <- params$output$latitude_midpoints
-    lon_mids_mat <- outer(rep(1,cells_lat),lon_mids)
-    lat_mids_mat <- outer(lat_mids,rep(1,cells_lon))
-    
-    priorMat <- dnorm(lon_mids_mat,priorMean_longitude,sd=priorSD)*dnorm(lat_mids_mat,priorMean_latitude,sd=priorSD)*(cellSize_lon*cellSize_lat)
-    
-    
-    # finalise output format
-    output <- list()
-    
-    # alpha
-    alpha <- rawOutput$alpha
-    output$alpha <- alpha
-    
-    # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
-    output$surface_raw <- surface_raw
-    output$surface <-  f4 + priorMat*mean(alpha/(alpha+n))
-    
-    # posterior allocation
-    allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
-    allocation <- data.frame(allocation/samples)
-    names(allocation) <- paste("group",1:ncol(allocation),sep="")
-    output$allocation <- allocation
-    
-    return(output)
+  }
+  # remove guard rail
+  f4 <- f4[,(rail_lon+1):(ncol(f4)-rail_lon)]
+  f4 <- f4[(rail_lat+1):(nrow(f4)-rail_lat),]
+  
+  # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
+  lon_mids <- params$output$longitude_midpoints
+  lat_mids <- params$output$latitude_midpoints
+  lon_mids_mat <- outer(rep(1,cells_lat),lon_mids)
+  lat_mids_mat <- outer(lat_mids,rep(1,cells_lon))
+  
+  priorMat <- dnorm(lon_mids_mat,priorMean_longitude,sd=priorSD)*dnorm(lat_mids_mat,priorMean_latitude,sd=priorSD)*(cellSize_lon*cellSize_lat)
+  
+  
+  # finalise output format
+  output <- list()
+  
+  # sigma
+  sigma <- rawOutput$sigma
+  output$sigma <- sigma
+  
+  # alpha
+  alpha <- rawOutput$alpha
+  output$alpha <- alpha
+  
+  # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
+  output$surface_raw <- surface_raw
+  output$surface <-  f4 + priorMat*mean(alpha/(alpha+n))
+  
+  # posterior allocation
+  allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
+  allocation <- data.frame(allocation/samples)
+  names(allocation) <- paste("group",1:ncol(allocation),sep="")
+  output$allocation <- allocation
+  
+  return(output)
 }
 
 #------------------------------------------------
@@ -568,21 +677,6 @@ getZoom <- function(x,y) {
 }
 
 #------------------------------------------------
-#' Create geoprofile plot object
-#'
-#' Creates geoprofile plotting object, for use with other ggplot2 elements.
-#' @param surface
-#' @keywords bob
-#' @export
-#' @examples
-#' geoSurface(surface)
-geoSurface <- function(longitude_midpoints=1:ncol(surface), latitude_midpoints=1:nrow(surface), surface) {
-    
-    image(longitude_midpoints, latitude_midpoints, t(surface)^0.2, col=heat.colors(50))
-    
-}
-
-#------------------------------------------------
 #' Create quick geoprofile plot
 #'
 #' Creates quick geoprofile plot, choosing some parameters automatically.
@@ -608,6 +702,7 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     
     # make map
     rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=source, maptype=maptype)
+    
     myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
     
     # overlay geoprofile

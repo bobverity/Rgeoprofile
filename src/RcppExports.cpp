@@ -6,13 +6,13 @@
 using namespace Rcpp;
 
 // C_geoMCMC
-List C_geoMCMC(List data, List params);
+Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params);
 RcppExport SEXP RgeoProfile_C_geoMCMC(SEXP dataSEXP, SEXP paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< List >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type params(paramsSEXP);
     __result = Rcpp::wrap(C_geoMCMC(data, params));
     return __result;
 END_RCPP
