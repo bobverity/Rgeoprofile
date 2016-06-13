@@ -626,7 +626,7 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		df_noNA <- df[!is.na(df$cut),]
 		
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
-		myMap <- myMap + scale_fill_manual(name="HHitscore\npercentage", values=rev(geoCols(11)))
+		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(11)))
 
 		
 		# add contours
