@@ -5,9 +5,9 @@
 \title{Create quick geoprofile plot}
 \usage{
 geoQuickPlot(params, surface = NULL, data = NULL, zoom = "auto",
-  source = "google", maptype = "hybrid", breakPercent = seq(0, 10, l =
-  11), plotContours = TRUE, data_fillCol = "black",
-  data_borderCol = "white")
+  source = "google", maptype = "hybrid", breakPercent = seq(0, 100, l =
+  11), contour_cols = c("red", "orange", "yellow", "white"),
+  plotContours = TRUE, data_fillCol = "black", data_borderCol = "white")
 }
 \description{
 Creates quick geoprofile plot, choosing some parameters automatically.
