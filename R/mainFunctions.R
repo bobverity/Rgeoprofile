@@ -294,6 +294,8 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$alpha_rate must be greater than 0")
   
   # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  sigma_mean <- params$model$sigma_mean
+  sigma_var <- params$model$sigma_var
   f_alpha <- function(alpha) {
     (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
   }
