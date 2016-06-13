@@ -355,13 +355,57 @@ geoParamsCheck <- function(params, silent=FALSE) {
   if (!("latitude_cells"%in%names(params$output)))
     stop("params$output must contain parameter 'latitude_cells'")
   
-  # SOME MORE CHECKS ON FORMAT OF params$output?
+  # TODO: SOME MORE CHECKS ON FORMAT OF params$output?
   
   #---------------------------------------
   
   # if passed all checks
   if (!silent)
     cat("params file passed all checks\n")
+}
+
+#------------------------------------------------
+#' Plot prior and posterior distributions of sigma
+#'
+#' Plot prior and posterior distributions of sigma.
+#'
+#' @param params A list of parameters (defines prior on sigma)
+#' @param sigma A vector of posterior draws of sigma
+#'
+#' @export
+
+geoPlotSigma <- function(params, sigma) {
+  
+  # check params
+  geoParamsCheck(params)
+  
+  # extract parameters
+  sigma_mean <- params$model$sigma_mean
+  sigma_var <- params$model$sigma_var
+  
+  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  
+  # plot density of sigma and overlay prior
+  sigma_vec <- seq(0,1.2*max(sigma,na.rm=TRUE),l=501)
+  plot(density(sigma,from=0,to=1.2*max(sigma,na.rm=TRUE)), xlab='sigma', ylab='sigma')
+  lines(sigma_vec, dRIG(sigma_vec,alpha,beta), lty=2)
+  legend(x='topright', legend=c('prior','posterior'), lty=c(2,1))
+}
+
+#------------------------------------------------
+# Square-root-inverse-gamma distribution
+# (not exported)
+
+dRIG <- function(x,alpha,beta,log=FALSE) {
+  output <- log(2)+alpha*log(beta)-lgamma(alpha)-(2*alpha+1)*log(x)-beta/x^2
+  if (!log)
+    output <- exp(output)
+  return(output)
 }
 
 #------------------------------------------------
@@ -446,34 +490,40 @@ geoMCMC <- function(data, params) {
   surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
   surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
   
+  # calculate Fourier transform of posterior surface
   f1 = fftw2d(surface_normalised)
   
+  # calculate surface that kernel will be calculated over
   kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
   kernel_lat <- cellSize_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
   kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
   kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
   kernel_s_mat <- sqrt(kernel_lon_mat^2+kernel_lat_mat^2)
   
+  # loop through range of values of lambda
   logLike <- -Inf
   for (i in 1:100) {
       
-      lambda <- lambda_step*i
-      kernel <- dts(kernel_s_mat,df=3,scale=lambda)
-      f2 = fftw2d(kernel)
-      
-      #### carry out fast Fourier transform, combine, and take inverse
-      f3 = f1*f2
-      f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
-      f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
-      f5[f5<0] <- 0
-      f5 <- f5/sum(f4)
-      f6 <- surface_normalised*log(f5)
-      
-      if (sum(f6,na.rm=T)<logLike)
+    # calculate Fourier transform of kernel
+    lambda <- lambda_step*i
+    kernel <- dts(kernel_s_mat,df=3,scale=lambda)
+    f2 = fftw2d(kernel)
+    
+    # combine Fourier transformed surfaces and take inverse
+    f3 = f1*f2
+    f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+    f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
+    f5[f5<0] <- 0
+    f5 <- f5/sum(f4)
+    f6 <- surface_normalised*log(f5)
+    
+    # break if min value found
+    if (sum(f6,na.rm=T)<logLike)
       break()
-      logLike <- sum(f6,na.rm=T)
+    logLike <- sum(f6,na.rm=T)
 
   }
+  # remove guard rail
   f4 <- f4[,(rail_lon+1):(ncol(f4)-rail_lon)]
   f4 <- f4[(rail_lat+1):(nrow(f4)-rail_lat),]
   
@@ -488,6 +538,10 @@ geoMCMC <- function(data, params) {
   
   # finalise output format
   output <- list()
+  
+  # sigma
+  sigma <- rawOutput$sigma
+  output$sigma <- sigma
   
   # alpha
   alpha <- rawOutput$alpha
@@ -648,8 +702,6 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     
     # make map
     rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=source, maptype=maptype)
-    
-    print(params$output$longitude_minMax)
     
     myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
     
