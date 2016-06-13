@@ -4,7 +4,7 @@
 \alias{geoParams}
 \title{Create Rgeoprofile parameters object}
 \usage{
-geoParams(data = NULL, sigma = 0.01, priorMean_longitude = -0.1277,
+geoParams(data = NULL, sigma = 0.008, priorMean_longitude = -0.1277,
   priorMean_latitude = 51.5074, priorSD = 0.03, alpha_shape = 0.1,
   alpha_rate = 0.1, chains = 10, burnin = 500, samples = 5000,
   burnin_printConsole = 100, samples_printConsole = 1000,
