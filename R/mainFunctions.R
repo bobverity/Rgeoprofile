@@ -2,7 +2,7 @@
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
-#' This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis.
+#' This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve experimenting with GitHUb desktop!
 #'
 #' @param n number of draws
 #' @param sigma standard deviation of dispersal distribution, in units of degrees
@@ -294,6 +294,8 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$alpha_rate must be greater than 0")
   
   # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  sigma_mean <- params$model$sigma_mean
+  sigma_var <- params$model$sigma_var
   f_alpha <- function(alpha) {
     (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
   }
@@ -685,7 +687,7 @@ getZoom <- function(x,y) {
 #' @examples
 #' geoQuickPlot(surface)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,10,l=11), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -707,7 +709,12 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     
     # overlay geoprofile
     if (!is.null(surface)) {
-    	geoCols <- colorRampPalette(c("#00008F","#0000FF","#0070FF","#00DFFF","#50FFAF","#BFFF40","#FFCF00","#FF6000","#EF0000","#800000"))
+    	
+    	geoCols <- colorRampPalette(contour_cols)
+    	nbcol=length(breakPercent)-1 	
+    	color <- geoCols(nbcol)
+    	
+
     	
 		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
 		df$z <- as.vector(t(surface))
@@ -716,7 +723,8 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		df_noNA <- df[!is.na(df$cut),]
 		
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
-		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(11)))
+		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
+
 		
 		# add contours
 		if (plotContours) {
