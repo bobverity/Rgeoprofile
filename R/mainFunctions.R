@@ -687,7 +687,7 @@ getZoom <- function(x,y) {
 #' @examples
 #' geoQuickPlot(surface)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='black', crimePch=16,crimeCex=1,CrimeBorderCol='white') {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -735,8 +735,8 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     # overlay data points
     if (!is.null(data)) {
     	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, cex=1.5, col=data_borderCol)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=20, cex=1.5, col=data_fillCol)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
     }
     
     myMap
