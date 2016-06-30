@@ -30,7 +30,6 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     Rcpp::List params_output = params["output"];
     
     double sigma_mean = Rcpp::as<double>(params_model["sigma_mean"]);
-    double sigma_var = Rcpp::as<double>(params_model["sigma_var"]);
     double sigma_alpha = Rcpp::as<double>(params_model["sigma_alpha"]);
     double sigma_beta = Rcpp::as<double>(params_model["sigma_beta"]);
     bool sigma_fixed = (sigma_alpha<0);
