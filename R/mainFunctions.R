@@ -219,6 +219,20 @@ geoDataCheck <- function(data, silent=FALSE) {
 }
 
 #------------------------------------------------
+# Get alpha and beta parameters of inverse-gamma prior on sigma from expectation and variance
+# (not exported)
+
+get_alpha_beta <- function(sigma_mean,sigma_var) {
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  output <- list(alpha=alpha, beta=beta)
+  return(output)
+}
+
+#------------------------------------------------
 #' Check parameters
 #'
 #' Check that all parameters for use in Rgeoprofile MCMC are OK.
@@ -274,8 +288,8 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$sigma_mean must be greater than 0")
   if (!is.numeric(params$model$sigma_var) | !is.finite(params$model$sigma_var))
     stop("params$model$sigma_var must be numeric and finite")
-  if (params$model$sigma_var<=0)
-    stop("params$model$sigma_var must be greater than 0")
+  if (params$model$sigma_var<0)
+    stop("params$model$sigma_var must be greater than or equal to 0")
   if (!is.numeric(params$model$priorMean_longitude) | !is.finite(params$model$priorMean_longitude))
     stop("params$model$priorMean_longitude must be numeric and finite")
   if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
@@ -293,17 +307,14 @@ geoParamsCheck <- function(params, silent=FALSE) {
   if (params$model$alpha_rate<=0)
     stop("params$model$alpha_rate must be greater than 0")
   
-  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  sigma_mean <- params$model$sigma_mean
-  sigma_var <- params$model$sigma_var
-  f_alpha <- function(alpha) {
-    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  # check that prior on sigma^2 is sensible if using variable sigma model
+  if (sigma_var>0) {
+    
+    # check that alpha and beta parameters of inverse-gamma prior on sigma^2 are within range
+    ab <- get_alpha_beta(params$model$sigma_mean, params$model$sigma_var)
+    if (ab$alpha>(1e3-1))
+      stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var, or alternatively setting sigma_var=0 (i.e. using fixed-sigma model)')
   }
-  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
-  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
-  
-  if (alpha>(1e3-1))
-    stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var')
 
   #---------------------------------------
 
@@ -372,31 +383,65 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #' Plot prior and posterior distributions of sigma.
 #'
 #' @param params A list of parameters (defines prior on sigma)
-#' @param sigma A vector of posterior draws of sigma
+#' @param sigma A vector of posterior draws of sigma. Leave as NULL to plot prior only.
+#' @param plotMax maximum x-axis range to plot. Leave as NULL to use default settings.
 #'
 #' @export
 
-geoPlotSigma <- function(params, sigma) {
+geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   
   # check params
   geoParamsCheck(params)
   
-  # extract parameters
+  # check that plotMax is sensible
+  if (!is.null(plotMax)) {
+    if (!is.numeric(plotMax))
+      stop('plotMax must be numeric')
+    if (plotMax<=0)
+      stop('plotMax must be greater than zero')
+  }
+  
+  # extract sigma parameters
   sigma_mean <- params$model$sigma_mean
   sigma_var <- params$model$sigma_var
   
-  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  f_alpha <- function(alpha) {
-    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
-  }
-  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
-  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  # stop if using fixed sigma model
+  if (sigma_var==0)
+    stop('can only produce this plot under variable-sigma model (i.e. sigma_var>0)')
   
-  # plot density of sigma and overlay prior
-  sigma_vec <- seq(0,1.2*max(sigma,na.rm=TRUE),l=501)
-  plot(density(sigma,from=0,to=1.2*max(sigma,na.rm=TRUE)), xlab='sigma', ylab='sigma')
-  lines(sigma_vec, dRIG(sigma_vec,alpha,beta), lty=2)
-  legend(x='topright', legend=c('prior','posterior'), lty=c(2,1))
+  # default plotMax based on both prior distribution and posterior draws
+  if (is.null(plotMax)) {
+    if (is.null(sigma)) {
+      plotMax <- sigma_mean+3*sqrt(sigma_var)
+    } else {
+      plotMax <- 2*max(sigma,na.rm=TRUE)
+    }
+  }
+  
+  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
+  ab <- get_alpha_beta(sigma_mean, sigma_var)
+  
+  # produce prior distribution
+  sigma_vec <- seq(0,plotMax,l=501)
+  sigma_prior <- dRIG(sigma_vec,ab$alpha,ab$beta)
+  
+  # plot prior and overlay density of posterior draws if used
+  if (is.null(sigma)) {
+    
+    plot(sigma_vec, sigma_prior, type='l', xlab='sigma', ylab='probability density', main='')
+    legend(x='topright', legend='prior')
+    
+  } else {
+    
+    sigma_posterior <- density(sigma,from=0,to=plotMax)
+    y_max <- max(sigma_posterior$y,na.rm=TRUE)
+    
+    plot(sigma_vec, sigma_prior, type='l', ylim=c(0,y_max), lty=2, xlab='sigma', ylab='probability density', main='')
+    lines(sigma_posterior)
+    legend(x='topright', legend=c('prior','posterior'), lty=c(2,1))
+    
+  }
+  
 }
 
 #------------------------------------------------
@@ -452,14 +497,15 @@ geoMCMC <- function(data, params) {
   latitude_cells <- params$output$latitude_cells
   
   # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  f_alpha <- function(alpha) {
-    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  if (sigma_var>0) {
+    ab <- get_alpha_beta(sigma_mean, sigma_var)
+    params$model$sigma_alpha <- ab$alpha
+    params$model$sigma_beta <- ab$beta
+  } else {
+  # use values of -1 to represent fixed sigma model
+    params$model$sigma_alpha <- -1
+    params$model$sigma_beta <- -1
   }
-  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
-  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
-  
-  params$model$sigma_alpha <- alpha
-  params$model$sigma_beta <- beta
   
   # carry out MCMC
   rawOutput <- C_geoMCMC(data, params)

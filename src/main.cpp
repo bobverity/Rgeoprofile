@@ -29,8 +29,11 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     Rcpp::List params_MCMC = params["MCMC"];
     Rcpp::List params_output = params["output"];
     
+    double sigma_mean = Rcpp::as<double>(params_model["sigma_mean"]);
+    double sigma_var = Rcpp::as<double>(params_model["sigma_var"]);
     double sigma_alpha = Rcpp::as<double>(params_model["sigma_alpha"]);
     double sigma_beta = Rcpp::as<double>(params_model["sigma_beta"]);
+    bool sigma_fixed = (sigma_alpha<0);
     double priorMean_x = Rcpp::as<double>(params_model["priorMean_longitude"]);
     double priorMean_y = Rcpp::as<double>(params_model["priorMean_latitude"]);
     double tau = Rcpp::as<double>(params_model["priorSD"]);
@@ -75,7 +78,11 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
             C_sumSquared_x[chain][C_group[chain][i]-1] += data_x[i]*data_x[i];
             C_sumSquared_y[chain][C_group[chain][i]-1] += data_y[i]*data_y[i];
         }
-        C_sigma2[chain] = 1.0/rgamma1(sigma_alpha,sigma_beta);
+        if (sigma_fixed) {
+            C_sigma2[chain] = sigma_mean*sigma_mean;
+        } else {
+            C_sigma2[chain] = 1.0/rgamma1(sigma_alpha,sigma_beta);
+        }
         C_alpha[chain] = rgamma1(1.0,0.01);
     }
     vector< vector<double> > C_mu_postMean_x(chains,vector<double>(2));
@@ -137,15 +144,17 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
             }
             
             // update sigma2
-            sigma_postAlpha = sigma_alpha + n;
-            sigma_postBeta = sigma_beta;
-            for (int j=0; j<int(C_freqs[chain].size()); j++) {
-                if (C_freqs[chain][j]>0) {
-                    sigma_postBeta += +0.5*( C_sumSquared_x[chain][j] - 2*C_sum_x[chain][j]*C_mu_postDraw_x[chain][j] + C_freqs[chain][j]*C_mu_postDraw_x[chain][j]*C_mu_postDraw_x[chain][j] );
-                    sigma_postBeta += +0.5*( C_sumSquared_y[chain][j] - 2*C_sum_y[chain][j]*C_mu_postDraw_y[chain][j] + C_freqs[chain][j]*C_mu_postDraw_y[chain][j]*C_mu_postDraw_y[chain][j] );
+            if (!sigma_fixed) {
+                sigma_postAlpha = sigma_alpha + n;
+                sigma_postBeta = sigma_beta;
+                for (int j=0; j<int(C_freqs[chain].size()); j++) {
+                    if (C_freqs[chain][j]>0) {
+                        sigma_postBeta += +0.5*( C_sumSquared_x[chain][j] - 2*C_sum_x[chain][j]*C_mu_postDraw_x[chain][j] + C_freqs[chain][j]*C_mu_postDraw_x[chain][j]*C_mu_postDraw_x[chain][j] );
+                        sigma_postBeta += +0.5*( C_sumSquared_y[chain][j] - 2*C_sum_y[chain][j]*C_mu_postDraw_y[chain][j] + C_freqs[chain][j]*C_mu_postDraw_y[chain][j]*C_mu_postDraw_y[chain][j] );
+                    }
                 }
+                C_sigma2[chain] = 1.0/rgamma1(sigma_postAlpha,sigma_postBeta);
             }
-            C_sigma2[chain] = 1.0/rgamma1(sigma_postAlpha,sigma_postBeta);
             
             // update alpha
             lambda = rbeta1(C_alpha[chain]+1.0,n);
@@ -296,15 +305,17 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
         }
         
         // update sigma2
-        sigma_postAlpha = sigma_alpha + n;
-        sigma_postBeta = sigma_beta;
-        for (int j=0; j<int(freqs.size()); j++) {
-            if (freqs[j]>0) {
-                sigma_postBeta += +0.5*( sumSquared_x[j] - 2*sum_x[j]*mu_postDraw_x[j] + freqs[j]*mu_postDraw_x[j]*mu_postDraw_x[j] );
-                sigma_postBeta += +0.5*( sumSquared_y[j] - 2*sum_y[j]*mu_postDraw_y[j] + freqs[j]*mu_postDraw_y[j]*mu_postDraw_y[j] );
+        if (!sigma_fixed) {
+            sigma_postAlpha = sigma_alpha + n;
+            sigma_postBeta = sigma_beta;
+            for (int j=0; j<int(freqs.size()); j++) {
+                if (freqs[j]>0) {
+                    sigma_postBeta += +0.5*( sumSquared_x[j] - 2*sum_x[j]*mu_postDraw_x[j] + freqs[j]*mu_postDraw_x[j]*mu_postDraw_x[j] );
+                    sigma_postBeta += +0.5*( sumSquared_y[j] - 2*sum_y[j]*mu_postDraw_y[j] + freqs[j]*mu_postDraw_y[j]*mu_postDraw_y[j] );
+                }
             }
+            sigma2 = 1.0/rgamma1(sigma_postAlpha,sigma_postBeta);
         }
-        sigma2 = 1.0/rgamma1(sigma_postAlpha,sigma_postBeta);
         
         // solve label switching problem
         solveLabelSwitching(n, group, groupMat, bestPerm, bestPermOrder, group_reorder, freqs, sum_x, sum_y, sumSquared_x, sumSquared_y, freqs_reorder, sum_x_reorder, sum_y_reorder, sumSquared_x_reorder, sumSquared_y_reorder, nextGroup);
