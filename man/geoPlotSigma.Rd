@@ -4,12 +4,14 @@
 \alias{geoPlotSigma}
 \title{Plot prior and posterior distributions of sigma}
 \usage{
-geoPlotSigma(params, sigma)
+geoPlotSigma(params, sigma = NULL, plotMax = NULL)
 }
 \arguments{
 \item{params}{A list of parameters (defines prior on sigma)}
 
-\item{sigma}{A vector of posterior draws of sigma}
+\item{sigma}{A vector of posterior draws of sigma. Leave as NULL to plot prior only.}
+
+\item{plotMax}{maximum x-axis range to plot. Leave as NULL to use default settings.}
 }
 \description{
 Plot prior and posterior distributions of sigma.
