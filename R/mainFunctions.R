@@ -65,6 +65,32 @@ geoData <- function(longitude=NULL, latitude=NULL) {
   return(data)
 }
 
+
+#------------------------------------------------
+#' Create sources data object in same format
+#'
+
+geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
+    
+  # generate dummy data if none read in
+  if (is.null(source_longitude) & is.null(source_latitude)) {
+   source_longitude <- c(-0.104, -0.103, -0.0967)
+    source_latitude <- c(51.499, 51.49, 51.494)
+  }
+  
+  # combine and return
+  source_data <- list(source_longitude=source_longitude, source_latitude=source_latitude)
+  return(source_data)
+}
+#------------------------------------------------
+
+
+
+
+
+
+
+
 #------------------------------------------------
 #' Create Rgeoprofile parameters object
 #'
@@ -733,6 +759,15 @@ getZoom <- function(x,y) {
 #' @examples
 #' geoQuickPlot(surface)
 
+#------------------------------------------------
+#' Create quick geoprofile plot
+#'
+#' Creates quick geoprofile plot, choosing some parameters automatically.
+#' @param surface
+#' @export
+#' @examples
+#' geoQuickPlot(surface)
+
 geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='black', crimePch=16,crimeCex=1,CrimeBorderCol='white') {
     
     # check that inputs make sense
@@ -778,12 +813,13 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		}
 	}
 
-    # overlay data points
+    # overlay crime data points
     if (!is.null(data)) {
     	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
 		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
 		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
     }
     
+        
     myMap
 }
