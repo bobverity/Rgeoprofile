@@ -334,7 +334,7 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$alpha_rate must be greater than 0")
   
   # check that prior on sigma^2 is sensible if using variable sigma model
-  if (sigma_var>0) {
+  if (params$model$sigma_var>0) {
     
     # check that alpha and beta parameters of inverse-gamma prior on sigma^2 are within range
     ab <- get_alpha_beta(params$model$sigma_mean, params$model$sigma_var)
@@ -813,13 +813,12 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		}
 	}
 
-    # overlay crime data points
+    # overlay data points
     if (!is.null(data)) {
     	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
 		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
 		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
     }
     
-        
     myMap
 }
