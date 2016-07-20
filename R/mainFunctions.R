@@ -822,3 +822,80 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     
     myMap
 }
+
+
+
+#------------------------------------------------
+#' VERSION 2 VERSION 2 VERSION 2
+#' Create quick geoprofile plot
+#'
+#' Creates quick geoprofile plot, choosing some parameters automatically.
+#' @param surface
+#' @export
+#' @examples
+#' geoQuickPlot(surface)
+#' now plots sources too (SLC)
+
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='red', crimePch=16,crimeCex=1,CrimeBorderCol='white',sourceCol='blue', sourcePch=15,sourceCex=1,SourceBorderCol='white',source_data=source_data) {
+    
+    # check that inputs make sense
+    geoParamsCheck(params)
+    if (!is.null(data))
+	    geoDataCheck(data)
+    
+    # if zoom=="auto" then set zoom level based on params
+    if (zoom=="auto")
+        zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
+    
+    # make zoom level appropriate to map source
+    if (source=="stamen")
+    	zoom <- min(zoom,18)
+    
+    # make map
+    rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=source, maptype=maptype)
+    
+    myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
+    
+    # overlay geoprofile
+    if (!is.null(surface)) {
+    	
+    	geoCols <- colorRampPalette(contour_cols)
+    	nbcol=length(breakPercent)-1 	
+    	color <- geoCols(nbcol)
+    	
+
+    	
+		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
+		df$z <- as.vector(t(surface))
+		labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
+		df$cut <- cut(df$z, breakPercent/100*length(surface), labels=labs)
+		df_noNA <- df[!is.na(df$cut),]
+		
+		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
+		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
+
+		
+		# add contours
+		if (plotContours) {
+			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=0.5, data=df)
+		}
+	}
+
+    # overlay data points
+    if (!is.null(data)) {
+    	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
+    	q <- data.frame(source_longitude= source_data$source_longitude, source_latitude= source_data$source_latitude)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
+		
+		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= (sourceCex*1.2), col=SourceBorderCol)
+		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= sourceCex, col=sourceCol)
+    }
+    
+    myMap
+}
+
+
+
+
+
