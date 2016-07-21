@@ -758,82 +758,6 @@ getZoom <- function(x,y) {
 #' @export
 #' @examples
 #' geoQuickPlot(surface)
-
-#------------------------------------------------
-#' Create quick geoprofile plot
-#'
-#' Creates quick geoprofile plot, choosing some parameters automatically.
-#' @param surface
-#' @export
-#' @examples
-#' geoQuickPlot(surface)
-
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='black', crimePch=16,crimeCex=1,CrimeBorderCol='white') {
-    
-    # check that inputs make sense
-    geoParamsCheck(params)
-    if (!is.null(data))
-	    geoDataCheck(data)
-    
-    # if zoom=="auto" then set zoom level based on params
-    if (zoom=="auto")
-        zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
-    
-    # make zoom level appropriate to map source
-    if (source=="stamen")
-    	zoom <- min(zoom,18)
-    
-    # make map
-    rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=source, maptype=maptype)
-    
-    myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
-    
-    # overlay geoprofile
-    if (!is.null(surface)) {
-    	
-    	geoCols <- colorRampPalette(contour_cols)
-    	nbcol=length(breakPercent)-1 	
-    	color <- geoCols(nbcol)
-    	
-
-    	
-		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
-		df$z <- as.vector(t(surface))
-		labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
-		df$cut <- cut(df$z, breakPercent/100*length(surface), labels=labs)
-		df_noNA <- df[!is.na(df$cut),]
-		
-		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
-		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
-
-		
-		# add contours
-		if (plotContours) {
-			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=0.5, data=df)
-		}
-	}
-
-    # overlay data points
-    if (!is.null(data)) {
-    	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
-    }
-    
-    myMap
-}
-
-
-
-#------------------------------------------------
-#' VERSION 2 VERSION 2 VERSION 2
-#' Create quick geoprofile plot
-#'
-#' Creates quick geoprofile plot, choosing some parameters automatically.
-#' @param surface
-#' @export
-#' @examples
-#' geoQuickPlot(surface)
 #' now plots sources too (SLC)
 
 geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='red', crimePch=16,crimeCex=1,CrimeBorderCol='white',sourceCol='blue', sourcePch=15,sourceCex=1,SourceBorderCol='white',source_data=source_data) {
@@ -895,6 +819,44 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     myMap
 }
 
+#------------------------------------------------
+#' Calculate hitscores
+#'
+
+reporthitscores <-
+function(params,source_data,surface) {
+	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
+	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
+	
+	
+	profile_order = order(surface)
+	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
+		ordermat[profile_order[i]] = i
+		}
+	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
+	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
+
+	
+	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
+	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
+	
+	xdiff = abs(outer(rep(1,nrow(sources)),xvec)-outer(sources[,1],rep(1,params$output$longitude_cells)))
+	ydiff = abs(outer(rep(1,nrow(sources)),yvec)-outer(sources[,2],rep(1,params$output$latitude_cells)))
+
+	msourcex = mapply(which.min,x=split(xdiff,row(xdiff)))
+	msourcey = params$output$longitude_cells-(mapply(which.min,x=split(ydiff,row(ydiff))))+1
+
+	if (nrow(sources)>1) {
+		hitscores = diag(hitscoremat2[msourcey,msourcex])
+	} else {
+		hitscores = hitscoremat2[msourcey,msourcex]
+	}
+	hit_output <<- cbind(sources,hitscores)
+	print(hit_output)
+
+
+}
+#------------------------------------------------
 
 
 
