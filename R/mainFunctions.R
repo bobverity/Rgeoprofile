@@ -65,6 +65,32 @@ geoData <- function(longitude=NULL, latitude=NULL) {
   return(data)
 }
 
+
+#------------------------------------------------
+#' Create sources data object in same format
+#'
+
+geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
+    
+  # generate dummy data if none read in
+  if (is.null(source_longitude) & is.null(source_latitude)) {
+   source_longitude <- c(-0.104, -0.103, -0.0967)
+    source_latitude <- c(51.499, 51.49, 51.494)
+  }
+  
+  # combine and return
+  source_data <- list(source_longitude=source_longitude, source_latitude=source_latitude)
+  return(source_data)
+}
+#------------------------------------------------
+
+
+
+
+
+
+
+
 #------------------------------------------------
 #' Create Rgeoprofile parameters object
 #'
@@ -308,7 +334,7 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$alpha_rate must be greater than 0")
   
   # check that prior on sigma^2 is sensible if using variable sigma model
-  if (sigma_var>0) {
+  if (params$model$sigma_var>0) {
     
     # check that alpha and beta parameters of inverse-gamma prior on sigma^2 are within range
     ab <- get_alpha_beta(params$model$sigma_mean, params$model$sigma_var)
@@ -732,8 +758,9 @@ getZoom <- function(x,y) {
 #' @export
 #' @examples
 #' geoQuickPlot(surface)
+#' now plots sources too (SLC)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='black', crimePch=16,crimeCex=1,CrimeBorderCol='white') {
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='red', crimePch=16,crimeCex=1,CrimeBorderCol='white',sourceCol='blue', sourcePch=15,sourceCex=1,SourceBorderCol='white',source_data=source_data) {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -781,9 +808,56 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     # overlay data points
     if (!is.null(data)) {
     	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
+    	q <- data.frame(source_longitude= source_data$source_longitude, source_latitude= source_data$source_latitude)
 		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
 		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
+		
+		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= (sourceCex*1.2), col=SourceBorderCol)
+		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= sourceCex, col=sourceCol)
     }
     
     myMap
 }
+
+#------------------------------------------------
+#' Calculate hitscores
+#'
+
+reporthitscores <-
+function(params,source_data,surface) {
+	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
+	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
+	
+	
+	profile_order = order(surface)
+	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
+		ordermat[profile_order[i]] = i
+		}
+	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
+	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
+
+	
+	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
+	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
+	
+	xdiff = abs(outer(rep(1,nrow(sources)),xvec)-outer(sources[,1],rep(1,params$output$longitude_cells)))
+	ydiff = abs(outer(rep(1,nrow(sources)),yvec)-outer(sources[,2],rep(1,params$output$latitude_cells)))
+
+	msourcex = mapply(which.min,x=split(xdiff,row(xdiff)))
+	msourcey = params$output$longitude_cells-(mapply(which.min,x=split(ydiff,row(ydiff))))+1
+
+	if (nrow(sources)>1) {
+		hitscores = diag(hitscoremat2[msourcey,msourcex])
+	} else {
+		hitscores = hitscoremat2[msourcey,msourcex]
+	}
+	hit_output <<- cbind(sources,hitscores)
+	print(hit_output)
+
+
+}
+#------------------------------------------------
+
+
+
+
