@@ -2,11 +2,19 @@
 % Please edit documentation in R/mainFunctions.R
 \name{geoDataSource}
 \alias{geoDataSource}
-\title{Create sources data object in same format}
+\title{Create sources data object in same format as observations}
 \usage{
 geoDataSource(source_longitude = NULL, source_latitude = NULL)
 }
+\arguments{
+\item{longitude}{the longitudinal positions of the potential sources}
+
+\item{latitude}{the latitudinal positions of the potential sources}
+}
 \description{
-Create sources data object in same format
+Takes longitude and latitude of potential source locations as input vectors, and returns a list of these same values. If no values are input then default values are returned.
+}
+\examples{
+geoDataSource()
 }
 

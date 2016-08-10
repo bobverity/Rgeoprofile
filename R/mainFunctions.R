@@ -2,7 +2,7 @@
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
-#' This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve experimenting with GitHUb desktop!
+#' Provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis.
 #'
 #' @param n number of draws
 #' @param sigma standard deviation of dispersal distribution, in units of degrees
@@ -10,6 +10,11 @@
 #' @export
 #' @examples
 #' rDPM(10)
+
+# The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
+#' @useDynLib RgeoProfile
+#' @importFrom Rcpp evalCpp
+#' @exportPattern "^[[:alpha:]]+"
 
 rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha=1) {
   
@@ -43,10 +48,10 @@ rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=
 #------------------------------------------------
 #' Create Rgeoprofile data object
 #'
-#' This function can be used to generate a dummy data object in the format used by the Rgeoprofile MCMC.
+#' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors, and returns a list of these same values. If no values are input then default values are used.
 #'
-#' @param longitude The longitudinal positions of the observed data
-#' @param latitude The latitudinal positions of the observed data
+#' @param longitude the longitudinal positions of the observed data
+#' @param latitude the latitudinal positions of the observed data
 #'
 #' @export
 #' @examples
@@ -65,54 +70,53 @@ geoData <- function(longitude=NULL, latitude=NULL) {
   return(data)
 }
 
-
 #------------------------------------------------
-#' Create sources data object in same format
+#' Create sources data object in same format as observations
 #'
+#' Takes longitude and latitude of potential source locations as input vectors, and returns a list of these same values. If no values are input then default values are returned.
+#'
+#' @param longitude the longitudinal positions of the potential sources
+#' @param latitude the latitudinal positions of the potential sources
+#'
+#' @export
+#' @examples
+#' geoDataSource()
 
 geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     
   # generate dummy data if none read in
   if (is.null(source_longitude) & is.null(source_latitude)) {
-   source_longitude <- c(-0.104, -0.103, -0.0967)
-    source_latitude <- c(51.499, 51.49, 51.494)
+      source_longitude <- c(-0.104, -0.103, -0.0967)
+      source_latitude <- c(51.499, 51.49, 51.494)
   }
   
   # combine and return
   source_data <- list(source_longitude=source_longitude, source_latitude=source_latitude)
   return(source_data)
 }
-#------------------------------------------------
-
-
-
-
-
-
-
 
 #------------------------------------------------
 #' Create Rgeoprofile parameters object
 #'
 #' This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
 #'
-#' @param data
+#' @param data some text
 #' @param sigma_mean The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)
 #' @param sigma_var The variance of the prior on sigma
 #' @param priorMean_longitude The position (longitude) of the mean of the prior distribution
 #' @param priorMean_latitude The position (latitude) of the mean of the prior distribution
-#' @param priorSD
-#' @param alpha_shape
-#' @param alpha_rate
-#' @param chains
-#' @param burnin
-#' @param samples
-#' @param burnin_printConsole
-#' @param samples_printConsole
-#' @param longitude_minMax
-#' @param latitude_minMax
-#' @param longitude_cells
-#' @param latitude_cells
+#' @param priorSD some text
+#' @param alpha_shape some text
+#' @param alpha_rate some text
+#' @param chains some text
+#' @param burnin some text
+#' @param samples some text
+#' @param burnin_printConsole some text
+#' @param samples_printConsole some text
+#' @param longitude_minMax some text
+#' @param latitude_minMax some text
+#' @param longitude_cells some text
+#' @param latitude_cells some text
 #'
 #' @export
 #' @examples
@@ -639,6 +643,7 @@ geoMCMC <- function(data, params) {
 #'
 #' Converts surface to rank order geoprofile.
 #' @param z matrix to convert to geoprofile
+#'
 #' @export
 #' @examples
 #' geoProfile(MCMCoutput$geoSurface)
@@ -661,7 +666,9 @@ geoProfile <- function(z) {
 #' Plot posterior allocation
 #'
 #' Produces plot of posterior allocation, given output of MCMC.
+#'
 #' @param MCMCoutput output generated from an MCMC.
+#'
 #' @export
 #' @examples
 #' geoPlotAllocation(MCMCoutput)
@@ -719,6 +726,8 @@ geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white
 
 #------------------------------------------------
 # get optimal zoom level given x and y values
+# (not exported)
+
 getZoom <- function(x,y) {
 	
 	# calculate midpoint of range in x and y
@@ -753,12 +762,13 @@ getZoom <- function(x,y) {
 #------------------------------------------------
 #' Create quick geoprofile plot
 #'
-#' Creates quick geoprofile plot, choosing some parameters automatically.
-#' @param surface
+#' Creates quick geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
+#'
+#' @param surface some text
+#'
 #' @export
 #' @examples
 #' geoQuickPlot(surface)
-#' now plots sources too (SLC)
 
 geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='red', crimePch=16,crimeCex=1,CrimeBorderCol='white',sourceCol='blue', sourcePch=15,sourceCex=1,SourceBorderCol='white',source_data=source_data) {
     
@@ -787,8 +797,6 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     	nbcol=length(breakPercent)-1 	
     	color <- geoCols(nbcol)
     	
-
-    	
 		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
 		df$z <- as.vector(t(surface))
 		labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
@@ -798,7 +806,6 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
 		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
 
-		
 		# add contours
 		if (plotContours) {
 			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=0.5, data=df)
@@ -823,8 +830,20 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 #' Calculate hitscores
 #'
 
-reporthitscores <-
-function(params,source_data,surface) {
+#------------------------------------------------
+#' Calculate hitscores
+#'
+#' Calculate hitscores of the potential sources based on the final geoprofile surface.
+#'
+#' @param params some text
+#' @param source_data some text
+#' @param surface some text
+#'
+#' @export
+#' @examples
+#' geoReportHitscores(params,source_data,surface)
+
+geoReportHitscores <- function(params,source_data,surface) {
 	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
 	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
 	
@@ -854,10 +873,5 @@ function(params,source_data,surface) {
 	hit_output <<- cbind(sources,hitscores)
 	print(hit_output)
 
-
 }
-#------------------------------------------------
-
-
-
 

@@ -12,6 +12,8 @@ geoParams(data = NULL, sigma_mean = 0.008, sigma_var = 1e-04,
   latitude_minMax = NULL, longitude_cells = 500, latitude_cells = 500)
 }
 \arguments{
+\item{data}{some text}
+
 \item{sigma_mean}{The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)}
 
 \item{sigma_var}{The variance of the prior on sigma}
@@ -20,7 +22,29 @@ geoParams(data = NULL, sigma_mean = 0.008, sigma_var = 1e-04,
 
 \item{priorMean_latitude}{The position (latitude) of the mean of the prior distribution}
 
-\item{latitude_cells}{}
+\item{priorSD}{some text}
+
+\item{alpha_shape}{some text}
+
+\item{alpha_rate}{some text}
+
+\item{chains}{some text}
+
+\item{burnin}{some text}
+
+\item{samples}{some text}
+
+\item{burnin_printConsole}{some text}
+
+\item{samples_printConsole}{some text}
+
+\item{longitude_minMax}{some text}
+
+\item{latitude_minMax}{some text}
+
+\item{longitude_cells}{some text}
+
+\item{latitude_cells}{some text}
 }
 \description{
 This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
