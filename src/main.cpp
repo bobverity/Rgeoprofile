@@ -56,7 +56,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     int y_cells = Rcpp::as<int>(params_output["latitude_cells"]);
     double x_cellSize = (x_max-x_min)/double(x_cells);
     double y_cellSize = (y_max-y_min)/double(y_cells);
-    
+
     
     //## MCMC: burnin #################################################
     

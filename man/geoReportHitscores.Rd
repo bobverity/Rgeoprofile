@@ -14,9 +14,6 @@ geoReportHitscores(params, source_data, surface)
 \item{surface}{some text}
 }
 \description{
-Calculate hitscores
-}
-\details{
 Calculate hitscores of the potential sources based on the final geoprofile surface.
 }
 \examples{

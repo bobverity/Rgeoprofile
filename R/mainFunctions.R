@@ -476,6 +476,7 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
 
 #------------------------------------------------
 # Square-root-inverse-gamma distribution
+# If an inverse gamma distribution has shape alpha and rate beta, and hence mean beta/(alpha-1) and variance beta^2/((alpha-1)^2*(alpha-2)), then the square root of this random variable has mean epsilon=sqrt(beta)*gamma(alpha-0.5)/gamma(alpha) and variance v=beta/(alpha-1)-epsilon^2. The variance can also be written purely in terms of alpha and epsilon as follows: v=epsilon^2*(gamma(alpha-1)*gamma(alpha)/gamma(alpha-0.5)^2 - 1).
 # (not exported)
 
 dRIG <- function(x,alpha,beta,log=FALSE) {
@@ -536,7 +537,7 @@ geoMCMC <- function(data, params) {
     params$model$sigma_alpha <- -1
     params$model$sigma_beta <- -1
   }
-  
+
   # carry out MCMC
   rawOutput <- C_geoMCMC(data, params)
   
@@ -634,6 +635,8 @@ geoMCMC <- function(data, params) {
   allocation <- data.frame(allocation/samples)
   names(allocation) <- paste("group",1:ncol(allocation),sep="")
   output$allocation <- allocation
+  
+  print("foobar")
   
   return(output)
 }
@@ -825,10 +828,6 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     
     myMap
 }
-
-#------------------------------------------------
-#' Calculate hitscores
-#'
 
 #------------------------------------------------
 #' Calculate hitscores
