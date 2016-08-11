@@ -14,6 +14,10 @@
 # The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
 #' @useDynLib RgeoProfile
 #' @importFrom Rcpp evalCpp
+#' @import fftwtools
+#' @import ggplot2
+#' @import ggmap
+#' @import RColorBrewer
 #' @exportPattern "^[[:alpha:]]+"
 
 rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha=1) {
@@ -635,8 +639,6 @@ geoMCMC <- function(data, params) {
   allocation <- data.frame(allocation/samples)
   names(allocation) <- paste("group",1:ncol(allocation),sep="")
   output$allocation <- allocation
-  
-  print("foobar")
   
   return(output)
 }
