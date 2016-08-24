@@ -30,15 +30,18 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     Rcpp::List params_output = params["output"];
     
     double sigma_mean = Rcpp::as<double>(params_model["sigma_mean"]);
-    double sigma_alpha = Rcpp::as<double>(params_model["sigma_alpha"]);
-    double sigma_beta = Rcpp::as<double>(params_model["sigma_beta"]);
-    bool sigma_fixed = (sigma_alpha<0);
+    double sigma_var = Rcpp::as<double>(params_model["sigma_var"]);
+    double sigma_alpha = Rcpp::as<double>(params_model["sigma_squared_shape"]);
+    double sigma_beta = Rcpp::as<double>(params_model["sigma_squared_rate"]);
+    bool sigma_fixed = (sigma_var==0);
     double priorMean_x = Rcpp::as<double>(params_model["priorMean_longitude"]);
     double priorMean_y = Rcpp::as<double>(params_model["priorMean_latitude"]);
     double tau = Rcpp::as<double>(params_model["priorSD"]);
     double tau2 = tau*tau;
     double alpha_shape = Rcpp::as<double>(params_model["alpha_shape"]);
     double alpha_rate = Rcpp::as<double>(params_model["alpha_rate"]);
+    
+    //return Rcpp::List::create(Rcpp::Named("dummy")=9);
     
     int chains = Rcpp::as<int>(params_MCMC["chains"]);
     int burnin = Rcpp::as<int>(params_MCMC["burnin"]);
@@ -56,7 +59,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     int y_cells = Rcpp::as<int>(params_output["latitude_cells"]);
     double x_cellSize = (x_max-x_min)/double(x_cells);
     double y_cellSize = (y_max-y_min)/double(y_cells);
-    
+
     
     //## MCMC: burnin #################################################
     
@@ -221,7 +224,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     
     //## MCMC: sampling #################################################
     // create objects for sampling phase of MCMC
-    // start by reordering burn-in group to be increasing
+    // start by reordering burn-in group to be increasing from 1
     vector<int> group(n);
     vector<int> burnin_reorder(C_freqs[0].size());
     int index1 = 0;
@@ -247,9 +250,9 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
         sumSquared_x[group[i]-1] += data_x[i]*data_x[i];
         sumSquared_y[group[i]-1] += data_y[i]*data_y[i];
     }
+    vector<double> mu_postVar(index1+1);
     vector<double> mu_postMean_x(index1+1);
     vector<double> mu_postMean_y(index1+1);
-    vector<double> mu_postVar(index1+1);
     vector<double> mu_postDraw_x(index1+1);
     vector<double> mu_postDraw_y(index1+1);
     vector<double> logProbVec(index1+1);
@@ -414,9 +417,9 @@ void updateGroup(int &i, int &n, vector<double> &data_x, vector<double> &data_y,
         sum_y.push_back(0);
         sumSquared_x.push_back(0);
         sumSquared_y.push_back(0);
+        mu_postVar.push_back(0);
         mu_postMean_x.push_back(0);
         mu_postMean_y.push_back(0);
-        mu_postVar.push_back(0);
         mu_postDraw_x.push_back(0);
         mu_postDraw_y.push_back(0);
         logProbVec.push_back(0);

@@ -7,10 +7,15 @@
 geoQuickPlot(params, surface = NULL, data = NULL, zoom = "auto",
   source = "google", maptype = "hybrid", breakPercent = seq(0, 100, l =
   11), contour_cols = c("red", "orange", "yellow", "white"),
-  plotContours = TRUE, data_fillCol = "black", data_borderCol = "white")
+  plotContours = TRUE, crimeCol = "red", crimePch = 16, crimeCex = 1,
+  CrimeBorderCol = "white", sourceCol = "blue", sourcePch = 15,
+  sourceCex = 1, SourceBorderCol = "white", source_data = source_data)
+}
+\arguments{
+\item{surface}{some text}
 }
 \description{
-Creates quick geoprofile plot, choosing some parameters automatically.
+Creates quick geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
 }
 \examples{
 geoQuickPlot(surface)

@@ -2,7 +2,7 @@
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
-#' This function provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis. Steve experimenting with GitHUb desktop!
+#' Provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis.
 #'
 #' @param n number of draws
 #' @param sigma standard deviation of dispersal distribution, in units of degrees
@@ -10,6 +10,15 @@
 #' @export
 #' @examples
 #' rDPM(10)
+
+# The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
+#' @useDynLib RgeoProfile
+#' @importFrom Rcpp evalCpp
+#' @import fftwtools
+#' @import ggplot2
+#' @import ggmap
+#' @import RColorBrewer
+#' @exportPattern "^[[:alpha:]]+"
 
 rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha=1) {
   
@@ -43,10 +52,10 @@ rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=
 #------------------------------------------------
 #' Create Rgeoprofile data object
 #'
-#' This function can be used to generate a dummy data object in the format used by the Rgeoprofile MCMC.
+#' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors, and returns a list of these same values. If no values are input then default values are used.
 #'
-#' @param longitude The longitudinal positions of the observed data
-#' @param latitude The latitudinal positions of the observed data
+#' @param longitude the longitudinal positions of the observed data
+#' @param latitude the latitudinal positions of the observed data
 #'
 #' @export
 #' @examples
@@ -66,41 +75,68 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 }
 
 #------------------------------------------------
+#' Create sources data object in same format as observations
+#'
+#' Takes longitude and latitude of potential source locations as input vectors, and returns a list of these same values. If no values are input then default values are returned.
+#'
+#' @param longitude the longitudinal positions of the potential sources
+#' @param latitude the latitudinal positions of the potential sources
+#'
+#' @export
+#' @examples
+#' geoDataSource()
+
+geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
+    
+  # generate dummy data if none read in
+  if (is.null(source_longitude) & is.null(source_latitude)) {
+      source_longitude <- c(-0.104, -0.103, -0.0967)
+      source_latitude <- c(51.499, 51.49, 51.494)
+  }
+  
+  # combine and return
+  source_data <- list(source_longitude=source_longitude, source_latitude=source_latitude)
+  return(source_data)
+}
+
+#------------------------------------------------
 #' Create Rgeoprofile parameters object
 #'
 #' This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
 #'
-#' @param data
+#' @param data some text
 #' @param sigma_mean The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)
 #' @param sigma_var The variance of the prior on sigma
+#' @param sigma_squared_shape some text
+#' @param sigma_squared_rate some text
 #' @param priorMean_longitude The position (longitude) of the mean of the prior distribution
 #' @param priorMean_latitude The position (latitude) of the mean of the prior distribution
-#' @param priorSD
-#' @param alpha_shape
-#' @param alpha_rate
-#' @param chains
-#' @param burnin
-#' @param samples
-#' @param burnin_printConsole
-#' @param samples_printConsole
-#' @param longitude_minMax
-#' @param latitude_minMax
-#' @param longitude_cells
-#' @param latitude_cells
+#' @param priorSD some text
+#' @param alpha_shape some text
+#' @param alpha_rate some text
+#' @param chains some text
+#' @param burnin some text
+#' @param samples some text
+#' @param burnin_printConsole some text
+#' @param samples_printConsole some text
+#' @param longitude_minMax some text
+#' @param latitude_minMax some text
+#' @param longitude_cells some text
+#' @param latitude_cells some text
 #'
 #' @export
 #' @examples
 #' geoParams()
 
-geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
   	# if data argument used then get map limits from data
     if (!is.null(data)) {
         
         # check correct format of data
         geoDataCheck(data, silent=TRUE)
-            
-    		# get midpoints and ranges
+        
+        # get midpoints and ranges
         xmin <- min(data$longitude);
         xmax <- max(data$longitude)
         ymin <- min(data$latitude);
@@ -118,7 +154,7 @@ geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_lon
         lat_angle_top <- (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
         lat_angle_bot <- (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
     		
-    		# if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases add a 10% buffer zone.
+        # if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases add a 10% buffer zone.
         if (ymin>=lat_angle_bot & ymax<=lat_angle_top) {
           	frame_xmin <- xmin-xdiff*0.1
           	frame_xmax <- xmax+xdiff*0.1
@@ -151,8 +187,73 @@ geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_lon
           latitude_minMax <- 51.5074 + c(-0.1,0.1)
     }
     
+    # initialise shape and rate parameters for prior on sigma^2
+    alpha <- NULL
+    beta <- NULL
+    
+    # if sigma_var has been specified
+    if (!is.null(sigma_var)) {
+    	
+    	# check that sigma_mean has also been specified
+    	if (!is.null(sigma_mean)) {
+    		
+    		# if using fixed sigma model then no need to calculate alpha and beta. Otherwise use values of sigma_mean and sigma_var to search for the unique alpha and beta that define the distribution
+	    	if (sigma_var==0) {
+	    		message('Using fixed sigma model')
+	    	} else {
+	            message('Using sigma_mean and sigma_var to define prior on sigma')
+	    		ab <- get_alpha_beta(sigma_mean, sigma_var)
+		    	alpha <- ab$alpha
+		    	beta <- ab$beta
+	    	}
+    	}
+    	    	
+    # if sigma_var has not been specified
+    } else {
+    	
+    	# if sigma_mean has been specified but sigma_var has not then use sigma_mean along with sigma_squared_shape to calculate beta
+    	if (!is.null(sigma_mean)) {
+	        if (is.null(sigma_squared_shape)) {
+	        	stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
+	        } else {
+	            message('Using sigma_mean and sigma_squared_shape to define prior on sigma')
+	        	alpha <- sigma_squared_shape
+	        	if (alpha<=1) {
+	        		stop('sigma_squared_shape must be >1')
+	        	}
+	            beta <- exp(2*log(sigma_mean) + 2*lgamma(alpha) - 2*lgamma(alpha-0.5))
+	            epsilon <- sqrt(beta)*gamma(alpha-0.5)/gamma(alpha)
+				sigma_var <- beta/(alpha-1)-epsilon^2
+	        }
+	    
+	    # if neither sigma_mean nor sigma_var have been specified then use sigma_squared_shape and sigma_squared_rate to define distribution
+	    } else {
+	    	message('Using sigma_squared_shape and sigma_squared_rate to define prior on sigma')
+	    	if (is.null(sigma_squared_shape) | is.null(sigma_squared_rate)) {
+				stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
+	    	}
+	    	alpha <- sigma_squared_shape
+			beta <- sigma_squared_rate
+            sigma_mean <- sqrt(beta)*gamma(alpha-0.5)/gamma(alpha)
+			sigma_var <- beta/(alpha-1)-sigma_mean^2
+	    }
+    }
+        
+    # check that chosen inputs do in fact uniquely define the distribution. At this stage alpha and beta are only allowed to be NULL under the fixed-sigma model
+    if (is.null(alpha) | is.null(beta)) {
+    	returnError <- TRUE
+    	if (!is.null(sigma_var)) {
+    		if (sigma_var==0) {
+    			returnError <- FALSE
+    		}
+    	}
+    	if (returnError) {
+    		stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
+    	}
+    }
+    
     # set model parameters
-    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
+    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, sigma_squared_shape=alpha, sigma_squared_rate=beta, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
     
     # set MCMC parameters
     MCMC <- list(chains=chains, burnin=burnin, samples=samples, burnin_printConsole=burnin_printConsole, samples_printConsole=samples_printConsole)
@@ -174,6 +275,31 @@ geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_lon
     # combine and return
     params <- list(model=model, MCMC=MCMC, output=output)
     return(params)
+}
+
+#------------------------------------------------
+# Get alpha and beta parameters of inverse-gamma prior on sigma^2 from expectation and variance.
+# (not exported)
+
+get_alpha_beta <- function(sigma_mean,sigma_var) {
+  
+  # define a function that has minimum at correct value of alpha
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  
+  # search for alpha
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  
+  # solve for beta
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  
+  # check that chosen alpha is not at limit of range
+  if (alpha>(1e3-1))
+      stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var, or alternatively setting sigma_var=0 (i.e. using fixed-sigma model)')
+      
+  output <- list(alpha=alpha, beta=beta)
+  return(output)
 }
 
 #------------------------------------------------
@@ -219,20 +345,6 @@ geoDataCheck <- function(data, silent=FALSE) {
 }
 
 #------------------------------------------------
-# Get alpha and beta parameters of inverse-gamma prior on sigma from expectation and variance
-# (not exported)
-
-get_alpha_beta <- function(sigma_mean,sigma_var) {
-  f_alpha <- function(alpha) {
-    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
-  }
-  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
-  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
-  output <- list(alpha=alpha, beta=beta)
-  return(output)
-}
-
-#------------------------------------------------
 #' Check parameters
 #'
 #' Check that all parameters for use in Rgeoprofile MCMC are OK.
@@ -270,6 +382,10 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model must contain parameter 'sigma_mean'")
   if (!("sigma_var"%in%names(params$model)))
     stop("params$model must contain parameter 'sigma_var'")
+  if (!("sigma_squared_shape"%in%names(params$model)))
+    stop("params$model must contain parameter 'sigma_squared_shape'")
+  if (!("sigma_squared_rate"%in%names(params$model)))
+    stop("params$model must contain parameter 'sigma_squared_rate'")
   if (!("priorMean_longitude"%in%names(params$model)))
     stop("params$model must contain parameter 'priorMean_longitude'")
   if (!("priorMean_latitude"%in%names(params$model)))
@@ -290,6 +406,22 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$sigma_var must be numeric and finite")
   if (params$model$sigma_var<0)
     stop("params$model$sigma_var must be greater than or equal to 0")
+  
+  # the only time that sigma_squared_shape and sigma_squared_rate are allowed to be NULL is under the fixed sigma model
+  if (is.null(params$model$sigma_squared_shape) | is.null(params$model$sigma_squared_rate)) {
+	if (params$model$sigma_var!=0) {
+		stop('params$model$sigma_squared_shape and params$model$sigma_squared_rate can only be NULL under the fixed sigma model, i.e. when params$model$sigma_var==0. ')
+	}
+  }
+
+  if (!is.null(params$model$sigma_squared_shape)) {
+  	if (!is.numeric(params$model$sigma_squared_shape) | !is.finite(params$model$sigma_squared_shape))
+    	stop("params$model$sigma_squared_shape must be numeric and finite")
+  }
+  if (!is.null(params$model$sigma_squared_rate)) {
+  	if (!is.numeric(params$model$sigma_squared_rate) | !is.finite(params$model$sigma_squared_rate))
+    	stop("params$model$sigma_squared_rate must be numeric and finite")
+  }
   if (!is.numeric(params$model$priorMean_longitude) | !is.finite(params$model$priorMean_longitude))
     stop("params$model$priorMean_longitude must be numeric and finite")
   if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
@@ -306,15 +438,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$alpha_rate must be numeric and finite")
   if (params$model$alpha_rate<=0)
     stop("params$model$alpha_rate must be greater than 0")
-  
-  # check that prior on sigma^2 is sensible if using variable sigma model
-  if (sigma_var>0) {
-    
-    # check that alpha and beta parameters of inverse-gamma prior on sigma^2 are within range
-    ab <- get_alpha_beta(params$model$sigma_mean, params$model$sigma_var)
-    if (ab$alpha>(1e3-1))
-      stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var, or alternatively setting sigma_var=0 (i.e. using fixed-sigma model)')
-  }
 
   #---------------------------------------
 
@@ -378,8 +501,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
 }
 
 #------------------------------------------------
-#' Plot prior and posterior distributions of sigma
-#'
 #' Plot prior and posterior distributions of sigma.
 #'
 #' @param params A list of parameters (defines prior on sigma)
@@ -391,12 +512,12 @@ geoParamsCheck <- function(params, silent=FALSE) {
 geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   
   # check params
-  geoParamsCheck(params)
+  geoParamsCheck(params, silent=TRUE)
   
   # check that plotMax is sensible
   if (!is.null(plotMax)) {
-    if (!is.numeric(plotMax))
-      stop('plotMax must be numeric')
+    if (!is.numeric(plotMax) | !is.finite(plotMax))
+      stop('plotMax must be numeric and finite')
     if (plotMax<=0)
       stop('plotMax must be greater than zero')
   }
@@ -404,32 +525,30 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   # extract sigma parameters
   sigma_mean <- params$model$sigma_mean
   sigma_var <- params$model$sigma_var
+  alpha <- params$model$sigma_squared_shape
+  beta <- params$model$sigma_squared_rate
   
   # stop if using fixed sigma model
   if (sigma_var==0)
     stop('can only produce this plot under variable-sigma model (i.e. sigma_var>0)')
   
-  # default plotMax based on both prior distribution and posterior draws
+  # default plotMax based on extent of prior distribution AND the extent of posterior draws if available
   if (is.null(plotMax)) {
-    if (is.null(sigma)) {
-      plotMax <- sigma_mean+3*sqrt(sigma_var)
-    } else {
-      plotMax <- 2*max(sigma,na.rm=TRUE)
+    plotMax <- sigma_mean+3*sqrt(sigma_var)
+    if (!is.null(sigma)) {
+      plotMax <- max(plotMax, 2*max(sigma,na.rm=TRUE))
     }
   }
   
-  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  ab <- get_alpha_beta(sigma_mean, sigma_var)
-  
   # produce prior distribution
   sigma_vec <- seq(0,plotMax,l=501)
-  sigma_prior <- dRIG(sigma_vec,ab$alpha,ab$beta)
+  sigma_prior <- dRIG(sigma_vec,alpha,beta)
   
   # plot prior and overlay density of posterior draws if used
   if (is.null(sigma)) {
     
     plot(sigma_vec, sigma_prior, type='l', xlab='sigma', ylab='probability density', main='')
-    legend(x='topright', legend='prior')
+    legend(x='topright', legend='prior', lty=1)
     
   } else {
     
@@ -446,6 +565,7 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
 
 #------------------------------------------------
 # Square-root-inverse-gamma distribution
+# If an inverse gamma distribution has shape alpha and rate beta, and hence mean beta/(alpha-1) and variance beta^2/((alpha-1)^2*(alpha-2)), then the square root of this random variable has mean epsilon=sqrt(beta)*gamma(alpha-0.5)/gamma(alpha) and variance v=beta/(alpha-1)-epsilon^2. The variance can also be written purely in terms of alpha and epsilon as follows: v=epsilon^2*(gamma(alpha-1)*gamma(alpha)/gamma(alpha-0.5)^2 - 1).
 # (not exported)
 
 dRIG <- function(x,alpha,beta,log=FALSE) {
@@ -496,15 +616,10 @@ geoMCMC <- function(data, params) {
   longitude_cells <- params$output$longitude_cells
   latitude_cells <- params$output$latitude_cells
   
-  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  if (sigma_var>0) {
-    ab <- get_alpha_beta(sigma_mean, sigma_var)
-    params$model$sigma_alpha <- ab$alpha
-    params$model$sigma_beta <- ab$beta
-  } else {
-  # use values of -1 to represent fixed sigma model
-    params$model$sigma_alpha <- -1
-    params$model$sigma_beta <- -1
+  # if using fixed sigma model then set alpha and beta to -1
+  if (sigma_var==0) {
+  	params$model$sigma_squared_shape <- -1
+  	params$model$sigma_squared_rate <- -1
   }
   
   # carry out MCMC
@@ -613,6 +728,7 @@ geoMCMC <- function(data, params) {
 #'
 #' Converts surface to rank order geoprofile.
 #' @param z matrix to convert to geoprofile
+#'
 #' @export
 #' @examples
 #' geoProfile(MCMCoutput$geoSurface)
@@ -635,7 +751,9 @@ geoProfile <- function(z) {
 #' Plot posterior allocation
 #'
 #' Produces plot of posterior allocation, given output of MCMC.
+#'
 #' @param MCMCoutput output generated from an MCMC.
+#'
 #' @export
 #' @examples
 #' geoPlotAllocation(MCMCoutput)
@@ -693,6 +811,8 @@ geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white
 
 #------------------------------------------------
 # get optimal zoom level given x and y values
+# (not exported)
+
 getZoom <- function(x,y) {
 	
 	# calculate midpoint of range in x and y
@@ -727,13 +847,15 @@ getZoom <- function(x,y) {
 #------------------------------------------------
 #' Create quick geoprofile plot
 #'
-#' Creates quick geoprofile plot, choosing some parameters automatically.
-#' @param surface
+#' Creates quick geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
+#'
+#' @param surface some text
+#'
 #' @export
 #' @examples
 #' geoQuickPlot(surface)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, data_fillCol='black', data_borderCol='white') {
+geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='red', crimePch=16,crimeCex=1,CrimeBorderCol='white',sourceCol='blue', sourcePch=15,sourceCex=1,SourceBorderCol='white',source_data=source_data) {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -760,8 +882,6 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     	nbcol=length(breakPercent)-1 	
     	color <- geoCols(nbcol)
     	
-
-    	
 		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
 		df$z <- as.vector(t(surface))
 		labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
@@ -771,7 +891,6 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
 		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
 
-		
 		# add contours
 		if (plotContours) {
 			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=0.5, data=df)
@@ -781,9 +900,59 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
     # overlay data points
     if (!is.null(data)) {
     	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, cex=1.5, col=data_borderCol)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=20, cex=1.5, col=data_fillCol)
+    	q <- data.frame(source_longitude= source_data$source_longitude, source_latitude= source_data$source_latitude)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
+		
+		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= (sourceCex*1.2), col=SourceBorderCol)
+		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= sourceCex, col=sourceCol)
     }
     
     myMap
 }
+
+#------------------------------------------------
+#' Calculate hitscores
+#'
+#' Calculate hitscores of the potential sources based on the final geoprofile surface.
+#'
+#' @param params some text
+#' @param source_data some text
+#' @param surface some text
+#'
+#' @export
+#' @examples
+#' geoReportHitscores(params,source_data,surface)
+
+geoReportHitscores <- function(params,source_data,surface) {
+	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
+	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
+	
+	
+	profile_order = order(surface)
+	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
+		ordermat[profile_order[i]] = i
+		}
+	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
+	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
+
+	
+	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
+	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
+	
+	xdiff = abs(outer(rep(1,nrow(sources)),xvec)-outer(sources[,1],rep(1,params$output$longitude_cells)))
+	ydiff = abs(outer(rep(1,nrow(sources)),yvec)-outer(sources[,2],rep(1,params$output$latitude_cells)))
+
+	msourcex = mapply(which.min,x=split(xdiff,row(xdiff)))
+	msourcey = params$output$longitude_cells-(mapply(which.min,x=split(ydiff,row(ydiff))))+1
+
+	if (nrow(sources)>1) {
+		hitscores = diag(hitscoremat2[msourcey,msourcex])
+	} else {
+		hitscores = hitscoremat2[msourcey,msourcex]
+	}
+	hit_output <<- cbind(sources,hitscores)
+	print(hit_output)
+
+}
+
