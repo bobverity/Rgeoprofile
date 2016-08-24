@@ -107,6 +107,8 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' @param data some text
 #' @param sigma_mean The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)
 #' @param sigma_var The variance of the prior on sigma
+#' @param sigma_squared_shape some text
+#' @param sigma_squared_rate some text
 #' @param priorMean_longitude The position (longitude) of the mean of the prior distribution
 #' @param priorMean_latitude The position (latitude) of the mean of the prior distribution
 #' @param priorSD some text
@@ -126,15 +128,15 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' @examples
 #' geoParams()
 
-geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
   	# if data argument used then get map limits from data
     if (!is.null(data)) {
         
         # check correct format of data
         geoDataCheck(data, silent=TRUE)
-            
-    		# get midpoints and ranges
+        
+        # get midpoints and ranges
         xmin <- min(data$longitude);
         xmax <- max(data$longitude)
         ymin <- min(data$latitude);
@@ -152,7 +154,7 @@ geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_lon
         lat_angle_top <- (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
         lat_angle_bot <- (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
     		
-    		# if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases add a 10% buffer zone.
+        # if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases add a 10% buffer zone.
         if (ymin>=lat_angle_bot & ymax<=lat_angle_top) {
           	frame_xmin <- xmin-xdiff*0.1
           	frame_xmax <- xmax+xdiff*0.1
@@ -185,8 +187,73 @@ geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_lon
           latitude_minMax <- 51.5074 + c(-0.1,0.1)
     }
     
+    # initialise shape and rate parameters for prior on sigma^2
+    alpha <- NULL
+    beta <- NULL
+    
+    # if sigma_var has been specified
+    if (!is.null(sigma_var)) {
+    	
+    	# check that sigma_mean has also been specified
+    	if (!is.null(sigma_mean)) {
+    		
+    		# if using fixed sigma model then no need to calculate alpha and beta. Otherwise use values of sigma_mean and sigma_var to search for the unique alpha and beta that define the distribution
+	    	if (sigma_var==0) {
+	    		message('Using fixed sigma model')
+	    	} else {
+	            message('Using sigma_mean and sigma_var to define prior on sigma')
+	    		ab <- get_alpha_beta(sigma_mean, sigma_var)
+		    	alpha <- ab$alpha
+		    	beta <- ab$beta
+	    	}
+    	}
+    	    	
+    # if sigma_var has not been specified
+    } else {
+    	
+    	# if sigma_mean has been specified but sigma_var has not then use sigma_mean along with sigma_squared_shape to calculate beta
+    	if (!is.null(sigma_mean)) {
+	        if (is.null(sigma_squared_shape)) {
+	        	stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
+	        } else {
+	            message('Using sigma_mean and sigma_squared_shape to define prior on sigma')
+	        	alpha <- sigma_squared_shape
+	        	if (alpha<=1) {
+	        		stop('sigma_squared_shape must be >1')
+	        	}
+	            beta <- exp(2*log(sigma_mean) + 2*lgamma(alpha) - 2*lgamma(alpha-0.5))
+	            epsilon <- sqrt(beta)*gamma(alpha-0.5)/gamma(alpha)
+				sigma_var <- beta/(alpha-1)-epsilon^2
+	        }
+	    
+	    # if neither sigma_mean nor sigma_var have been specified then use sigma_squared_shape and sigma_squared_rate to define distribution
+	    } else {
+	    	message('Using sigma_squared_shape and sigma_squared_rate to define prior on sigma')
+	    	if (is.null(sigma_squared_shape) | is.null(sigma_squared_rate)) {
+				stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
+	    	}
+	    	alpha <- sigma_squared_shape
+			beta <- sigma_squared_rate
+            sigma_mean <- sqrt(beta)*gamma(alpha-0.5)/gamma(alpha)
+			sigma_var <- beta/(alpha-1)-sigma_mean^2
+	    }
+    }
+        
+    # check that chosen inputs do in fact uniquely define the distribution. At this stage alpha and beta are only allowed to be NULL under the fixed-sigma model
+    if (is.null(alpha) | is.null(beta)) {
+    	returnError <- TRUE
+    	if (!is.null(sigma_var)) {
+    		if (sigma_var==0) {
+    			returnError <- FALSE
+    		}
+    	}
+    	if (returnError) {
+    		stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
+    	}
+    }
+    
     # set model parameters
-    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
+    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, sigma_squared_shape=alpha, sigma_squared_rate=beta, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
     
     # set MCMC parameters
     MCMC <- list(chains=chains, burnin=burnin, samples=samples, burnin_printConsole=burnin_printConsole, samples_printConsole=samples_printConsole)
@@ -208,6 +275,31 @@ geoParams <- function(data=NULL, sigma_mean=0.008, sigma_var=1e-4, priorMean_lon
     # combine and return
     params <- list(model=model, MCMC=MCMC, output=output)
     return(params)
+}
+
+#------------------------------------------------
+# Get alpha and beta parameters of inverse-gamma prior on sigma^2 from expectation and variance.
+# (not exported)
+
+get_alpha_beta <- function(sigma_mean,sigma_var) {
+  
+  # define a function that has minimum at correct value of alpha
+  f_alpha <- function(alpha) {
+    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
+  }
+  
+  # search for alpha
+  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
+  
+  # solve for beta
+  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
+  
+  # check that chosen alpha is not at limit of range
+  if (alpha>(1e3-1))
+      stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var, or alternatively setting sigma_var=0 (i.e. using fixed-sigma model)')
+      
+  output <- list(alpha=alpha, beta=beta)
+  return(output)
 }
 
 #------------------------------------------------
@@ -253,20 +345,6 @@ geoDataCheck <- function(data, silent=FALSE) {
 }
 
 #------------------------------------------------
-# Get alpha and beta parameters of inverse-gamma prior on sigma from expectation and variance
-# (not exported)
-
-get_alpha_beta <- function(sigma_mean,sigma_var) {
-  f_alpha <- function(alpha) {
-    (sqrt((sigma_var+sigma_mean^2)*(alpha-1))*exp(lgamma(alpha-0.5)-lgamma(alpha))-sigma_mean)^2
-  }
-  alpha <- optim(2,f_alpha,method='Brent',lower=1,upper=1e3)$par
-  beta <- (sigma_var+sigma_mean^2)*(alpha-1)
-  output <- list(alpha=alpha, beta=beta)
-  return(output)
-}
-
-#------------------------------------------------
 #' Check parameters
 #'
 #' Check that all parameters for use in Rgeoprofile MCMC are OK.
@@ -304,6 +382,10 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model must contain parameter 'sigma_mean'")
   if (!("sigma_var"%in%names(params$model)))
     stop("params$model must contain parameter 'sigma_var'")
+  if (!("sigma_squared_shape"%in%names(params$model)))
+    stop("params$model must contain parameter 'sigma_squared_shape'")
+  if (!("sigma_squared_rate"%in%names(params$model)))
+    stop("params$model must contain parameter 'sigma_squared_rate'")
   if (!("priorMean_longitude"%in%names(params$model)))
     stop("params$model must contain parameter 'priorMean_longitude'")
   if (!("priorMean_latitude"%in%names(params$model)))
@@ -324,6 +406,22 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$sigma_var must be numeric and finite")
   if (params$model$sigma_var<0)
     stop("params$model$sigma_var must be greater than or equal to 0")
+  
+  # the only time that sigma_squared_shape and sigma_squared_rate are allowed to be NULL is under the fixed sigma model
+  if (is.null(params$model$sigma_squared_shape) | is.null(params$model$sigma_squared_rate)) {
+	if (params$model$sigma_var!=0) {
+		stop('params$model$sigma_squared_shape and params$model$sigma_squared_rate can only be NULL under the fixed sigma model, i.e. when params$model$sigma_var==0. ')
+	}
+  }
+
+  if (!is.null(params$model$sigma_squared_shape)) {
+  	if (!is.numeric(params$model$sigma_squared_shape) | !is.finite(params$model$sigma_squared_shape))
+    	stop("params$model$sigma_squared_shape must be numeric and finite")
+  }
+  if (!is.null(params$model$sigma_squared_rate)) {
+  	if (!is.numeric(params$model$sigma_squared_rate) | !is.finite(params$model$sigma_squared_rate))
+    	stop("params$model$sigma_squared_rate must be numeric and finite")
+  }
   if (!is.numeric(params$model$priorMean_longitude) | !is.finite(params$model$priorMean_longitude))
     stop("params$model$priorMean_longitude must be numeric and finite")
   if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
@@ -340,15 +438,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$alpha_rate must be numeric and finite")
   if (params$model$alpha_rate<=0)
     stop("params$model$alpha_rate must be greater than 0")
-  
-  # check that prior on sigma^2 is sensible if using variable sigma model
-  if (params$model$sigma_var>0) {
-    
-    # check that alpha and beta parameters of inverse-gamma prior on sigma^2 are within range
-    ab <- get_alpha_beta(params$model$sigma_mean, params$model$sigma_var)
-    if (ab$alpha>(1e3-1))
-      stop('unable to define prior on sigma for chosen values of sigma_mean and sigma_var. Try increasing the value of sigma_var, or alternatively setting sigma_var=0 (i.e. using fixed-sigma model)')
-  }
 
   #---------------------------------------
 
@@ -412,8 +501,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
 }
 
 #------------------------------------------------
-#' Plot prior and posterior distributions of sigma
-#'
 #' Plot prior and posterior distributions of sigma.
 #'
 #' @param params A list of parameters (defines prior on sigma)
@@ -425,12 +512,12 @@ geoParamsCheck <- function(params, silent=FALSE) {
 geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   
   # check params
-  geoParamsCheck(params)
+  geoParamsCheck(params, silent=TRUE)
   
   # check that plotMax is sensible
   if (!is.null(plotMax)) {
-    if (!is.numeric(plotMax))
-      stop('plotMax must be numeric')
+    if (!is.numeric(plotMax) | !is.finite(plotMax))
+      stop('plotMax must be numeric and finite')
     if (plotMax<=0)
       stop('plotMax must be greater than zero')
   }
@@ -438,32 +525,30 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   # extract sigma parameters
   sigma_mean <- params$model$sigma_mean
   sigma_var <- params$model$sigma_var
+  alpha <- params$model$sigma_squared_shape
+  beta <- params$model$sigma_squared_rate
   
   # stop if using fixed sigma model
   if (sigma_var==0)
     stop('can only produce this plot under variable-sigma model (i.e. sigma_var>0)')
   
-  # default plotMax based on both prior distribution and posterior draws
+  # default plotMax based on extent of prior distribution AND the extent of posterior draws if available
   if (is.null(plotMax)) {
-    if (is.null(sigma)) {
-      plotMax <- sigma_mean+3*sqrt(sigma_var)
-    } else {
-      plotMax <- 2*max(sigma,na.rm=TRUE)
+    plotMax <- sigma_mean+3*sqrt(sigma_var)
+    if (!is.null(sigma)) {
+      plotMax <- max(plotMax, 2*max(sigma,na.rm=TRUE))
     }
   }
   
-  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  ab <- get_alpha_beta(sigma_mean, sigma_var)
-  
   # produce prior distribution
   sigma_vec <- seq(0,plotMax,l=501)
-  sigma_prior <- dRIG(sigma_vec,ab$alpha,ab$beta)
+  sigma_prior <- dRIG(sigma_vec,alpha,beta)
   
   # plot prior and overlay density of posterior draws if used
   if (is.null(sigma)) {
     
     plot(sigma_vec, sigma_prior, type='l', xlab='sigma', ylab='probability density', main='')
-    legend(x='topright', legend='prior')
+    legend(x='topright', legend='prior', lty=1)
     
   } else {
     
@@ -531,17 +616,12 @@ geoMCMC <- function(data, params) {
   longitude_cells <- params$output$longitude_cells
   latitude_cells <- params$output$latitude_cells
   
-  # calculate alpha and beta parameters of inverse-gamma prior on sigma^2
-  if (sigma_var>0) {
-    ab <- get_alpha_beta(sigma_mean, sigma_var)
-    params$model$sigma_alpha <- ab$alpha
-    params$model$sigma_beta <- ab$beta
-  } else {
-  # use values of -1 to represent fixed sigma model
-    params$model$sigma_alpha <- -1
-    params$model$sigma_beta <- -1
+  # if using fixed sigma model then set alpha and beta to -1
+  if (sigma_var==0) {
+  	params$model$sigma_squared_shape <- -1
+  	params$model$sigma_squared_rate <- -1
   }
-
+  
   # carry out MCMC
   rawOutput <- C_geoMCMC(data, params)
   

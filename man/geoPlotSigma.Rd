@@ -2,7 +2,7 @@
 % Please edit documentation in R/mainFunctions.R
 \name{geoPlotSigma}
 \alias{geoPlotSigma}
-\title{Plot prior and posterior distributions of sigma}
+\title{Plot prior and posterior distributions of sigma.}
 \usage{
 geoPlotSigma(params, sigma = NULL, plotMax = NULL)
 }
