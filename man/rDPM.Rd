@@ -4,16 +4,27 @@
 \alias{rDPM}
 \title{Draw from Dirichlet process mixture model}
 \usage{
-rDPM(n, sigma = 0.01, priorMean_longitude = -0.1277,
-  priorMean_latitude = 51.5074, priorSD = 0.03, alpha = 1)
+rDPM(n, sigma = 1, tau = 10, priorMean_longitude = -0.1277,
+  priorMean_latitude = 51.5074, alpha = 1)
 }
 \arguments{
 \item{n}{number of draws}
 
-\item{sigma}{standard deviation of dispersal distribution, in units of degrees}
+\item{sigma}{standard deviation of dispersal distribution, in units of kilometres}
+
+\item{tau}{standard deviation of prior on source locations (i.e. average distances of sources from centre point), in units of kilometres}
+
+\item{priorMean_longitude}{location of prior mean on source locations in degrees longitudinal}
+
+\item{priorMean_latitude}{location of prior mean on source locations in degrees latitudinal}
+
+\item{alpha}{concentration parameter of Dirichlet process model. Large alpha implies many distinct sources, while small alpha implies only a few sources.}
 }
 \description{
-Provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis.
+Provides random draws from a 2D spatial Dirichlet process mixture model. Both sigma and tau are defined in units of kilometres, representing the average distance that an observations lies from a source, and the average distance that a source lies from the centre point respectively. In contrast, the location of the centre point and the locations of the final output crime sites are defined in units of degrees lat/long to facilitate spatial analysis.
+}
+\details{
+Output includes the lat/long locations of the points drawn from the DPM model, along with the underlying group allocation (i.e. which points belong to which sources) and the lat/long locations of the sources.
 }
 \examples{
 rDPM(10)

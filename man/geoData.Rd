@@ -12,7 +12,7 @@ geoData(longitude = NULL, latitude = NULL)
 \item{latitude}{the latitudinal positions of the observed data}
 }
 \description{
-Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors, and returns a list of these same values. If no values are input then default values are used.
+Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 }
 \examples{
 geoData()
