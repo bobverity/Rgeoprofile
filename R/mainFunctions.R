@@ -198,8 +198,8 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     
   # generate dummy data if none read in
   if (is.null(source_longitude) & is.null(source_latitude)) {
-      source_longitude <- c(-0.104, -0.103, -0.0967)
-      source_latitude <- c(51.499, 51.49, 51.494)
+      source_longitude <- c(-0.1, -0.14, -0.105, -0.08, -0.08)
+      source_latitude <- c(51.495, 51.5, 51.52, 51.515, 51.49)
   } else {
   	if (is.null(source_longitude) | is.null(source_latitude))
   		stop("Both source_longitude and source_latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
@@ -238,9 +238,9 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' @export
 #' @examples
 #' myData <- geoData()
-#' geoParams(myData)
+#' geoParams(myData, sigma_var=1)
 
-geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
   	# if data argument used then get prior mean and map limits from data
     if (!is.null(data)) {
@@ -446,7 +446,8 @@ geoDataCheck <- function(data, silent=FALSE) {
 #'
 #' @export
 #' @examples
-#' myParams <- geoParams()
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
 #' geoParamsCheck(myParams)
 
 geoParamsCheck <- function(params, silent=FALSE) {
@@ -603,7 +604,8 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #'
 #' @export
 #' @examples
-#' myParams <- geoParams()
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
 #' geoPlotSigma(myParams)
 
 geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
@@ -690,7 +692,7 @@ dts <- function(x,df,scale=1,log=FALSE) {
 #' @export
 #' @examples
 #' myData <- geoData()
-#' myParams <- geoParams()
+#' myParams <- geoParams(myData, sigma_var=1)
 #' myMCMC <- geoMCMC(myData, myParams)
 #' geoPlotSigma(myParams, myMCMC$sigma)
 
@@ -827,7 +829,7 @@ geoMCMC <- function(data, params) {
 #' @export
 #' @examples
 #' myData <- geoData()
-#' myParams <- geoParams()
+#' myParams <- geoParams(myData, sigma_var=1)
 #' myMCMC <- geoMCMC(myData, myParams)
 #' myMCMC$profile <- geoProfile(myMCMC$surface)
 
