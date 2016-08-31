@@ -7,7 +7,7 @@
 geoDataCheck(data, silent = FALSE)
 }
 \arguments{
-\item{data}{A list of data}
+\item{data}{A data list object, as defined by geoData()}
 
 \item{silent}{Whether to report passing check to console}
 }

@@ -7,12 +7,12 @@
 geoData(longitude = NULL, latitude = NULL)
 }
 \arguments{
-\item{longitude}{The longitudinal positions of the observed data}
+\item{longitude}{the longitudinal positions of the observed data}
 
-\item{latitude}{The latitudinal positions of the observed data}
+\item{latitude}{the latitudinal positions of the observed data}
 }
 \description{
-This function can be used to generate a dummy data object in the format used by the Rgeoprofile MCMC.
+Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 }
 \examples{
 geoData()

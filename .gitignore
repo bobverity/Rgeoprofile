@@ -1,0 +1,11 @@
+
+# Compiled source #
+###################
+*.o
+*.so
+*.dll
+*.exe
+
+# OS generated files #
+######################
+.DS_Store

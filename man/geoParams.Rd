@@ -4,23 +4,52 @@
 \alias{geoParams}
 \title{Create Rgeoprofile parameters object}
 \usage{
-geoParams(data = NULL, sigma_mean = 0.008, sigma_var = 1e-04,
-  priorMean_longitude = -0.1277, priorMean_latitude = 51.5074,
-  priorSD = 0.03, alpha_shape = 0.1, alpha_rate = 0.1, chains = 10,
-  burnin = 500, samples = 5000, burnin_printConsole = 100,
-  samples_printConsole = 1000, longitude_minMax = NULL,
-  latitude_minMax = NULL, longitude_cells = 500, latitude_cells = 500)
+geoParams(data = NULL, sigma_mean = 1, sigma_var = 1,
+  sigma_squared_shape = NULL, sigma_squared_rate = NULL,
+  priorMean_longitude = NULL, priorMean_latitude = NULL, tau = NULL,
+  alpha_shape = 0.1, alpha_rate = 0.1, chains = 10, burnin = 500,
+  samples = 5000, burnin_printConsole = 100, samples_printConsole = 1000,
+  longitude_minMax = NULL, latitude_minMax = NULL, longitude_cells = 500,
+  latitude_cells = 500)
 }
 \arguments{
+\item{data}{some text}
+
 \item{sigma_mean}{The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)}
 
 \item{sigma_var}{The variance of the prior on sigma}
+
+\item{sigma_squared_shape}{some text}
+
+\item{sigma_squared_rate}{some text}
 
 \item{priorMean_longitude}{The position (longitude) of the mean of the prior distribution}
 
 \item{priorMean_latitude}{The position (latitude) of the mean of the prior distribution}
 
-\item{latitude_cells}{}
+\item{tau}{some text}
+
+\item{alpha_shape}{some text}
+
+\item{alpha_rate}{some text}
+
+\item{chains}{some text}
+
+\item{burnin}{some text}
+
+\item{samples}{some text}
+
+\item{burnin_printConsole}{some text}
+
+\item{samples_printConsole}{some text}
+
+\item{longitude_minMax}{some text}
+
+\item{latitude_minMax}{some text}
+
+\item{longitude_cells}{some text}
+
+\item{latitude_cells}{some text}
 }
 \description{
 This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
