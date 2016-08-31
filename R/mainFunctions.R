@@ -2,10 +2,16 @@
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
-#' Provides random draws from a 2D Dirichlet process mixture model. Coordinates are defined in units of degrees latitude and longitude to facilitate spatial analysis.
+#' Provides random draws from a 2D spatial Dirichlet process mixture model. Both sigma and tau are defined in units of kilometres, representing the average distance that an observations lies from a source, and the average distance that a source lies from the centre point respectively. In contrast, the location of the centre point and the locations of the final output crime sites are defined in units of degrees lat/long to facilitate spatial analysis.
 #'
-#' @param n number of draws
-#' @param sigma standard deviation of dispersal distribution, in units of degrees
+#' Output includes the lat/long locations of the points drawn from the DPM model, along with the underlying group allocation (i.e. which points belong to which sources) and the lat/long locations of the sources.
+#'
+#' @param n number of draws.
+#' @param sigma standard deviation of dispersal distribution, in units of kilometres.
+#' @param tau standard deviation of prior on source locations (i.e. average distances of sources from centre point), in units of kilometres.
+#' @param priorMean_longitude location of prior mean on source locations in degrees longitude.
+#' @param priorMean_latitude location of prior mean on source locations in degrees latitude.
+#' @param alpha concentration parameter of Dirichlet process model. Large alpha implies many distinct sources, while small alpha implies only a few sources.
 #'
 #' @export
 #' @examples
@@ -20,12 +26,12 @@
 #' @import RColorBrewer
 #' @exportPattern "^[[:alpha:]]+"
 
-rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha=1) {
-  
-  # force n to be a scalar integer
-  n <- floor(n[1])
-  
-  # draw grouping
+rDPM <- function(n, sigma=1, tau=10, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, alpha=1) {
+	
+	# force n to be a scalar integer
+	n <- floor(n[1])
+	
+	# draw grouping
 	group <- rep(1,n)
 	freqs <- 1
     if (n>1) {
@@ -38,24 +44,123 @@ rDPM <- function(n, sigma=0.01, priorMean_longitude=-0.1277, priorMean_latitude=
     }
 	group <- sort(group)
 	
-	# draw means and data
-	source_lon <- rnorm(length(freqs),priorMean_longitude,priorSD)
-	source_lat <- rnorm(length(freqs),priorMean_latitude,priorSD)
-    
-	longitude <- rnorm(n,source_lon[group],sigma)
-	latitude <- rnorm(n,source_lat[group],sigma)
+	# draw source locations
+	source <- rnorm_sphere(length(freqs), priorMean_latitude, priorMean_longitude, tau)
+	
+	# draw crime locations from sources
+	crime <- rnorm_sphere(n, source$latitude[group], source$longitude[group], sigma)
 	
 	# return results
-	return(list(longitude=longitude, latitude=latitude, group=group, source_lon=source_lon, source_lat=source_lat))
+	return(list(longitude=crime$longitude, latitude=crime$latitude, group=group, source_lon=source$longitude, source_lat=source$latitude))
+}
+
+#------------------------------------------------
+# Calculate bearing and great circle distance between an origin and one or more destination points
+# (not exported)
+
+latlon_to_bearing <- function(origin_lat, origin_lon, dest_lat, dest_lon) {
+	
+	# convert input arguments to radians	
+	origin_lat <- origin_lat*2*pi/360
+	dest_lat <- dest_lat*2*pi/360
+	origin_lon <- origin_lon*2*pi/360
+	dest_lon <- dest_lon*2*pi/360
+	
+	delta_lon <- dest_lon-origin_lon
+	
+	# calculate bearing and great circle distance
+	bearing <- atan2(sin(delta_lon)*cos(dest_lat), cos(origin_lat)*sin(dest_lat)-sin(origin_lat)*cos(dest_lat)*cos(delta_lon))
+	gc_angle <- acos(sin(origin_lat)*sin(dest_lat) + cos(origin_lat)*cos(dest_lat)*cos(delta_lon))
+	
+	# convert bearing from radians to degrees measured clockwise from due north, and convert gc_angle to great circle distance via radius of earth (km)
+	bearing <- bearing*360/(2*pi)
+	bearing <- (bearing+360)%%360
+	earthRad <- 6371
+	gc_dist <- earthRad*gc_angle
+	
+	return(list(bearing=bearing, gc_dist=gc_dist))
+}
+
+#------------------------------------------------
+# Convert lat/lon coordinates to cartesian coordinates by first calculating great circle distance and bearing and then mapping these coordinates into cartesian space. This mapping is relative to the point {centre_lat, centre_lon}, which should be roughly at the midpoint of the observed data.
+# (not exported)
+
+latlon_to_cartesian <- function(centre_lat, centre_lon, data_lat, data_lon) {
+	
+	# calculate bearing and great circle distance of data relative to centre
+	data_trans <- latlon_to_bearing(centre_lat, centre_lon, data_lat, data_lon)
+	
+	# use bearing and distance to calculate cartesian coordinates
+	theta <- data_trans$bearing*2*pi/360
+	d <- data_trans$gc_dist
+	data_x <- d*sin(theta)
+	data_y <- d*cos(theta)
+	
+	return(list(x=data_x, y=data_y))
+}
+
+#------------------------------------------------
+# Calculate destination lat/lon given an origin, a bearing and a great circle distance of travel
+# Note that bearing should be in degrees relative to due north, and gc_dist should be in units of kilometres
+# (not exported)
+
+bearing_to_latlon <- function(origin_lat, origin_lon, bearing, gc_dist) {
+	
+	# convert origin_lat, origin_lon and bearing from degrees to radians
+	origin_lat <- origin_lat*2*pi/360
+	origin_lon <- origin_lon*2*pi/360
+	bearing <- bearing*2*pi/360
+	
+	# calculate new lat/lon using great circle distance
+	earthRad <- 6371
+	new_lat <- asin(sin(origin_lat)*cos(gc_dist/earthRad) + cos(origin_lat)*sin(gc_dist/earthRad)*cos(bearing))
+	new_lon <- origin_lon + atan2(sin(bearing)*sin(gc_dist/earthRad)*cos(origin_lat), cos(gc_dist/earthRad)-sin(origin_lat)*sin(new_lat))
+	
+	# convert new_lat and new_lon from radians to degrees
+	new_lat <- new_lat*360/(2*pi)
+	new_lon <- new_lon*360/(2*pi)
+	
+	return(list(longitude=new_lon, latitude=new_lat))
+}
+
+#------------------------------------------------
+# Convert cartesian coordinates to lat/lon by using angle and euclidian distance from origin to define a bearing and great-circle distance relative to some centre point.
+# (not exported)
+
+cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
+	
+	# calculate angle and euclidian distance of all points relative to origin
+	d <- sqrt(data_x^2+data_y^2)
+	theta <- atan2(data_y,data_x)
+	
+	# convert theta to bearing relative to due north
+	theta <- theta*360/(2*pi)
+	theta <- (90-theta)%%360
+	
+	# use bearing and great circle distance to calculate lat/lon relative to an origin point
+	data_trans <- bearing_to_latlon(centre_lat, centre_lon, theta, d)
+	
+	return(list(longitude=data_trans$longitude, latitude=data_trans$latitude))
+}
+
+#------------------------------------------------
+# Draw from normal distribution converted to spherical coordinate system. Distances are first drawn from an ordinary cartesian 2D normal distribution. These distances are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon} to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere - rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
+# (not exported)
+
+rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
+	x <- rnorm(n,sd=sigma)
+	y <- rnorm(n,sd=sigma)
+	output <- cartesian_to_latlon(centre_lat, centre_lon, x, y)
+	return(output)
 }
 
 #------------------------------------------------
 #' Create Rgeoprofile data object
 #'
-#' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors, and returns a list of these same values. If no values are input then default values are used.
+#' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 #'
-#' @param longitude the longitudinal positions of the observed data
-#' @param latitude the latitudinal positions of the observed data
+#' @param longitude the longitudinal positions of the observed data.
+#' @param latitude the latitudinal positions of the observed data.
 #'
 #' @export
 #' @examples
@@ -67,6 +172,9 @@ geoData <- function(longitude=NULL, latitude=NULL) {
   if (is.null(longitude) & is.null(latitude)) {
     longitude <- c(-0.104545976281589, -0.102659272660916, -0.0967390020136406, -0.0996246226730725, -0.100775342233937, -0.101073477576196, -0.100932674617746, -0.0983001766339886, -0.0913571765598557, -0.100211479242536, -0.139508969429415, -0.14403082311245, -0.143607222414313, -0.137174795971723, -0.140884394738737, -0.142723755125487, -0.143380928147727, -0.136989691342132, -0.13837666855334, -0.138297288871952, -0.0773858357074935, -0.0818743917621333, -0.0738310357273188, -0.0744118149244568, -0.0757833597110897, -0.0762193916493531, -0.0810467015747727, -0.110052994420826, -0.106600836874167, -0.105104028808356, -0.101934241194567, -0.0683752111183375, -0.0758607240702608, -0.079153744918552, -0.087964365345432)
     latitude <- c(51.4996147329979, 51.4925230579844, 51.4947129689414, 51.4922683109254, 51.5007532206834, 51.4960640374896, 51.4996917836745, 51.4976936749008, 51.4977904998888, 51.4894186202378, 51.5002583182117, 51.5033510595094, 51.4984697991335, 51.5063306206839, 51.4961516950408, 51.4994464819411, 51.5067557678594, 51.4977275537675, 51.4988718377984, 51.4974782970503, 51.5137643501102, 51.5204498816501, 51.5213788858189, 51.5144343479237, 51.5212383455566, 51.5088225370868, 51.512547894056, 51.5144758355252, 51.5218865924773, 51.5218808497196, 51.5152330574081, 51.4836680563637, 51.4885211991595, 51.486842412489, 51.48845301363455)
+  } else {
+  	if (is.null(longitude) | is.null(latitude))
+  		stop("Both longitude and latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
   }
   
   # combine and return
@@ -77,10 +185,10 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #------------------------------------------------
 #' Create sources data object in same format as observations
 #'
-#' Takes longitude and latitude of potential source locations as input vectors, and returns a list of these same values. If no values are input then default values are returned.
+#' Simple function that ensures that sources are in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 #'
-#' @param longitude the longitudinal positions of the potential sources
-#' @param latitude the latitudinal positions of the potential sources
+#' @param longitude the longitudinal positions of the potential sources.
+#' @param latitude the latitudinal positions of the potential sources.
 #'
 #' @export
 #' @examples
@@ -90,8 +198,11 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     
   # generate dummy data if none read in
   if (is.null(source_longitude) & is.null(source_latitude)) {
-      source_longitude <- c(-0.104, -0.103, -0.0967)
-      source_latitude <- c(51.499, 51.49, 51.494)
+      source_longitude <- c(-0.1, -0.14, -0.105, -0.08, -0.08)
+      source_latitude <- c(51.495, 51.5, 51.52, 51.515, 51.49)
+  } else {
+  	if (is.null(source_longitude) | is.null(source_latitude))
+  		stop("Both source_longitude and source_latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
   }
   
   # combine and return
@@ -102,89 +213,76 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #------------------------------------------------
 #' Create Rgeoprofile parameters object
 #'
-#' This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
+#' This function can be used to generate parameters in the format required by other Rgeoprofile functions. Any parameter value can be specified as an input argument to this function. Alternatively, if data is input as an argument then some parameters can take default values directly from the data.
 #'
-#' @param data some text
-#' @param sigma_mean The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)
-#' @param sigma_var The variance of the prior on sigma
-#' @param sigma_squared_shape some text
-#' @param sigma_squared_rate some text
-#' @param priorMean_longitude The position (longitude) of the mean of the prior distribution
-#' @param priorMean_latitude The position (latitude) of the mean of the prior distribution
-#' @param priorSD some text
-#' @param alpha_shape some text
-#' @param alpha_rate some text
-#' @param chains some text
-#' @param burnin some text
-#' @param samples some text
-#' @param burnin_printConsole some text
-#' @param samples_printConsole some text
-#' @param longitude_minMax some text
-#' @param latitude_minMax some text
-#' @param longitude_cells some text
-#' @param latitude_cells some text
+#' @param data observations in the format defined by geoData().
+#' @param sigma_mean the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution).
+#' @param sigma_var the variance of the prior on sigma.
+#' @param sigma_squared_shape as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. This is the shape parameter of the inverse-gamma prior.
+#' @param sigma_squared_rate this is the rate parameter of the inverse-gamma prior on sigma^2.
+#' @param priorMean_longitude the position of the prior mean on source locations in degrees longitude.
+#' @param priorMean_latitude the position of the prior mean on source locations in degrees latitude.
+#' @param tau the standard deviation of the normal prior on source locations, i.e. how far we expect sources to lie from the centre. Leave as NULL to use default value, in which case tau is set equal to the maximum distance of any observation from the prior mean.
+#' @param alpha_shape shape parameter of the gamma prior on the parameter alpha.
+#' @param alpha_rate rate parameter of the gamma prior on the parameter alpha.
+#' @param chains number of MCMC chains to use in the burn-in step.
+#' @param burnin number of burn-in iterations to be discarded at start of MCMC.
+#' @param samples number of sampling iterations. These iterations are used to generate final posterior distribution.
+#' @param burnin_printConsole how frequently (in iterations) to report progress to the console during the burn-in phase.
+#' @param samples_printConsole how frequently (in iterations) to report progress to the console during the sampling phase.
+#' @param longitude_minMax vector containing minimum and maximum longitude over which to generate geoprofile.
+#' @param latitude_minMax vector containing minimum and maximum latitude over which to generate geoprofile.
+#' @param longitude_cells number of cells in the final geoprofile (longitude direction). Higher values generate smoother distributions, but take longer to run.
+#' @param latitude_cells number of cells in the final geoprofile (latitude direction). Higher values generate smoother distributions, but take longer to run.
 #'
 #' @export
 #' @examples
-#' geoParams()
+#' myData <- geoData()
+#' geoParams(myData, sigma_var=1)
 
-geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, priorSD=0.03, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
     
-  	# if data argument used then get map limits from data
+  	# if data argument used then get prior mean and map limits from data
     if (!is.null(data)) {
         
         # check correct format of data
         geoDataCheck(data, silent=TRUE)
         
-        # get midpoints and ranges
-        xmin <- min(data$longitude);
-        xmax <- max(data$longitude)
-        ymin <- min(data$latitude);
-        ymax <- max(data$latitude)
-        xdiff <- xmax-xmin
-        ydiff <- ymax-ymin
-        xmid <- xmin + xdiff/2
-        ymid <- ymin + ydiff/2
+        # if prior mean not defined then set as midpoint of data
+        if (is.null(priorMean_longitude))
+        	priorMean_longitude <- sum(range(data$longitude))/2
+        if (is.null(priorMean_latitude))
+        	priorMean_latitude <- sum(range(data$latitude))/2        
         
-        # try to use x-limits to calculate latitude upper and lower limits corresponding to a square map
-        delta <- xdiff/2
-        projection_mid <- log(tan(pi/4+ymid/360*2*pi/2))
-        projection_top <- projection_mid + delta/360*2*pi
-        projection_bot <- projection_mid - delta/360*2*pi
-        lat_angle_top <- (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
-        lat_angle_bot <- (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
-    		
-        # if data within these limits then great. Otherwise try the reverse operation - calculate longitude left and right limits corresponding to a square map. In both cases add a 10% buffer zone.
-        if (ymin>=lat_angle_bot & ymax<=lat_angle_top) {
-          	frame_xmin <- xmin-xdiff*0.1
-          	frame_xmax <- xmax+xdiff*0.1
-      			frame_ymin <- (lat_angle_top+lat_angle_bot)/2-(lat_angle_top-lat_angle_bot)*0.6
-      			frame_ymax <- (lat_angle_top+lat_angle_bot)/2+(lat_angle_top-lat_angle_bot)*0.6
-        } else {
-          	lat_angle_bot <- ymin
-          	lat_angle_top <- ymax
-          	projection_bot <- log(tan((lat_angle_bot/360*(2*pi)+pi/2)/2))
-          	projection_top <- log(tan((lat_angle_top/360*(2*pi)+pi/2)/2))
-      			projection_mid <- (projection_bot+projection_top)/2
-      			delta <- (projection_top-projection_mid)*360/(2*pi)
-      			frame_xmin <- xmid - delta*1.1
-      			frame_xmax <- xmid + delta*1.1
-      			frame_ymin <- lat_angle_bot - delta*0.1
-      			frame_ymax <- lat_angle_top + delta*0.1
-        }
-        
-        # set output values
+        # convert data to bearing and great circle distance, and extract maximum great circle distance to any point
+        data_trans <- latlon_to_bearing(priorMean_latitude, priorMean_longitude, data$latitude, data$longitude)
+		dist_max <- max(data_trans$gc_dist)
+		
+		# use 1.1*maximum distance to define lat/lon limits
         if (is.null(longitude_minMax))
-            longitude_minMax <- c(frame_xmin, frame_xmax)
+       		longitude_minMax <- cartesian_to_latlon(priorMean_latitude, priorMean_longitude, 1.1*c(-dist_max, dist_max), 0)$longitude
         if (is.null(latitude_minMax))
-            latitude_minMax <- c(frame_ymin, frame_ymax)
-        
-    # if data argument not used then set limits from longitude_minMax and latitude_minMax arguments, or failing that set them automatically
-    } else {
-      if (is.null(longitude_minMax))
-          longitude_minMax <- -0.1277 + c(-0.1,0.1)
-      if (is.null(latitude_minMax))
-          latitude_minMax <- 51.5074 + c(-0.1,0.1)
+       		latitude_minMax <- cartesian_to_latlon(priorMean_latitude, priorMean_longitude, 0, 1.1*c(-dist_max, dist_max))$latitude
+       	
+       	# use maximum distance as default value of tau
+       	if (is.null(tau))
+       		tau <- dist_max
+       	
+	}
+	
+	# if data argument not used then set prior values from input arguments, or use defaults if NULL
+    if (is.null(data)) {
+	
+		if (is.null(priorMean_longitude))
+        	priorMean_longitude <- -0.1277
+		if (is.null(priorMean_latitude))
+        	priorMean_latitude <- 51.5074
+		if (is.null(longitude_minMax))
+			longitude_minMax <- priorMean_longitude + c(-0.1,0.1)
+		if (is.null(latitude_minMax))
+			latitude_minMax <- priorMean_latitude + c(-0.1,0.1)
+       	if (is.null(tau))
+       		tau <- 10
     }
     
     # initialise shape and rate parameters for prior on sigma^2
@@ -199,9 +297,9 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=
     		
     		# if using fixed sigma model then no need to calculate alpha and beta. Otherwise use values of sigma_mean and sigma_var to search for the unique alpha and beta that define the distribution
 	    	if (sigma_var==0) {
-	    		message('Using fixed sigma model')
+	    		cat('Using fixed sigma model')
 	    	} else {
-	            message('Using sigma_mean and sigma_var to define prior on sigma')
+	            cat('Using sigma_mean and sigma_var to define prior on sigma')
 	    		ab <- get_alpha_beta(sigma_mean, sigma_var)
 		    	alpha <- ab$alpha
 		    	beta <- ab$beta
@@ -216,7 +314,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=
 	        if (is.null(sigma_squared_shape)) {
 	        	stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
 	        } else {
-	            message('Using sigma_mean and sigma_squared_shape to define prior on sigma')
+	            cat('Using sigma_mean and sigma_squared_shape to define prior on sigma')
 	        	alpha <- sigma_squared_shape
 	        	if (alpha<=1) {
 	        		stop('sigma_squared_shape must be >1')
@@ -228,7 +326,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=
 	    
 	    # if neither sigma_mean nor sigma_var have been specified then use sigma_squared_shape and sigma_squared_rate to define distribution
 	    } else {
-	    	message('Using sigma_squared_shape and sigma_squared_rate to define prior on sigma')
+	    	cat('Using sigma_squared_shape and sigma_squared_rate to define prior on sigma')
 	    	if (is.null(sigma_squared_shape) | is.null(sigma_squared_rate)) {
 				stop("Current prior parameters on sigma do not fully specify the distribution. Must specify either 1) a prior mean and variance on sigma, 2) a prior mean on sigma and a prior shape on sigma^2, 3) a prior shape and prior rate on sigma^2.")
 	    	}
@@ -253,24 +351,18 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=1, sigma_squared_shape=
     }
     
     # set model parameters
-    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, sigma_squared_shape=alpha, sigma_squared_rate=beta, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, priorSD=priorSD, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
+    model <- list(sigma_mean=sigma_mean, sigma_var=sigma_var, sigma_squared_shape=alpha, sigma_squared_rate=beta, priorMean_longitude=priorMean_longitude, priorMean_latitude=priorMean_latitude, tau=tau, alpha_shape=alpha_shape, alpha_rate=alpha_rate)
     
     # set MCMC parameters
     MCMC <- list(chains=chains, burnin=burnin, samples=samples, burnin_printConsole=burnin_printConsole, samples_printConsole=samples_printConsole)
     
     # set output parameters
-    xmin <- longitude_minMax[1];
-    xmax <- longitude_minMax[2]
-    ymin <- latitude_minMax[1];
-    ymax <- latitude_minMax[2]
-    xCells <- longitude_cells
-    yCells <- latitude_cells
-    xCellSize <- (xmax-xmin)/xCells
-    yCellSize <- (ymax-ymin)/yCells
-    xMids <- xmin - xCellSize/2 + (1:xCells)*xCellSize
-    yMids <- ymin - yCellSize/2 + (1:yCells)*yCellSize
+    longitude_cellSize <- diff(longitude_minMax)/longitude_cells
+    latitude_cellSize <- diff(latitude_minMax)/latitude_cells
+    longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + (1:longitude_cells)* longitude_cellSize
+    latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + (1:latitude_cells)* latitude_cellSize
     
-    output <- list(longitude_minMax=longitude_minMax, latitude_minMax=latitude_minMax, longitude_cells=longitude_cells, latitude_cells=latitude_cells, longitude_midpoints=xMids, latitude_midpoints=yMids)
+    output <- list(longitude_minMax=longitude_minMax, latitude_minMax=latitude_minMax, longitude_cells=longitude_cells, latitude_cells=latitude_cells, longitude_midpoints=longitude_midpoints, latitude_midpoints=latitude_midpoints)
     
     # combine and return
     params <- list(model=model, MCMC=MCMC, output=output)
@@ -307,12 +399,12 @@ get_alpha_beta <- function(sigma_mean,sigma_var) {
 #'
 #' Check that all data for use in Rgeoprofile MCMC is in the correct format.
 #'
-#' @param data A list of data
-#' @param silent Whether to report passing check to console
+#' @param data a data list object, as defined by geoData().
+#' @param silent Wwether to report passing check to console.
 #'
 #' @export
 #' @examples
-#' # tester
+#' myData <- geoData()
 #' geoDataCheck(myData)
 
 geoDataCheck <- function(data, silent=FALSE) {
@@ -347,14 +439,15 @@ geoDataCheck <- function(data, silent=FALSE) {
 #------------------------------------------------
 #' Check parameters
 #'
-#' Check that all parameters for use in Rgeoprofile MCMC are OK.
+#' Check that all parameters for use in Rgeoprofile MCMC are in the correct format.
 #'
-#' @param params A list of parameters
-#' @param silent Whether to report passing check to console
+#' @param params a list of parameters, as defined by geoParams().
+#' @param silent whether to report passing check to console.
 #'
 #' @export
 #' @examples
-#' # tester
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
 #' geoParamsCheck(myParams)
 
 geoParamsCheck <- function(params, silent=FALSE) {
@@ -390,8 +483,8 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model must contain parameter 'priorMean_longitude'")
   if (!("priorMean_latitude"%in%names(params$model)))
     stop("params$model must contain parameter 'priorMean_latitude'")
-  if (!("priorSD"%in%names(params$model)))
-    stop("params$model must contain parameter 'priorSD'")
+  if (!("tau"%in%names(params$model)))
+    stop("params$model must contain parameter 'tau'")
   if (!("alpha_shape"%in%names(params$model)))
     stop("params$model must contain parameter 'alpha_shape'")
   if (!("alpha_rate"%in%names(params$model)))
@@ -426,10 +519,10 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$model$priorMean_longitude must be numeric and finite")
   if (!is.numeric(params$model$priorMean_latitude) | !is.finite(params$model$priorMean_latitude))
     stop("params$model$priorMean_latitude must be numeric and finite")
-  if (!is.numeric(params$model$priorSD) | !is.finite(params$model$priorSD))
-    stop("params$model$priorSD must be numeric and finite")
-  if (params$model$priorSD<=0)
-    stop("params$model$priorSD must be greater than 0")
+  if (!is.numeric(params$model$tau) | !is.finite(params$model$tau))
+    stop("params$model$tau must be numeric and finite")
+  if (params$model$tau<=0)
+    stop("params$model$tau must be greater than 0")
   if (!is.numeric(params$model$alpha_shape) | !is.finite(params$model$alpha_shape))
     stop("params$model$alpha_shape must be numeric and finite")
   if (params$model$alpha_shape<=0)
@@ -503,11 +596,17 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #------------------------------------------------
 #' Plot prior and posterior distributions of sigma.
 #'
-#' @param params A list of parameters (defines prior on sigma)
-#' @param sigma A vector of posterior draws of sigma. Leave as NULL to plot prior only.
+#' Plot prior distribution of sigma as defined by current parameter values. Can optionally overlay a kernel density plot of posterior draws of sigma.
+#'
+#' @param params a list of parameters as defined by geoParams().
+#' @param sigma a vector of posterior draws of sigma. Leave as NULL to plot prior only.
 #' @param plotMax maximum x-axis range to plot. Leave as NULL to use default settings.
 #'
 #' @export
+#' @examples
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
+#' geoPlotSigma(myParams)
 
 geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   
@@ -546,19 +645,15 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   
   # plot prior and overlay density of posterior draws if used
   if (is.null(sigma)) {
-    
-    plot(sigma_vec, sigma_prior, type='l', xlab='sigma', ylab='probability density', main='')
+    plot(sigma_vec, sigma_prior, type='l', xlab='sigma (km)', ylab='probability density', main='')
     legend(x='topright', legend='prior', lty=1)
-    
   } else {
-    
     sigma_posterior <- density(sigma,from=0,to=plotMax)
     y_max <- max(sigma_posterior$y,na.rm=TRUE)
     
-    plot(sigma_vec, sigma_prior, type='l', ylim=c(0,y_max), lty=2, xlab='sigma', ylab='probability density', main='')
+    plot(sigma_vec, sigma_prior, type='l', ylim=c(0,y_max), lty=2, xlab='sigma (km)', ylab='probability density', main='')
     lines(sigma_posterior)
     legend(x='topright', legend=c('prior','posterior'), lty=c(2,1))
-    
   }
   
 }
@@ -576,7 +671,7 @@ dRIG <- function(x,alpha,beta,log=FALSE) {
 }
 
 #------------------------------------------------
-# Scaled Student's t distribution
+# Scaled Student's t distribution. Used in kernel density smoothing.
 # (not exported)
 
 dts <- function(x,df,scale=1,log=FALSE) {
@@ -591,77 +686,75 @@ dts <- function(x,df,scale=1,log=FALSE) {
 #'
 #' This function carries out the main MCMC under the Rgeoprofile model.
 #'
-#' @param data input data in the format defined by geoData
-#' @param params input parameters in the format defined by geoParams
+#' @param data input data in the format defined by geoData().
+#' @param params input parameters in the format defined by geoParams().
 #'
 #' @export
 #' @examples
-#' geoMCMC()
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
+#' myMCMC <- geoMCMC(myData, myParams)
+#' geoPlotSigma(myParams, myMCMC$sigma)
 
 geoMCMC <- function(data, params) {
-  
+
   # check that data and parameters in correct format
   geoDataCheck(data)
   geoParamsCheck(params)
   cat("\n")
   
-  # extract some values from params
-  n <- length(data$longitude)
-  sigma_mean <- params$model$sigma_mean
-  sigma_var <- params$model$sigma_var
-  priorMean_longitude <- params$model$priorMean_longitude
-  priorMean_latitude <- params$model$priorMean_latitude
-  priorSD <- params$model$priorSD
-  samples <- params$MCMC$samples
-  longitude_cells <- params$output$longitude_cells
-  latitude_cells <- params$output$latitude_cells
+  # transform data and map limits to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior)
+  data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
+  limits_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$output$latitude_minMax, params$output$longitude_minMax)
+    
+  # add these cartesian coordinates to data and params objects before feeding into C++ function
+  data$x <- data_cartesian$x
+  data$y <- data_cartesian$y
+  params$output$x_minMax <- limits_cartesian$x
+  params$output$y_minMax <- limits_cartesian$y
   
-  # if using fixed sigma model then set alpha and beta to -1
-  if (sigma_var==0) {
+  # if using fixed sigma model then change alpha and beta from NULL to -1. This value will be ignored, but needs to be numeric before feeding into the C++ function.
+  if (params$model$sigma_var==0) {
   	params$model$sigma_squared_shape <- -1
   	params$model$sigma_squared_rate <- -1
   }
-  
-  # carry out MCMC
+    
+  # carry out MCMC using efficient C++ function
   rawOutput <- C_geoMCMC(data, params)
   
-  # extract raw draws and check that at least one draw in chosen region
-  surface_raw <- matrix(unlist(rawOutput$geoSurface),latitude_cells,byrow=TRUE)
+  # extract raw draws and check that at least one posterior draw in chosen region
+  surface_raw <- matrix(unlist(rawOutput$geoSurface), params$output$latitude_cells, byrow=TRUE)
   if (all(surface_raw==0))
       stop('chosen lat/long window contains no posterior draws')
   
-  # get some basic properties of the surface
-  lon_min <- params$output$longitude_minMax[1]
-  lon_max <- params$output$longitude_minMax[2]
-  lat_min <- params$output$latitude_minMax[1]
-  lat_max <- params$output$latitude_minMax[2]
-  cells_lon <- longitude_cells
-  cells_lat <- latitude_cells
-  cellSize_lon <- (lon_max-lon_min)/cells_lon
-  cellSize_lat <- (lat_max-lat_min)/cells_lat
-  
-  # set lambda (bandwidth) increment size based on cell size
-  lambda_step <- min(cellSize_lon,cellSize_lat)/5
+  # get size of each cell
+  cells_x <- params$output$longitude_cells
+  cells_y <- params$output$latitude_cells
+  cellSize_x <- diff(limits_cartesian$x)/cells_x
+  cellSize_y <- diff(limits_cartesian$x)/cells_y
   
   # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
-  rail_lon <- ceiling(200*lambda_step/cellSize_lon)
-  rail_lat <- ceiling(200*lambda_step/cellSize_lat)
-  railMat_lon <- matrix(0,cells_lat,rail_lon)
-  railMat_lat <- matrix(0,rail_lat,cells_lon+2*rail_lon)
+  railSize_x <- cells_x
+  railSize_y <- cells_y
+  railMat_x <- matrix(0,cells_y,railSize_x)
+  railMat_y <- matrix(0,railSize_y,cells_x+2*railSize_x)
   
   surface_normalised <- surface_raw/sum(surface_raw)
-  surface_normalised <- cbind(railMat_lon, surface_normalised, railMat_lon)
-  surface_normalised <- rbind(railMat_lat, surface_normalised, railMat_lat)
+  surface_normalised <- cbind(railMat_x, surface_normalised, railMat_x)
+  surface_normalised <- rbind(railMat_y, surface_normalised, railMat_y)
   
   # calculate Fourier transform of posterior surface
   f1 = fftw2d(surface_normalised)
   
-  # calculate surface that kernel will be calculated over
-  kernel_lon <- cellSize_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
-  kernel_lat <- cellSize_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
-  kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
-  kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
-  kernel_s_mat <- sqrt(kernel_lon_mat^2+kernel_lat_mat^2)
+  # produce surface that kernel will be calculated over
+  kernel_x <- cellSize_x * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
+  kernel_y <- cellSize_y * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
+  kernel_x_mat <- outer(rep(1,length(kernel_y)), kernel_x)
+  kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
+  kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
+  
+  # set lambda (bandwidth) increment size based on cell size
+  lambda_step <- min(cellSize_x, cellSize_y)/5
   
   # loop through range of values of lambda
   logLike <- -Inf
@@ -672,39 +765,41 @@ geoMCMC <- function(data, params) {
     kernel <- dts(kernel_s_mat,df=3,scale=lambda)
     f2 = fftw2d(kernel)
     
-    # combine Fourier transformed surfaces and take inverse
+    # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
     f3 = f1*f2
     f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+    
+    # subtract from f4 the probability density of each point measured from itself. In other words, move towards a leave-one-out kernel density method
     f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
     f5[f5<0] <- 0
     f5 <- f5/sum(f4)
+    
+    # calculate leave-one-out log-likelihood at each point on surface
     f6 <- surface_normalised*log(f5)
     
-    # break if min value found
+    # break if total log-likelihood is at a maximum
     if (sum(f6,na.rm=T)<logLike)
       break()
     logLike <- sum(f6,na.rm=T)
 
   }
   # remove guard rail
-  f4 <- f4[,(rail_lon+1):(ncol(f4)-rail_lon)]
-  f4 <- f4[(rail_lat+1):(nrow(f4)-rail_lat),]
+  f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
+  f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
   
   # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
-  lon_mids <- params$output$longitude_midpoints
-  lat_mids <- params$output$latitude_midpoints
-  lon_mids_mat <- outer(rep(1,cells_lat),lon_mids)
-  lat_mids_mat <- outer(lat_mids,rep(1,cells_lon))
+  x_mids <- seq(limits_cartesian$x[1], limits_cartesian$x[2], l=ncol(f4)+1)[-1] - cellSize_x/2
+  y_mids <- seq(limits_cartesian$y[1], limits_cartesian$y[2], l=nrow(f4)+1)[-1] - cellSize_y/2
+  x_mids_mat <- outer(rep(1,cells_y),x_mids)
+  y_mids_mat <- outer(y_mids,rep(1,cells_x))
   
-  priorMat <- dnorm(lon_mids_mat,priorMean_longitude,sd=priorSD)*dnorm(lat_mids_mat,priorMean_latitude,sd=priorSD)*(cellSize_lon*cellSize_lat)
-  
+  priorMat <- dnorm(x_mids_mat,sd=params$model$tau)*dnorm(y_mids_mat,sd=params$model$tau)*(cellSize_x*cellSize_y)
   
   # finalise output format
   output <- list()
   
   # sigma
-  sigma <- rawOutput$sigma
-  output$sigma <- sigma
+  output$sigma <- rawOutput$sigma
   
   # alpha
   alpha <- rawOutput$alpha
@@ -712,11 +807,12 @@ geoMCMC <- function(data, params) {
   
   # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
   output$surface_raw <- surface_raw
+  n <- length(data$longitude)
   output$surface <-  f4 + priorMat*mean(alpha/(alpha+n))
   
   # posterior allocation
   allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
-  allocation <- data.frame(allocation/samples)
+  allocation <- data.frame(allocation/params$MCMC$samples)
   names(allocation) <- paste("group",1:ncol(allocation),sep="")
   output$allocation <- allocation
   
@@ -727,30 +823,34 @@ geoMCMC <- function(data, params) {
 #' Calculate geoprofile from surface
 #'
 #' Converts surface to rank order geoprofile.
-#' @param z matrix to convert to geoprofile
+#'
+#' @param surface matrix to convert to geoprofile
 #'
 #' @export
 #' @examples
-#' geoProfile(MCMCoutput$geoSurface)
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
+#' myMCMC <- geoMCMC(myData, myParams)
+#' myMCMC$profile <- geoProfile(myMCMC$surface)
 
-geoProfile <- function(z) {
+geoProfile <- function(surface) {
     
-    # check that z is in correct format
-    if (!all(is.finite(z)) | !all(is.numeric(z)))
-        stop("values in z must be finite and numeric")
-    if (!is.matrix(z))
-        stop("z must be a matrix")
+    # check that surface is in correct format
+    if (!all(is.finite(surface)) | !all(is.numeric(surface)))
+        stop("values in surface must be finite and numeric")
+    if (!is.matrix(surface))
+        stop("surface must be a matrix")
     
-    # create geoprofile from z
-    z[order(z,decreasing=TRUE)] <- 1:length(z)
+    # create geoprofile from surface
+    surface[order(surface,decreasing=TRUE)] <- 1:length(surface)
     
-    return(z)
+    return(surface)
 }
 
 #------------------------------------------------
 #' Plot posterior allocation
 #'
-#' Produces plot of posterior allocation, given output of MCMC.
+#' Produces plot of posterior allocation from output of MCMC.
 #'
 #' @param MCMCoutput output generated from an MCMC.
 #'
@@ -845,9 +945,9 @@ getZoom <- function(x,y) {
 }
 
 #------------------------------------------------
-#' Create quick geoprofile plot
+#' Plot a map and overlay data and/or geoprofile
 #'
-#' Creates quick geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
+#' Creates geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
 #'
 #' @param surface some text
 #'
@@ -855,7 +955,7 @@ getZoom <- function(x,y) {
 #' @examples
 #' geoQuickPlot(surface)
 
-geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="google", maptype="hybrid", breakPercent=seq(0,100,l=11), contour_cols = c("red","orange","yellow","white"), plotContours=TRUE, crimeCol='red', crimePch=16,crimeCex=1,CrimeBorderCol='white',sourceCol='blue', sourcePch=15,sourceCex=1,SourceBorderCol='white',source_data=source_data) {
+geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto", mapSource="google", mapType="hybrid", transparency=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue') {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -867,47 +967,54 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
         zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
     
     # make zoom level appropriate to map source
-    if (source=="stamen")
+    if (mapSource=="stamen")
     	zoom <- min(zoom,18)
     
     # make map
-    rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=source, maptype=maptype)
+    rawMap <- get_map(location=c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax)), zoom=zoom, source=mapSource, maptype=mapType)
     
+    # add limits
     myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
     
     # overlay geoprofile
     if (!is.null(surface)) {
     	
-    	geoCols <- colorRampPalette(contour_cols)
+    	# create colour palette
+    	geoCols <- colorRampPalette(contourCols)
     	nbcol=length(breakPercent)-1 	
-    	color <- geoCols(nbcol)
     	
+    	# create data frame of x,y,z values and labels for contour level
 		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
 		df$z <- as.vector(t(surface))
 		labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
 		df$cut <- cut(df$z, breakPercent/100*length(surface), labels=labs)
+		
+		# remove all entries outside of breakPercent range
 		df_noNA <- df[!is.na(df$cut),]
 		
-		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=0.6, data=df_noNA)
+		# add surface and hitscore legend
+		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=transparency, data=df_noNA)
 		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
 
 		# add contours
 		if (plotContours) {
-			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=0.5, data=df)
+			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=transparency, data=df)
 		}
 	}
 
     # overlay data points
     if (!is.null(data)) {
-    	p <- data.frame(longitude=data$longitude, latitude=data$latitude)
-    	q <- data.frame(source_longitude= source_data$source_longitude, source_latitude= source_data$source_latitude)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex= (crimeCex*1.2), col= CrimeBorderCol)
-		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=p, pch=crimePch, cex=crimeCex, col=crimeCol)
-		
-		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= (sourceCex*1.2), col=SourceBorderCol)
-		myMap <- myMap + geom_point(aes(x= source_data$source_longitude, y= source_data$source_latitude), data=q, pch=sourcePch, cex= sourceCex, col=sourceCol)
+    	df_data <- data.frame(longitude=data$longitude, latitude=data$latitude)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=df_data, pch=21, stroke=crimeBorderWidth, cex=crimeCex, fill=crimeCol, col=crimeBorderCol)
     }
     
+    # overlay source points
+    if (!is.null(source)) {
+    	df_source <- data.frame(longitude=source$source_longitude, latitude=source$source_latitude)
+		myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=df_source, pch=15, cex=sourceCex, col=sourceCol)
+    }
+    
+    # plot map
     myMap
 }
 
@@ -925,9 +1032,9 @@ geoQuickPlot <- function(params, surface=NULL, data=NULL, zoom="auto", source="g
 #' geoReportHitscores(params,source_data,surface)
 
 geoReportHitscores <- function(params,source_data,surface) {
+	
 	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
 	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
-	
 	
 	profile_order = order(surface)
 	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
@@ -936,7 +1043,6 @@ geoReportHitscores <- function(params,source_data,surface) {
 	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
 	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
 
-	
 	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
 	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
 	

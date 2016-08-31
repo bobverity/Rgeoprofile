@@ -21,8 +21,8 @@ using namespace std;
 Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     
     //read in input
-    vector<double> data_x = Rcpp::as<vector<double> >(data["longitude"]);
-    vector<double> data_y = Rcpp::as<vector<double> >(data["latitude"]);
+    vector<double> data_x = Rcpp::as<vector<double> >(data["x"]);
+    vector<double> data_y = Rcpp::as<vector<double> >(data["y"]);
     int n = data_x.size();
     
     Rcpp::List params_model = params["model"];
@@ -34,9 +34,9 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     double sigma_alpha = Rcpp::as<double>(params_model["sigma_squared_shape"]);
     double sigma_beta = Rcpp::as<double>(params_model["sigma_squared_rate"]);
     bool sigma_fixed = (sigma_var==0);
-    double priorMean_x = Rcpp::as<double>(params_model["priorMean_longitude"]);
-    double priorMean_y = Rcpp::as<double>(params_model["priorMean_latitude"]);
-    double tau = Rcpp::as<double>(params_model["priorSD"]);
+    //double priorMean_x = Rcpp::as<double>(params_model["priorMean_longitude"]);
+    //double priorMean_y = Rcpp::as<double>(params_model["priorMean_latitude"]);
+    double tau = Rcpp::as<double>(params_model["tau"]);
     double tau2 = tau*tau;
     double alpha_shape = Rcpp::as<double>(params_model["alpha_shape"]);
     double alpha_rate = Rcpp::as<double>(params_model["alpha_rate"]);
@@ -49,10 +49,10 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     int burnin_printConsole = Rcpp::as<int>(params_MCMC["burnin_printConsole"]);
     int samples_printConsole = Rcpp::as<int>(params_MCMC["samples_printConsole"]);
     
-    vector<double> x_minMax = Rcpp::as<vector<double> >(params_output["longitude_minMax"]);
+    vector<double> x_minMax = Rcpp::as<vector<double> >(params_output["x_minMax"]);
     double x_min = x_minMax[0];
     double x_max = x_minMax[1];
-    vector<double> y_minMax = Rcpp::as<vector<double> >(params_output["latitude_minMax"]);
+    vector<double> y_minMax = Rcpp::as<vector<double> >(params_output["y_minMax"]);
     double y_min = y_minMax[0];
     double y_max = y_minMax[1];
     int x_cells = Rcpp::as<int>(params_output["longitude_cells"]);
@@ -131,15 +131,15 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
             
             // update all group allocations
             for (int i=0; i<n; i++) {
-                updateGroup(i, n, data_x, data_y, C_group[chain], C_freqs[chain], C_sum_x[chain], C_sum_y[chain], C_sumSquared_x[chain], C_sumSquared_y[chain], C_nextGroup[chain], C_uniqueGroups[chain], C_mu_postVar[chain], C_mu_postMean_x[chain], C_mu_postMean_y[chain], C_mu_postDraw_x[chain], C_mu_postDraw_y[chain], priorMean_x, priorMean_y, C_sigma2[chain], tau2, C_probVec[chain], C_logProbVec[chain], C_alpha[chain]);
+                updateGroup(i, n, data_x, data_y, C_group[chain], C_freqs[chain], C_sum_x[chain], C_sum_y[chain], C_sumSquared_x[chain], C_sumSquared_y[chain], C_nextGroup[chain], C_uniqueGroups[chain], C_mu_postVar[chain], C_mu_postMean_x[chain], C_mu_postMean_y[chain], C_mu_postDraw_x[chain], C_mu_postDraw_y[chain], C_sigma2[chain], tau2, C_probVec[chain], C_logProbVec[chain], C_alpha[chain]);
             }
             
             // update mu
             for (int j=0; j<int(C_freqs[chain].size()); j++) {
                 if (C_freqs[chain][j]>0) {
                     C_mu_postVar[chain][j] = 1/(double(C_freqs[chain][j])/C_sigma2[chain]+1/tau2);
-                    C_mu_postMean_x[chain][j] = (C_sum_x[chain][j]/C_sigma2[chain]+priorMean_x/tau2)*C_mu_postVar[chain][j];
-                    C_mu_postMean_y[chain][j] = (C_sum_y[chain][j]/C_sigma2[chain]+priorMean_y/tau2)*C_mu_postVar[chain][j];
+                    C_mu_postMean_x[chain][j] = (C_sum_x[chain][j]/C_sigma2[chain])*C_mu_postVar[chain][j];
+                    C_mu_postMean_y[chain][j] = (C_sum_y[chain][j]/C_sigma2[chain])*C_mu_postVar[chain][j];
                     C_mu_postDraw_x[chain][j] = rnorm1(C_mu_postMean_x[chain][j],sqrt(C_mu_postVar[chain][j]));
                     C_mu_postDraw_y[chain][j] = rnorm1(C_mu_postMean_y[chain][j],sqrt(C_mu_postVar[chain][j]));
                 }
@@ -292,15 +292,15 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
         
         // update all group allocations
         for (int i=0; i<n; i++) {
-            updateGroup(i, n, data_x, data_y, group, freqs, sum_x, sum_y, sumSquared_x, sumSquared_y, nextGroup, uniqueGroups, mu_postVar, mu_postMean_x, mu_postMean_y, mu_postDraw_x, mu_postDraw_y, priorMean_x, priorMean_y, sigma2, tau2, probVec, logProbVec, alpha);
+            updateGroup(i, n, data_x, data_y, group, freqs, sum_x, sum_y, sumSquared_x, sumSquared_y, nextGroup, uniqueGroups, mu_postVar, mu_postMean_x, mu_postMean_y, mu_postDraw_x, mu_postDraw_y, sigma2, tau2, probVec, logProbVec, alpha);
         }
         
         // update mu
         for (int j=0; j<int(freqs.size()); j++) {
             if (freqs[j]>0) {
                 mu_postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
-                mu_postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*mu_postVar[j];
-                mu_postMean_y[j] = (sum_y[j]/sigma2+priorMean_y/tau2)*mu_postVar[j];
+                mu_postMean_x[j] = (sum_x[j]/sigma2)*mu_postVar[j];
+                mu_postMean_y[j] = (sum_y[j]/sigma2)*mu_postVar[j];
                 mu_postDraw_x[j] = rnorm1(mu_postMean_x[j],sqrt(mu_postVar[j]));
                 mu_postDraw_y[j] = rnorm1(mu_postMean_y[j],sqrt(mu_postVar[j]));
             }
@@ -335,8 +335,8 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
         for (int j=0; j<int(freqs.size()); j++) {
             if (freqs[j]>0) {
                 mu_postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
-                mu_postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*mu_postVar[j];
-                mu_postMean_y[j] = (sum_y[j]/sigma2+priorMean_y/tau2)*mu_postVar[j];
+                mu_postMean_x[j] = (sum_x[j]/sigma2)*mu_postVar[j];
+                mu_postMean_y[j] = (sum_y[j]/sigma2)*mu_postVar[j];
                 mu_postDraw_x[j] = rnorm1(mu_postMean_x[j],sqrt(mu_postVar[j]));
                 mu_postDraw_y[j] = rnorm1(mu_postMean_y[j],sqrt(mu_postVar[j]));
                 if (mu_postDraw_x[j]>=x_min && mu_postDraw_x[j]<=x_max && mu_postDraw_y[j]>=y_min && mu_postDraw_y[j]<=y_max) {
@@ -361,7 +361,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
 
 //------------------------------------------------
 // update group allocation
-void updateGroup(int &i, int &n, vector<double> &data_x, vector<double> &data_y, vector<int> &group, vector<int> &freqs, vector<double> &sum_x, vector<double> &sum_y, vector<double> &sumSquared_x, vector<double> &sumSquared_y, int &nextGroup, int &uniqueGroups, vector<double> &mu_postVar, vector<double> &mu_postMean_x, vector<double> &mu_postMean_y, vector<double> &mu_postDraw_x, vector<double> &mu_postDraw_y, double &priorMean_x, double &priorMean_y, double &sigma2, double &tau2, vector<double> &probVec, vector<double> &logProbVec, double &alpha) {
+void updateGroup(int &i, int &n, vector<double> &data_x, vector<double> &data_y, vector<int> &group, vector<int> &freqs, vector<double> &sum_x, vector<double> &sum_y, vector<double> &sumSquared_x, vector<double> &sumSquared_y, int &nextGroup, int &uniqueGroups, vector<double> &mu_postVar, vector<double> &mu_postMean_x, vector<double> &mu_postMean_y, vector<double> &mu_postDraw_x, vector<double> &mu_postDraw_y, double &sigma2, double &tau2, vector<double> &probVec, vector<double> &logProbVec, double &alpha) {
     
     // remove point i from all objects
     freqs[group[i]-1] --;
@@ -392,8 +392,8 @@ void updateGroup(int &i, int &n, vector<double> &data_x, vector<double> &data_y,
         logProbVec[j] = log(0.0);
         if (freqs[j]>0 || j==(nextGroup-1)) {
             mu_postVar[j] = 1/(double(freqs[j])/sigma2+1/tau2);
-            mu_postMean_x[j] = (sum_x[j]/sigma2+priorMean_x/tau2)*mu_postVar[j];
-            mu_postMean_y[j] = (sum_y[j]/sigma2+priorMean_y/tau2)*mu_postVar[j];
+            mu_postMean_x[j] = (sum_x[j]/sigma2)*mu_postVar[j];
+            mu_postMean_y[j] = (sum_y[j]/sigma2)*mu_postVar[j];
             logProbVec[j] = -log(mu_postVar[j]+sigma2)-0.5/(mu_postVar[j]+sigma2)*((data_x[i]-mu_postMean_x[j])*(data_x[i]-mu_postMean_x[j]) + (data_y[i]-mu_postMean_y[j])*(data_y[i]-mu_postMean_y[j]));
             if (j==(nextGroup-1)) {
                 logProbVec[j] += log(alpha);
