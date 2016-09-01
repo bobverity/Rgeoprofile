@@ -7,9 +7,9 @@
 geoDataSource(source_longitude = NULL, source_latitude = NULL)
 }
 \arguments{
-\item{longitude}{the longitudinal positions of the potential sources}
+\item{longitude}{the longitudinal positions of the potential sources.}
 
-\item{latitude}{the latitudinal positions of the potential sources}
+\item{latitude}{the latitudinal positions of the potential sources.}
 }
 \description{
 Simple function that ensures that sources are in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.

@@ -7,14 +7,17 @@
 geoMCMC(data, params)
 }
 \arguments{
-\item{data}{input data in the format defined by geoData()}
+\item{data}{input data in the format defined by geoData().}
 
-\item{params}{input parameters in the format defined by geoParams()}
+\item{params}{input parameters in the format defined by geoParams().}
 }
 \description{
 This function carries out the main MCMC under the Rgeoprofile model.
 }
 \examples{
-geoMCMC()
+myData <- geoData()
+myParams <- geoParams(myData, sigma_var=1)
+myMCMC <- geoMCMC(myData, myParams)
+geoPlotSigma(myParams, myMCMC$sigma)
 }
 

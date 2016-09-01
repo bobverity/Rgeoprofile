@@ -14,7 +14,7 @@ geoPlotAllocation(allocation, colours = "default", barBorderCol = "white",
 \item{MCMCoutput}{output generated from an MCMC.}
 }
 \description{
-Produces plot of posterior allocation, given output of MCMC.
+Produces plot of posterior allocation from output of MCMC.
 }
 \examples{
 geoPlotAllocation(MCMCoutput)

@@ -7,15 +7,16 @@
 geoParamsCheck(params, silent = FALSE)
 }
 \arguments{
-\item{params}{A list of parameters}
+\item{params}{a list of parameters, as defined by geoParams().}
 
-\item{silent}{Whether to report passing check to console}
+\item{silent}{whether to report passing check to console.}
 }
 \description{
-Check that all parameters for use in Rgeoprofile MCMC are OK.
+Check that all parameters for use in Rgeoprofile MCMC are in the correct format.
 }
 \examples{
-# tester
+myData <- geoData()
+myParams <- geoParams(myData, sigma_var=1)
 geoParamsCheck(myParams)
 }
 
