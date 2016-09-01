@@ -7,15 +7,15 @@
 geoDataCheck(data, silent = FALSE)
 }
 \arguments{
-\item{data}{A data list object, as defined by geoData()}
+\item{data}{a data list object, as defined by geoData().}
 
-\item{silent}{Whether to report passing check to console}
+\item{silent}{Wwether to report passing check to console.}
 }
 \description{
 Check that all data for use in Rgeoprofile MCMC is in the correct format.
 }
 \examples{
-# tester
+myData <- geoData()
 geoDataCheck(myData)
 }
 

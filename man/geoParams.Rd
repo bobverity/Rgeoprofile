@@ -4,7 +4,7 @@
 \alias{geoParams}
 \title{Create Rgeoprofile parameters object}
 \usage{
-geoParams(data = NULL, sigma_mean = 1, sigma_var = 1,
+geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
   sigma_squared_shape = NULL, sigma_squared_rate = NULL,
   priorMean_longitude = NULL, priorMean_latitude = NULL, tau = NULL,
   alpha_shape = 0.1, alpha_rate = 0.1, chains = 10, burnin = 500,
@@ -13,48 +13,49 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = 1,
   latitude_cells = 500)
 }
 \arguments{
-\item{data}{some text}
+\item{data}{observations in the format defined by geoData().}
 
-\item{sigma_mean}{The mean of the prior on sigma (sigma = standard deviation of the dispersal distribution)}
+\item{sigma_mean}{the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution).}
 
-\item{sigma_var}{The variance of the prior on sigma}
+\item{sigma_var}{the variance of the prior on sigma.}
 
-\item{sigma_squared_shape}{some text}
+\item{sigma_squared_shape}{as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. This is the shape parameter of the inverse-gamma prior.}
 
-\item{sigma_squared_rate}{some text}
+\item{sigma_squared_rate}{this is the rate parameter of the inverse-gamma prior on sigma^2.}
 
-\item{priorMean_longitude}{The position (longitude) of the mean of the prior distribution}
+\item{priorMean_longitude}{the position of the prior mean on source locations in degrees longitude.}
 
-\item{priorMean_latitude}{The position (latitude) of the mean of the prior distribution}
+\item{priorMean_latitude}{the position of the prior mean on source locations in degrees latitude.}
 
-\item{tau}{some text}
+\item{tau}{the standard deviation of the normal prior on source locations, i.e. how far we expect sources to lie from the centre. Leave as NULL to use default value, in which case tau is set equal to the maximum distance of any observation from the prior mean.}
 
-\item{alpha_shape}{some text}
+\item{alpha_shape}{shape parameter of the gamma prior on the parameter alpha.}
 
-\item{alpha_rate}{some text}
+\item{alpha_rate}{rate parameter of the gamma prior on the parameter alpha.}
 
-\item{chains}{some text}
+\item{chains}{number of MCMC chains to use in the burn-in step.}
 
-\item{burnin}{some text}
+\item{burnin}{number of burn-in iterations to be discarded at start of MCMC.}
 
-\item{samples}{some text}
+\item{samples}{number of sampling iterations. These iterations are used to generate final posterior distribution.}
 
-\item{burnin_printConsole}{some text}
+\item{burnin_printConsole}{how frequently (in iterations) to report progress to the console during the burn-in phase.}
 
-\item{samples_printConsole}{some text}
+\item{samples_printConsole}{how frequently (in iterations) to report progress to the console during the sampling phase.}
 
-\item{longitude_minMax}{some text}
+\item{longitude_minMax}{vector containing minimum and maximum longitude over which to generate geoprofile.}
 
-\item{latitude_minMax}{some text}
+\item{latitude_minMax}{vector containing minimum and maximum latitude over which to generate geoprofile.}
 
-\item{longitude_cells}{some text}
+\item{longitude_cells}{number of cells in the final geoprofile (longitude direction). Higher values generate smoother distributions, but take longer to run.}
 
-\item{latitude_cells}{some text}
+\item{latitude_cells}{number of cells in the final geoprofile (latitude direction). Higher values generate smoother distributions, but take longer to run.}
 }
 \description{
-This function can be used to generate parameters in the format used by the Rgeoprofile MCMC. Parameter values can be specified as input arguments.
+This function can be used to generate parameters in the format required by other Rgeoprofile functions. Any parameter value can be specified as an input argument to this function. Alternatively, if data is input as an argument then some parameters can take default values directly from the data.
 }
 \examples{
-geoParams()
+myData <- geoData()
+geoParams(myData, sigma_var=1)
 }
 

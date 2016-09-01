@@ -7,13 +7,18 @@
 geoPlotSigma(params, sigma = NULL, plotMax = NULL)
 }
 \arguments{
-\item{params}{A list of parameters (defines prior on sigma)}
+\item{params}{a list of parameters as defined by geoParams().}
 
-\item{sigma}{A vector of posterior draws of sigma. Leave as NULL to plot prior only.}
+\item{sigma}{a vector of posterior draws of sigma. Leave as NULL to plot prior only.}
 
 \item{plotMax}{maximum x-axis range to plot. Leave as NULL to use default settings.}
 }
 \description{
-Plot prior and posterior distributions of sigma.
+Plot prior distribution of sigma as defined by current parameter values. Can optionally overlay a kernel density plot of posterior draws of sigma.
+}
+\examples{
+myData <- geoData()
+myParams <- geoParams(myData, sigma_var=1)
+geoPlotSigma(myParams)
 }
 

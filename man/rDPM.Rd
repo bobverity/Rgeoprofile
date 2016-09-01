@@ -8,15 +8,15 @@ rDPM(n, sigma = 1, tau = 10, priorMean_longitude = -0.1277,
   priorMean_latitude = 51.5074, alpha = 1)
 }
 \arguments{
-\item{n}{number of draws}
+\item{n}{number of draws.}
 
-\item{sigma}{standard deviation of dispersal distribution, in units of kilometres}
+\item{sigma}{standard deviation of dispersal distribution, in units of kilometres.}
 
-\item{tau}{standard deviation of prior on source locations (i.e. average distances of sources from centre point), in units of kilometres}
+\item{tau}{standard deviation of prior on source locations (i.e. average distances of sources from centre point), in units of kilometres.}
 
-\item{priorMean_longitude}{location of prior mean on source locations in degrees longitudinal}
+\item{priorMean_longitude}{location of prior mean on source locations in degrees longitude.}
 
-\item{priorMean_latitude}{location of prior mean on source locations in degrees latitudinal}
+\item{priorMean_latitude}{location of prior mean on source locations in degrees latitude.}
 
 \item{alpha}{concentration parameter of Dirichlet process model. Large alpha implies many distinct sources, while small alpha implies only a few sources.}
 }

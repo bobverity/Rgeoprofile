@@ -947,9 +947,25 @@ getZoom <- function(x,y) {
 #------------------------------------------------
 #' Plot a map and overlay data and/or geoprofile
 #'
-#' Creates geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
+#' Uses ggmap to download a map for the region specified by params. Various elements can be overlaid onto this map, including raw observation data, potential source locations, and a final geoprofile. Plotting options such as the type of map, the size and colour of points, and the contours of the geoprofile can be controlled.
 #'
-#' @param surface some text
+#' @param params parameters list in the format defined by geoParams().
+#' @param data data object in the format defined by geoData().
+#' @param source potential sources object in the format defined by geoDataSource().
+#' @param surface a surface to overlay onto the map, typically a geoprofile produced from the output of geoMCMC().
+#' @param zoom some text.
+#' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
+#' @param params mapType the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).
+#' @param transparency some text.
+#' @param plotContours some text.
+#' @param breakPercent some text.
+#' @param contourCols some text.
+#' @param crimeCex some text.
+#' @param crimeCol some text.
+#' @param crimeBorderCol some text.
+#' @param crimeBorderWidth some text.
+#' @param sourceCex some text.
+#' @param sourceCol some text.
 #'
 #' @export
 #' @examples

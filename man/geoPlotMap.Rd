@@ -12,10 +12,42 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
   sourceCex = 1.5, sourceCol = "blue")
 }
 \arguments{
-\item{surface}{some text}
+\item{params}{parameters list in the format defined by geoParams().}
+
+\item{data}{data object in the format defined by geoData().}
+
+\item{source}{potential sources object in the format defined by geoDataSource().}
+
+\item{surface}{a surface to overlay onto the map, typically a geoprofile produced from the output of geoMCMC().}
+
+\item{zoom}{some text.}
+
+\item{mapSource}{which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").}
+
+\item{transparency}{some text.}
+
+\item{plotContours}{some text.}
+
+\item{breakPercent}{some text.}
+
+\item{contourCols}{some text.}
+
+\item{crimeCex}{some text.}
+
+\item{crimeCol}{some text.}
+
+\item{crimeBorderCol}{some text.}
+
+\item{crimeBorderWidth}{some text.}
+
+\item{sourceCex}{some text.}
+
+\item{sourceCol}{some text.}
+
+\item{params}{mapType the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).}
 }
 \description{
-Creates geoprofile plot, choosing some parameters automatically. Now plots sources too (SLC).
+Uses ggmap to download a map for the region specified by params. Various elements can be overlaid onto this map, including raw observation data, potential source locations, and a final geoprofile. Plotting options such as the type of map, the size and colour of points, and the contours of the geoprofile can be controlled.
 }
 \examples{
 geoQuickPlot(surface)
