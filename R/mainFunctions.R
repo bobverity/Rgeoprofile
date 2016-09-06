@@ -250,7 +250,7 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' myData <- geoData()
 #' geoParams(myData, sigma_var=1)
 
-geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500) {
+geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
     
   	# if data argument used then get prior mean and map limits from data
     if (!is.null(data)) {
@@ -268,15 +268,22 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
         data_trans <- latlon_to_bearing(priorMean_latitude, priorMean_longitude, data$latitude, data$longitude)
 		dist_max <- max(data_trans$gc_dist)
 		
-		# use 1.1*maximum distance to define lat/lon limits
-        if (is.null(longitude_minMax))
-       		longitude_minMax <- cartesian_to_latlon(priorMean_latitude, priorMean_longitude, 1.1*c(-dist_max, dist_max), 0)$longitude
-        if (is.null(latitude_minMax))
-       		latitude_minMax <- cartesian_to_latlon(priorMean_latitude, priorMean_longitude, 0, 1.1*c(-dist_max, dist_max))$latitude
-       	
        	# use maximum distance as default value of tau
        	if (is.null(tau))
        		tau <- dist_max
+		
+		if (is.null(longitude_minMax)) {
+			lon_range <- diff(range(data$longitude))
+			lon_min <- min(data$longitude) - guardRail*lon_range
+			lon_max <- max(data$longitude) + guardRail*lon_range
+			longitude_minMax <- c(lon_min, lon_max)
+		}
+		if (is.null(latitude_minMax)) {
+			lat_range <- diff(range(data$latitude))
+			lat_min <- min(data$latitude) - guardRail*lat_range
+			lat_max <- max(data$latitude) + guardRail*lat_range
+			latitude_minMax <- c(lat_min, lat_max)
+		}
        	
 	}
 	
@@ -366,13 +373,8 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
     # set MCMC parameters
     MCMC <- list(chains=chains, burnin=burnin, samples=samples, burnin_printConsole=burnin_printConsole, samples_printConsole=samples_printConsole)
     
-    # set output parameters
-    longitude_cellSize <- diff(longitude_minMax)/longitude_cells
-    latitude_cellSize <- diff(latitude_minMax)/latitude_cells
-    longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + (1:longitude_cells)* longitude_cellSize
-    latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + (1:latitude_cells)* latitude_cellSize
-    
-    output <- list(longitude_minMax=longitude_minMax, latitude_minMax=latitude_minMax, longitude_cells=longitude_cells, latitude_cells=latitude_cells, longitude_midpoints=longitude_midpoints, latitude_midpoints=latitude_midpoints)
+    # set output parameters    
+    output <- list(longitude_minMax=longitude_minMax, latitude_minMax=latitude_minMax, longitude_cells=longitude_cells, latitude_cells=latitude_cells)
     
     # combine and return
     params <- list(model=model, MCMC=MCMC, output=output)
@@ -587,10 +589,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
     stop("params$output must contain parameter 'latitude_minMax'")
   if (!("longitude_cells"%in%names(params$output)))
     stop("params$output must contain parameter 'longitude_cells'")
-  if (!("latitude_cells"%in%names(params$output)))
-    stop("params$output must contain parameter 'latitude_cells'")
-  if (!("longitude_midpoints"%in%names(params$output)))
-    stop("params$output must contain parameter 'longitude_midpoints'")
   if (!("latitude_cells"%in%names(params$output)))
     stop("params$output must contain parameter 'latitude_cells'")
   
@@ -1086,10 +1084,20 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
     	
     	# create colour palette
     	geoCols <- colorRampPalette(contourCols)
-    	nbcol=length(breakPercent)-1 	
+    	nbcol=length(breakPercent)-1
+    	
+    	# extract plotting ranges and determine midpoints of cells
+    	longitude_minMax  <- params$output$longitude_minMax
+    	latitude_minMax  <- params$output$latitude_minMax
+    	longitude_cells  <- params$output$longitude_cells
+    	latitude_cells  <- params$output$latitude_cells
+    	longitude_cellSize <- diff(longitude_minMax)/longitude_cells
+    	latitude_cellSize <- diff(latitude_minMax)/latitude_cells
+    	longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + (1:longitude_cells)* longitude_cellSize
+    latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + (1:latitude_cells)* latitude_cellSize
     	
     	# create data frame of x,y,z values and labels for contour level
-		df <- expand.grid(x=params$output$longitude_midpoints, y=params$output$latitude_midpoints)
+		df <- expand.grid(x=longitude_midpoints, y=latitude_midpoints)
 		df$z <- as.vector(t(surface))
 		labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
 		df$cut <- cut(df$z, breakPercent/100*length(surface), labels=labs)
