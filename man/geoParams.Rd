@@ -10,7 +10,7 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
   alpha_shape = 0.1, alpha_rate = 0.1, chains = 10, burnin = 500,
   samples = 5000, burnin_printConsole = 100, samples_printConsole = 1000,
   longitude_minMax = NULL, latitude_minMax = NULL, longitude_cells = 500,
-  latitude_cells = 500)
+  latitude_cells = 500, guardRail = 0.05)
 }
 \arguments{
 \item{data}{observations in the format defined by geoData().}
