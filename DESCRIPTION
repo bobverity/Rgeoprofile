@@ -2,6 +2,7 @@ Package: RgeoProfile
 Type: Package
 Title: Geographic profiling in R
 Version: 2.0
+Version: 1.1.0
 Date: 2015-08-04
 Author: Robert Verity
 Maintainer: Robert Verity <r.verity@imperial.ac.uk>
