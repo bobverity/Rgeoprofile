@@ -144,8 +144,18 @@ cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
 }
 
 #------------------------------------------------
-# Draw from normal distribution converted to spherical coordinate system. Distances are first drawn from an ordinary cartesian 2D normal distribution. These distances are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon} to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere - rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
-# (not exported)
+#' Draw from bivariate normal distribution transformed to spatial coordinates
+#'
+#' Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution. The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon} to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere - rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
+#'
+#' @param n number of draws.
+#' @param centre_lat latitude of the centre point of the normal distribution.
+#' @param centre_lon longitude of the centre point of the normal distribution.
+#' @param sigma standard deviation of normal distribution in km.
+#'
+#' @export
+#' @examples
+#' rnorm_sphere(5, 51.5074, -0.1277, 1)
 
 rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 	x <- rnorm(n,sd=sigma)
@@ -757,6 +767,8 @@ geoMCMC <- function(data, params) {
   lambda_step <- min(cellSize_x, cellSize_y)/5
   
   # loop through range of values of lambda
+  cat('Smoothing posterior surface\n')
+  flush.console()
   logLike <- -Inf
   for (i in 1:100) {
       
@@ -783,6 +795,8 @@ geoMCMC <- function(data, params) {
     logLike <- sum(f6,na.rm=T)
 
   }
+  cat(paste('maximum likelihood lambda = ',round(lambda,3),sep=''))
+  
   # remove guard rail
   f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
   f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
@@ -815,6 +829,79 @@ geoMCMC <- function(data, params) {
   allocation <- data.frame(allocation/params$MCMC$samples)
   names(allocation) <- paste("group",1:ncol(allocation),sep="")
   output$allocation <- allocation
+  
+  return(output)
+}
+
+#------------------------------------------------
+#' kernel density smoothing of posterior distribution
+#'
+#' Can be used to perform kernel density smoothing of the "surface_raw" object output from geoMCMC(). Note that geoMCMC() performs this smoothing already using a maximum-likelihood estimate of lambda and outputs it to the "surface" object, and so this function is only needed when a custom level of smoothing is required. The kernel used is a Student's t distribution with a user-defined scale (1 = ordinary Student's t distribution) and degrees of freedom.
+#'
+#' @param surface raw surface to be smoothed.
+#' @param lambda scale of smoothing kernel, relative to an ordinary Student's t distribution in which lambda=1. When appled to geoMCMC() output this parameter is in units of km.
+#' @param df degrees of freedom of Student's t smoothing kernel.
+#'
+#' @export
+#' @examples
+#' myData <- geoData()
+#' myParams <- geoParams(myData, sigma_var=1)
+#' myMCMC <- geoMCMC(myData, myParams)
+#' mySurface <- geoSmooth(myMCMC$surface_raw, lambda=1, df=2)
+
+geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
+
+  # get size of each cell
+  limits_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$output$latitude_minMax, params$output$longitude_minMax)
+  cells_x <- params$output$longitude_cells
+  cells_y <- params$output$latitude_cells
+  cellSize_x <- diff(limits_cartesian$x)/cells_x
+  cellSize_y <- diff(limits_cartesian$x)/cells_y
+
+  # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
+  railSize_x <- cells_x
+  railSize_y <- cells_y
+  railMat_x <- matrix(0,cells_y,railSize_x)
+  railMat_y <- matrix(0,railSize_y,cells_x+2*railSize_x)
+  
+  surface_normalised <- MCMCoutput$surface_raw/sum(MCMCoutput$surface_raw, na.rm=TRUE)
+  surface_normalised <- cbind(railMat_x, surface_normalised, railMat_x)
+  surface_normalised <- rbind(railMat_y, surface_normalised, railMat_y)
+  
+  # calculate Fourier transform of posterior surface
+  f1 = fftw2d(surface_normalised)
+  
+  # produce surface that kernel will be calculated over
+  kernel_x <- cellSize_x * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
+  kernel_y <- cellSize_y * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
+  kernel_x_mat <- outer(rep(1,length(kernel_y)), kernel_x)
+  kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
+  kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
+  
+  # calculate Fourier transform of kernel
+  kernel <- dts(kernel_s_mat,df=3,scale=lambda)
+  f2 = fftw2d(kernel)
+    
+  # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
+  f3 = f1*f2
+  f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+    
+  # remove guard rail
+  f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
+  f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
+  
+  # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
+  x_mids <- seq(limits_cartesian$x[1], limits_cartesian$x[2], l=ncol(f4)+1)[-1] - cellSize_x/2
+  y_mids <- seq(limits_cartesian$y[1], limits_cartesian$y[2], l=nrow(f4)+1)[-1] - cellSize_y/2
+  x_mids_mat <- outer(rep(1,cells_y),x_mids)
+  y_mids_mat <- outer(y_mids,rep(1,cells_x))
+  
+  priorMat <- dnorm(x_mids_mat,sd=params$model$tau)*dnorm(y_mids_mat,sd=params$model$tau)*(cellSize_x*cellSize_y)
+  
+  # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
+  n <- length(data$longitude)
+  alpha <- MCMCoutput$alpha
+  output <-  f4 + priorMat*mean(alpha/(alpha+n))
   
   return(output)
 }
