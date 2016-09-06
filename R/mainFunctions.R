@@ -838,7 +838,9 @@ geoMCMC <- function(data, params) {
 #'
 #' Can be used to perform kernel density smoothing of the "surface_raw" object output from geoMCMC(). Note that geoMCMC() performs this smoothing already using a maximum-likelihood estimate of lambda and outputs it to the "surface" object, and so this function is only needed when a custom level of smoothing is required. The kernel used is a Student's t distribution with a user-defined scale (1 = ordinary Student's t distribution) and degrees of freedom.
 #'
-#' @param surface raw surface to be smoothed.
+#' @param data input data in the format defined by geoData().
+#' @param params input parameters in the format defined by geoParams().
+#' @param MCMCoutput stored output of the MCMC obtained by running geoMCMC().
 #' @param lambda scale of smoothing kernel, relative to an ordinary Student's t distribution in which lambda=1. When appled to geoMCMC() output this parameter is in units of km.
 #' @param df degrees of freedom of Student's t smoothing kernel.
 #'
@@ -847,7 +849,7 @@ geoMCMC <- function(data, params) {
 #' myData <- geoData()
 #' myParams <- geoParams(myData, sigma_var=1)
 #' myMCMC <- geoMCMC(myData, myParams)
-#' mySurface <- geoSmooth(myMCMC$surface_raw, lambda=1, df=2)
+#' mySurface <- geoSmooth(myData, myParams, myMCMC, lambda=0.5, df=2)
 
 geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 
@@ -1101,7 +1103,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 
 		# add contours
 		if (plotContours) {
-			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), breaks=breakPercent/100*length(surface), size=0.3, alpha=transparency, data=df)
+			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), colour="grey50", breaks=breakPercent/100*length(surface), size=0.3, alpha=transparency, data=df)
 		}
 	}
 

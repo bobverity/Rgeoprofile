@@ -7,11 +7,15 @@
 geoSmooth(data, params, MCMCoutput, lambda = 1, df = 3)
 }
 \arguments{
+\item{data}{input data in the format defined by geoData().}
+
+\item{params}{input parameters in the format defined by geoParams().}
+
+\item{MCMCoutput}{stored output of the MCMC obtained by running geoMCMC().}
+
 \item{lambda}{scale of smoothing kernel, relative to an ordinary Student's t distribution in which lambda=1. When appled to geoMCMC() output this parameter is in units of km.}
 
 \item{df}{degrees of freedom of Student's t smoothing kernel.}
-
-\item{surface}{raw surface to be smoothed.}
 }
 \description{
 Can be used to perform kernel density smoothing of the "surface_raw" object output from geoMCMC(). Note that geoMCMC() performs this smoothing already using a maximum-likelihood estimate of lambda and outputs it to the "surface" object, and so this function is only needed when a custom level of smoothing is required. The kernel used is a Student's t distribution with a user-defined scale (1 = ordinary Student's t distribution) and degrees of freedom.
@@ -20,6 +24,6 @@ Can be used to perform kernel density smoothing of the "surface_raw" object outp
 myData <- geoData()
 myParams <- geoParams(myData, sigma_var=1)
 myMCMC <- geoMCMC(myData, myParams)
-mySurface <- geoSmooth(myMCMC$surface_raw, lambda=1, df=2)
+mySurface <- geoSmooth(myData, myParams, myMCMC, lambda=0.5, df=2)
 }
 
