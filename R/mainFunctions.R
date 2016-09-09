@@ -1175,3 +1175,31 @@ geoReportHitscores <- function(params,source_data,surface) {
 
 }
 
+#------------------------------------------------
+#' Produces a Gini or Lorenz plot showing the proportion of suspect sites identified as a function of area.
+#' @examples
+#' geoPlotGini()
+
+geoPlotGini <- function(hit_scores= geoReportHitscores(params,source_data=source_data,surface=myMCMC$surface),line_col="red") {
+		# sort hit scores
+		capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
+		
+		# cumulative crime sites
+		cum_suspect_sites <- cumsum(seq(1,length(ordered_hs)))/sum(seq(1,length(ordered_hs)))
+		
+		# add final point 1,1
+		ordered_hs <- c(ordered_hs,1)
+		cum_suspect_sites <- c(cum_suspect_sites,1)
+		
+		# plot
+		plot(ordered_hs, cum_suspect_sites,type="l",col=line_col,xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of suspects")
+		abline(0,1,col="gray")
+		
+		giniOutput <- cbind(ordered_hs, cum_suspect_sites)
+		colnames(giniOutput) <- c("hs","prop_suspects")		
+		return(giniOutput[1:(length(ordered_hs)-1),])
+	}
+
+#------------------------------------------------
+
+
