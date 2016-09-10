@@ -1177,28 +1177,66 @@ geoReportHitscores <- function(params,source_data,surface) {
 
 #------------------------------------------------
 #' Produces a Gini or Lorenz plot showing the proportion of suspect sites identified as a function of area.
+#' Also allows an optional vector called crimeNumbers with numbers of crimes per suspect
 #' @examples
 #' geoPlotGini()
 
-geoPlotGini <- function(hit_scores= geoReportHitscores(params,source_data=source_data,surface=myMCMC$surface),line_col="red") {
-		# sort hit scores
-		capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
+geoPlotGini <- function(hit_scores = geoReportHitscores(params,source_data=source_data,surface=myMCMC$surface),crimeNumbers = NULL,suspects_col="red",crimes_col="blue") {
 		
-		# cumulative crime sites
-		cum_suspect_sites <- cumsum(seq(1,length(ordered_hs)))/sum(seq(1,length(ordered_hs)))
+			if(is.null(crimeNumbers))
+			{
+				# sort hit scores
+				capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
 		
-		# add final point 1,1
-		ordered_hs <- c(ordered_hs,1)
-		cum_suspect_sites <- c(cum_suspect_sites,1)
+				# cumulative crime sites
+				cum_suspect_sites <- seq(1,length(ordered_hs))/length(ordered_hs)
 		
-		# plot
-		plot(ordered_hs, cum_suspect_sites,type="l",col=line_col,xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of suspects")
-		abline(0,1,col="gray")
+				# add initial 0 and terminal 1 to each so plots will begin at (0,0) and end at (1,1) (these are dropped later)
+				ordered_hs <- c(0,ordered_hs,1)
+				cum_suspect_sites <- c(0,cum_suspect_sites,1)
+				
+				# plot
+				plot(ordered_hs, cum_suspect_sites,type="l",col=suspects_col,xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of suspects")
+				abline(0,1,col="gray")
 		
-		giniOutput <- cbind(ordered_hs, cum_suspect_sites)
-		colnames(giniOutput) <- c("hs","prop_suspects")		
-		return(giniOutput[1:(length(ordered_hs)-1),])
-	}
+				# output
+				giniOutput <- cbind(ordered_hs, cum_suspect_sites)
+				colnames(giniOutput) <- c("hs","prop_suspects")		
+				return(giniOutput[2:(length(ordered_hs)-1),])
+				
+			} else 
+			
+			{
+				hit_scores <- cbind(hit_scores, crimeNumbers)
+				
+				# sort hit scores
+				capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
+		
+				# cumulative crime sites
+				cum_suspect_sites <- seq(1,length(ordered_hs))/length(ordered_hs)
+		
+				# cumulative crime numbers
+				cum_crimes <- cumsum(hit_scores[,4])/sum(hit_scores[,4])
+		
+				# add initial 0 and terminal 1 to each so plots will begin at (0,0) and end at (1,1) (these are dropped later)
+				ordered_hs <- c(0,ordered_hs,1)
+				cum_crimes <- c(0,cum_crimes,1)
+				cum_suspect_sites <- c(0,cum_suspect_sites,1)
+
+				# plot
+				plot(ordered_hs,cum_suspect_sites,type="l",col=suspects_col,xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of suspects and crimes")
+				points(ordered_hs, cum_crimes,type="l",col= crimes_col)
+				abline(0,1,col="gray")
+				legend(0.7,0.2,c("suspects","crimes"),col=c(suspects_col,crimes_col),lwd=1)
+
+				# output
+				giniOutput <- cbind(ordered_hs, cum_suspect_sites,cum_crimes)
+				colnames(giniOutput) <- c("hs","prop_suspects","prop_crimes")		
+				return(giniOutput[2:(length(ordered_hs)-1),])		
+			}
+			
+		}
+
 
 #------------------------------------------------
 
