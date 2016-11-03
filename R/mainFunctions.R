@@ -1279,5 +1279,40 @@ prob_coallocation <- function(crime1,crime2, new_matrix=as.matrix(myMCMC$allocat
 		return(list("crime.1"=crime1,"crime.2"=crime2,"crime.locations"=pos_data,"p.coallocation"=prob_coall))
 	}
 #------------------------------------------------
+#' Calculates the gini coefficient for the probability surface.
+#' This is a measure of unevenness, with a value of 0 meaning perfectly
+#' even and a value of 1 maximally uneven.
+#' @examples
+#' gini_coefficient()
+
+gini_coefficient <- function(y_vals = myMCMC$surface)
+	{
+		# load required library for function 'singtegral'
+		library(Bolstad2)
+		
+		# make sure input is a sorted vector of proportions
+		raw_probs <- sort(as.vector(y_vals))
+		cum_probs <- cumsum(raw_probs)/sum(raw_probs)
+		one_to_one <- seq(1/length(cum_probs),1,1/length(cum_probs))
+		x_vals <- seq(1,length(cum_probs),1)
+		
+		# plot
+		plot(sort(cum_probs),type="l",xlim=c(0,length(cum_probs)),ylim=c(0,1),col="red",main="Gini coefficient",xlab="x",ylab="y")
+		lines(one_to_one,type="l",col="black")
+
+		# calculate areas under curves and gini coefficient
+		auc_a_plus_b <- sintegral(x_vals, one_to_one)$int
+		auc_b <- sintegral(x_vals,cum_probs)$int
+		auc_a <- auc_a_plus_b-auc_b
+		gini_coefficient <- auc_a/auc_a_plus_b
+		
+		# add text to plot
+		text(0.2*length(one_to_one),0.9, paste("gini coefficient =",round(gini_coefficient,3)))
+		
+		# return value
+		return(list(gini_coefficient=gini_coefficient))
+	}
+
+#------------------------------------------------
 
 
