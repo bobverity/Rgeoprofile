@@ -1460,7 +1460,6 @@ ringHS <- function(my_crime_data=crime_data,my_source_data=source_data,buffer_ra
 		# without polygons
 		ring_output <- list(ring_table=ring_table,ring_areas=ring_areas,ring_hs=ring_hs,my_UTM=my_UTM,map_area_m_sq=map_area_m_sq)
 		return(ring_output)
+}
 		
 #------------------------------------------------
-
-
