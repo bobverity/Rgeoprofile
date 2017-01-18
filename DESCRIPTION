@@ -1,7 +1,6 @@
 Package: RgeoProfile
 Type: Package
 Title: Geographic profiling in R
-Version: 2.0
 Version: 1.1.0
 Date: 2015-08-04
 Author: Robert Verity
@@ -14,6 +13,8 @@ Imports:
     fftwtools,
     ggplot2,
     ggmap,
-    RColorBrewer
+    RColorBrewer,
+    Bolstad2,
+    sp
 LinkingTo: Rcpp
 RoxygenNote: 5.0.1
