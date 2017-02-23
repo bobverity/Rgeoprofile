@@ -1181,7 +1181,7 @@ geoReportHitscores <- function(params,source_data,surface) {
 #' @examples
 #' geoPlotGini()
 
-geoPlotGini <- function(hit_scores = geoReportHitscores(params,source_data=source_data,surface=myMCMC$surface),crimeNumbers = NULL,suspects_col="red",crimes_col="blue") {
+geoPlotGini <- function(hit_scores,crimeNumbers = NULL,suspects_col="red",crimes_col="blue") {
     
     if(is.null(crimeNumbers))
     {
@@ -1247,7 +1247,7 @@ geoPlotGini <- function(hit_scores = geoReportHitscores(params,source_data=sourc
 #' @examples
 #' prob_coallocation()
 
-prob_coallocation <- function(crime1,crime2, new_matrix=as.matrix(myMCMC$allocation),offset=0.005,plot.graph=TRUE,crime_list=crime_data)
+prob_coallocation <- function(crime1,crime2, new_matrix,offset=0.005,plot.graph=TRUE,crime_list)
 	{
 		new_lines <- as.matrix(myMCMC$allocation)
 
