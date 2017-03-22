@@ -19,3 +19,4 @@ Calculate hitscores of the potential sources based on the final geoprofile surfa
 \examples{
 geoReportHitscores(params,source_data,surface)
 }
+

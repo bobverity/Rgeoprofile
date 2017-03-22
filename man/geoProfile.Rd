@@ -18,3 +18,4 @@ myParams <- geoParams(myData, sigma_var=1)
 myMCMC <- geoMCMC(myData, myParams)
 myMCMC$profile <- geoProfile(myMCMC$surface)
 }
+

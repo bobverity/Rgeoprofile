@@ -29,3 +29,4 @@ Output includes the lat/long locations of the points drawn from the DPM model, a
 \examples{
 rDPM(10)
 }
+

@@ -28,3 +28,4 @@ list, their lon/lat and the probability that they come from the same source.
 \examples{
 prob_coallocation()
 }
+

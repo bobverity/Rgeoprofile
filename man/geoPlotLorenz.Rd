@@ -7,10 +7,19 @@
 geoPlotLorenz(hit_scores, crimeNumbers = NULL, suspects_col = "red",
   crimes_col = "blue")
 }
+\arguments{
+\item{hit_scores}{object in the format defined by geoReportHitscores().}
+
+\item{crimeNumbers}{optional vector with numbers of crimes per suspect site.}
+}
 \description{
-Produces a Lorenz plot showing the proportion of suspect sites identified as a function of area.
-Also allows an optional vector called crimeNumbers with numbers of crimes per suspect. Calculates and returns Gini coefficient.
+Produces a Lorenz plot showing the proportion of suspect sites or cimes identified as a function of area and calculates
+the corresponding Gini coefficient using trapezoid rule.
+Also allows an optional vector called crimeNumbers with numbers of crimes per suspect site; tthe length of this vector
+should equal the number of suspect sites. If this is present, the function calculates and returns the Gini coefficient 
+based on the number of crimes; otherwise, this is calculated based on the number of suspect sites.
 }
 \examples{
 geoPlotLorenz()
 }
+

@@ -21,3 +21,4 @@ Draw from normal distribution converted to spherical coordinate system. Points a
 \examples{
 rnorm_sphere(5, 51.5074, -0.1277, 1)
 }
+

@@ -58,3 +58,4 @@ This function can be used to generate parameters in the format required by other
 myData <- geoData()
 geoParams(myData, sigma_var=1)
 }
+

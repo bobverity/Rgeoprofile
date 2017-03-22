@@ -1336,13 +1336,11 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 #' @examples
 #' ringHS()
 
-ringHS <- function(data, source, buffer_radii=c(1000,2000,5000))
+ringHS <- function(params,crime_data, source_data, buffer_radii=c(1000,2000,5000))
 	{
-        #library(RgoogleMaps)
-        #library(rgeos)
-        #library(sp)
-		
-		# function for calculating UTM zone from mean of longitude of crimes
+        library(RgoogleMaps)
+        library(rgeos)
+        # function for calculating UTM zone from mean of longitude of crimes
 		long2UTM <- function(long)
 			{
 				(floor((long + 180)/6) %% 60) + 1
@@ -1356,9 +1354,9 @@ ringHS <- function(data, source, buffer_radii=c(1000,2000,5000))
 		my_crs_utm <- paste("+proj=utm +zone=",my_UTM," ellps=WGS84",sep="")
 
 		##load crime and source data and convert to spatial object with projection of choice (UTM and lonlat)
-		crimes <- cbind(my_crime_data $longitude, my_crime_data $latitude)
+		crimes <- cbind(crime_data$longitude, crime_data$latitude)
 		crimes_lonlat <- SpatialPointsDataFrame(coords = as.matrix(crimes), data = as.data.frame(crimes),proj4string = CRS(my_crs_long_lat))
-		sources <- cbind(my_source_data $source_longitude, my_source_data $source_latitude)
+		sources <- cbind(source_data$source_longitude, source_data $source_latitude)
 		sources_lonlat <- SpatialPointsDataFrame(coords = as.matrix(sources), data = as.data.frame(sources),proj4string = CRS(my_crs_long_lat))
 		# plot as check
 		# plot(crimes_lonlat)
@@ -1428,10 +1426,10 @@ ringHS <- function(data, source, buffer_radii=c(1000,2000,5000))
 		# plot
 		# create list to store contours for plotting on map
 		stored_contours <- list()
-		for(contour_number in 1:length(buffer_radiuses))
+		for(contour_number in 1:length(buffer_radii))
 			{
 				# create buffer
-				b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radiuses[contour_number])
+				b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radii[contour_number])
 				# plot(b)
 				#merge the circles
 				b2<- gUnaryUnion(b)

@@ -19,3 +19,4 @@ myData <- geoData()
 myParams <- geoParams(myData, sigma_var=1)
 geoParamsCheck(myParams)
 }
+

@@ -20,3 +20,4 @@ Also plots the crimes and sources with merged polygons showing these (merged and
 \examples{
 ringHS()
 }
+

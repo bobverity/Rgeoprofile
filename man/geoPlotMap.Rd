@@ -52,3 +52,4 @@ Uses ggmap to download a map for the region specified by params. Various element
 \examples{
 geoQuickPlot(surface)
 }
+
