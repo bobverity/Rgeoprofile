@@ -720,7 +720,7 @@ geoMCMC <- function(data, params) {
   # transform data and map limits to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior)
   data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
   limits_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$output$latitude_minMax, params$output$longitude_minMax)
-    
+  
   # add these cartesian coordinates to data and params objects before feeding into C++ function
   data$x <- data_cartesian$x
   data$y <- data_cartesian$y
@@ -745,7 +745,7 @@ geoMCMC <- function(data, params) {
   cells_x <- params$output$longitude_cells
   cells_y <- params$output$latitude_cells
   cellSize_x <- diff(limits_cartesian$x)/cells_x
-  cellSize_y <- diff(limits_cartesian$x)/cells_y
+  cellSize_y <- diff(limits_cartesian$y)/cells_y
   
   # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
   railSize_x <- cells_x
