@@ -1184,16 +1184,28 @@ geoReportHitscores <- function(params, source_data, surface) {
 #------------------------------------------------
 #' Produce Lorenz Plot
 #'
-#' Produces a Lorenz plot showing the proportion of suspect sites identified as a function of area.
-#' Also allows an optional vector called crimeNumbers with numbers of crimes per suspect. Calculates and returns Gini coefficient.
+#' Produces a Lorenz plot showing the proportion of suspect sites or cimes identified as a function of area and calculates
+#' the corresponding Gini coefficient using trapezoid rule.
+#' Also allows an optional vector called crimeNumbers with numbers of crimes per suspect site; tthe length of this vector
+#' should equal the number of suspect sites. If this is present, the function calculates and returns the Gini coefficient 
+#' based on the number of crimes; otherwise, this is calculated based on the number of suspect sites.
+#'
+#' @param hit_scores object in the format defined by geoReportHitscores().
+#' @param crimeNumbers optional vector with numbers of crimes per suspect site.
 #'
 #' @export
 #' @examples
 #' geoPlotLorenz()
 
 geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", crimes_col="blue") {
-    
-    if(is.null(crimeNumbers))
+   		# define function using trapezoid rule
+   		tpzd <- function(x,y)
+			{
+				idx = 2:length(x)
+   				return (as.double( (x[idx] - x[idx-1]) %*% (y[idx] + y[idx-1])) / 2)
+   			}
+
+	if(is.null(crimeNumbers))
     {
         # sort hit scores
         capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
@@ -1205,14 +1217,20 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
         ordered_hs <- c(0,ordered_hs,1)
         cum_suspect_sites <- c(0,cum_suspect_sites,1)
         
+        # calculate gini coefficient
+ 		auc <- (0.5-tpzd(cum_suspect_sites, ordered_hs))/0.5
+ 		G <- round(auc,3)        
+
         # plot
-        plot(ordered_hs, cum_suspect_sites,type="l",col=suspects_col,xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of suspects")
+        plot(ordered_hs, cum_suspect_sites,type="n",xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of sources")
+        points(ordered_hs, cum_suspect_sites,type="l",col=suspects_col)
+        abline(h=seq(0,1,0.2),col="lightgray",lwd=0.4)
+        abline(v=seq(0,1,0.2),col="lightgray",lwd=0.4)
         abline(0,1,col="gray")
+        text(0.8,0.1,paste0("G (sources) = ",G),cex=0.8)
         
         # output
-        giniOutput <- cbind(ordered_hs, cum_suspect_sites)
-        colnames(giniOutput) <- c("hs","prop_suspects")
-        return(giniOutput[2:(length(ordered_hs)-1),])
+        return(gini_coefficient=G)
         
     } else
     
@@ -1233,16 +1251,24 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
         cum_crimes <- c(0,cum_crimes,1)
         cum_suspect_sites <- c(0,cum_suspect_sites,1)
         
-        # plot
-        plot(ordered_hs,cum_suspect_sites,type="l",col=suspects_col,xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of suspects and crimes")
+        # calculate gini coefficient
+		auc <- (0.5-tpzd(cum_crimes, ordered_hs))/0.5
+ 		G <- round(auc,3)         
+
+# plot
+        plot(ordered_hs,cum_suspect_sites,type="n",xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of sources and incidents")
+        abline(h=seq(0,1,0.2),col="lightgray",lwd=0.4)
+        abline(v=seq(0,1,0.2),col="lightgray",lwd=0.4)
+        points(ordered_hs, cum_suspect_sites,type="l",col= suspects_col)
         points(ordered_hs, cum_crimes,type="l",col= crimes_col)
-        abline(0,1,col="gray")
-        legend(0.7,0.2,c("suspects","crimes"),col=c(suspects_col,crimes_col),lwd=1)
+
+        abline(0,1,col="darkgray")
+        text(0.85,0.3,paste0("G (crimes) = ",G),cex=0.8)
+		legend(0.7,0.2,c("sources","incidents"),col=c(suspects_col,crimes_col),lwd=1,cex=0.8)
         
         # output
-        giniOutput <- cbind(ordered_hs, cum_suspect_sites,cum_crimes)
-        colnames(giniOutput) <- c("hs","prop_suspects","prop_crimes")
-        return(giniOutput[2:(length(ordered_hs)-1),])
+        return(gini_coefficient=G)
+
     }
     
 }
