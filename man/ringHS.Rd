@@ -2,11 +2,16 @@
 % Please edit documentation in R/mainFunctions.R
 \name{ringHS}
 \alias{ringHS}
-\title{Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes).
-Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings}
+\title{Calculate and plot ring search strategy}
 \usage{
-ringHS(my_crime_data = crime_data, my_source_data = source_data,
-  buffer_radiuses = c(1000, 2000, 5000))
+ringHS(data, source, buffer_radii = c(1000, 2000, 5000))
+}
+\arguments{
+\item{data}{some text}
+
+\item{source}{some text}
+
+\item{buffer_radii}{some text}
 }
 \description{
 Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes).
@@ -15,4 +20,3 @@ Also plots the crimes and sources with merged polygons showing these (merged and
 \examples{
 ringHS()
 }
-

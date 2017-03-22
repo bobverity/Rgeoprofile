@@ -1,6 +1,5 @@
-
-#' Carry out geoprofiling under Dirichlet process mixture (DPM) model
+#' RgeoProfile.
 #'
-#' Some package text.
-#'
-"_PACKAGE"
+#' @name RgeoProfile
+#' @docType package
+NULL
