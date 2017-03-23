@@ -2,20 +2,19 @@
 % Please edit documentation in R/mainFunctions.R
 \name{ringHS}
 \alias{ringHS}
-\title{Calculate and plot ring search strategy}
+\title{Calculate and plot hit scores based on a ring search}
 \usage{
-ringHS(data, source, buffer_radii = c(1000, 2000, 5000))
+ringHS(params, crime_data, source_data, buffer_radii = c(1000, 2000, 5000))
 }
 \arguments{
-\item{data}{some text}
+\item{crime_data}{list of incident location longitudes and latitudes, as produced by geoData().}
 
-\item{source}{some text}
+\item{source_data}{list of suspect site location longitudes and latitudes, as produced by geoDataSource().}
 
-\item{buffer_radii}{some text}
+\item{buffer_radii}{vector of search radiuses to draw around incidents, in metres. Default is 1000m, 2000m and 5000.}
 }
 \description{
-Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes).
-Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
+Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes). Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
 }
 \examples{
 ringHS()
