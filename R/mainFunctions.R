@@ -1323,14 +1323,13 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 	}
 
 #------------------------------------------------
-#' Calculate and plot ring search strategy
+#' Calculate and plot hit scores based on a ring search
 #'
-#' Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes).
-#' Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
+#' Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes). Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
 #'
-#' @param data some text
-#' @param source some text
-#' @param buffer_radii some text
+#' @param crime_data list of incident location longitudes and latitudes, as produced by geoData().
+#' @param source_data list of suspect site location longitudes and latitudes, as produced by geoDataSource().
+#' @param buffer_radii vector of search radiuses to draw around incidents, in metres. Default is 1000m, 2000m and 5000.
 #'
 #' @export
 #' @examples
