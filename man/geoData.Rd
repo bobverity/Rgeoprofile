@@ -17,4 +17,3 @@ Simple function that ensures that input data is in the correct format required b
 \examples{
 geoData()
 }
-

@@ -17,4 +17,3 @@ Simple function that ensures that sources are in the correct format required by 
 \examples{
 geoDataSource()
 }
-

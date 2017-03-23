@@ -1,4 +1,11 @@
 
+# TODO
+# - the function ringHS() uses a lot of packages and seems quite complicated! At the moment all we did was change the unput variable names, but not the names in the function, meaning it won't currently work. If you could have a go at overhauling this function with the minimum dependencies that would be great. For example, if we can get away with adding our own circles rather than using spatialDataFrame objects that would be ideal.
+# - expand help text and examples where needed. Remember that you need to run the function document() to actually create the help files once you've updated the text here. (NB, document() is part of devtools).
+# - add Gini coefficient calculation to plotLorenz() function. Use simple trapezoidal rule rather than a package. For example, if you have vectors x and y of same length then the area under curve is given by sum(0.5*(y[-1]+y[-length(y)])*(x[-1]-x[-length(x)]))
+# - in functions geoReportHitscores() and geoPlotLorenz(), add comments and check program flow. Give input arguments defaults where possible (e.g. NULL), and do some formatting checks on inputs in case of bad input (e.g. using stopifnot())
+# - separate functions that print results and those that return results, or just get rid of printing from existing functions. Make sure returned values are e.g. data frames with correctly labelled columns (particularly hitscores function)
+
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
 #'
@@ -422,8 +429,7 @@ get_alpha_beta <- function(sigma_mean,sigma_var) {
 geoDataCheck <- function(data, silent=FALSE) {
     
   # check that data is a list
-  if (!is.list(data))
-    stop("data must be in list format")
+  stopifnot(is.list(data))
   
   # check that contains longitude and latitude
   if (!("longitude"%in%names(data)))
@@ -714,7 +720,7 @@ geoMCMC <- function(data, params) {
   # transform data and map limits to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior)
   data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
   limits_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$output$latitude_minMax, params$output$longitude_minMax)
-    
+  
   # add these cartesian coordinates to data and params objects before feeding into C++ function
   data$x <- data_cartesian$x
   data$y <- data_cartesian$y
@@ -739,7 +745,7 @@ geoMCMC <- function(data, params) {
   cells_x <- params$output$longitude_cells
   cells_y <- params$output$latitude_cells
   cellSize_x <- diff(limits_cartesian$x)/cells_x
-  cellSize_y <- diff(limits_cartesian$x)/cells_y
+  cellSize_y <- diff(limits_cartesian$y)/cells_y
   
   # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
   railSize_x <- cells_x
@@ -1144,7 +1150,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #' @examples
 #' geoReportHitscores(params,source_data,surface)
 
-geoReportHitscores <- function(params,source_data,surface) {
+geoReportHitscores <- function(params, source_data, surface) {
 	
 	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
 	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
@@ -1176,12 +1182,16 @@ geoReportHitscores <- function(params,source_data,surface) {
 }
 
 #------------------------------------------------
-#' Produces a Gini or Lorenz plot showing the proportion of suspect sites identified as a function of area.
-#' Also allows an optional vector called crimeNumbers with numbers of crimes per suspect
+#' Produce Lorenz Plot
+#'
+#' Produces a Lorenz plot showing the proportion of suspect sites identified as a function of area.
+#' Also allows an optional vector called crimeNumbers with numbers of crimes per suspect. Calculates and returns Gini coefficient.
+#'
+#' @export
 #' @examples
-#' geoPlotGini()
+#' geoPlotLorenz()
 
-geoPlotGini <- function(hit_scores = geoReportHitscores(params,source_data=source_data,surface=myMCMC$surface),crimeNumbers = NULL,suspects_col="red",crimes_col="blue") {
+geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", crimes_col="blue") {
     
     if(is.null(crimeNumbers))
     {
@@ -1239,86 +1249,68 @@ geoPlotGini <- function(hit_scores = geoReportHitscores(params,source_data=sourc
 
 
 #------------------------------------------------
+#' Calculate and plot probability of coallocation
+#'
 #' Calculates the probability that two crimes are from the same source.
 #' Also allows an optional plot showing the probabilities of allocation different
 #' sources for each of the two selected crimes, using myMCMC$allocation.
 #' The function returns the position of the two chosen crimes in the original
 #'list, their lon/lat and the probability that they come from the same source.
+#'
+#' @param crime1 numerical index of first crime
+#' @param crime2 numerical index of second crime
+#' @param coallocation_matrix matrix of coallocations between all observations, as produced the "allocation" output of the function geoMCMC()
+#' @param offset vertical offset of second line to ensure readability
+#' @param plot.graph whether to plot the graph
+#'
+#' @export
 #' @examples
 #' prob_coallocation()
 
-prob_coallocation <- function(crime1,crime2, new_matrix=as.matrix(myMCMC$allocation),offset=0.005,plot.graph=TRUE,crime_list=crime_data)
+prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)
 	{
-		new_lines <- as.matrix(myMCMC$allocation)
+        # convert input to matrix and get dimension
+        cmat <- as.matrix(coallocation_matrix)
+        d <- ncol(cmat)
+
+        # calculate probability that two crimes come from the same source
+        # set to 1 if we are considering the probability that a source coallocates with itself!
+        ifelse(crime1==crime2,
+        prob_coall<-1,
+        prob_coall <- sum(cmat[crime1,]*cmat[crime2,]))
 
 		# plot graph if required
-		if(plot.graph ==TRUE)
+		if(plot.graph)
 			{
-				# plot both
-				quartz(width=5,height=5)
-				plot(new_lines[crime1,],type="l",xlim=c(0,dim(new_lines)[2]),ylim=c(0,1),col="red",xlab="source",ylab="probability",main=paste(crime1,",",crime2))
-				points(new_lines[crime2,]+offset,type="l",col="darkgray")
+				# plot lines
+                mainTitle <- paste0("comparing crimes ",crime1," and ",crime2)
+				plot(cmat[crime1,], type="l", xlim=c(0,d), ylim=c(0,1), col="red", xlab="source", ylab="probability", main=mainTitle)
+				points(cmat[crime2,]+offset, type="l", col="darkgray")
+                
+                # add legend text etc.
+				text(d/1.5, 0.9, paste("probability of coallocation =", round(prob_coall,3)), cex=0.9)
+				legend(d/1.3,0.2, legend=c(crime1,crime2), lwd=1, col=c("red","darkgray"), cex=0.7)
 			}
 		
-		# calculate probability that two crimes come from the same source
-		# set to 1 if we are considering the probability that a source coallocates with itself!
-		ifelse(crime1==crime2,
-		prob_coall<-1,
-		prob_coall <- sum(new_lines[crime1,]*new_lines[crime2,]))
-		
-		# if graph is being plotted, add text and legend
-		if(plot.graph ==TRUE)
-			{
-				text(dim(new_lines)[2]/1.5,0.9,paste("probability of coallocation =", round(prob_coall,3)),cex=0.9)
-				legend(dim(new_lines)[2]/1.3,0.2,legend=c(crime1,crime2),lwd=1,col=c("red","darkgray"),cex=0.7)
-			}
-		
-		# long/lat of the two crimes being compared
-		pos_data <- cbind(crime_data$longitude[c(crime1,crime2)],crime_data$latitude[c(crime1,crime2)])
-		
-		return(list("crime.1"=crime1,"crime.2"=crime2,"crime.locations"=pos_data,"p.coallocation"=prob_coall))
-	}
-#------------------------------------------------
-#' Calculates the gini coefficient for the probability surface.
-#' This is a measure of unevenness, with a value of 0 meaning perfectly
-#' even and a value of 1 maximally uneven.
-#' @examples
-#' gini_coefficient()
-
-gini_coefficient <- function(y_vals = myMCMC$surface)
-	{
-		# load required library for function 'singtegral'
-		library(Bolstad2)
-		
-		# make sure input is a sorted vector of proportions
-		raw_probs <- sort(as.vector(y_vals))
-		cum_probs <- cumsum(raw_probs)/sum(raw_probs)
-		one_to_one <- seq(1/length(cum_probs),1,1/length(cum_probs))
-		x_vals <- seq(1,length(cum_probs),1)
-		
-		# plot
-		plot(sort(cum_probs),type="l",xlim=c(0,length(cum_probs)),ylim=c(0,1),col="red",main="Gini coefficient",xlab="x",ylab="y")
-		lines(one_to_one,type="l",col="black")
-
-		# calculate areas under curves and gini coefficient
-		auc_a_plus_b <- sintegral(x_vals, one_to_one)$int
-		auc_b <- sintegral(x_vals,cum_probs)$int
-		auc_a <- auc_a_plus_b-auc_b
-		gini_coefficient <- auc_a/auc_a_plus_b
-		
-		# add text to plot
-		text(0.2*length(one_to_one),0.9, paste("gini coefficient =",round(gini_coefficient,3)))
-		
-		# return value
-		return(list(gini_coefficient=gini_coefficient))
+        # return coallocation probability of these two crimes
+		return(list("crime.1"=crime1,"crime.2"=crime2,"p.coallocation"=prob_coall))
 	}
 
 #------------------------------------------------
+#' Calculate and plot ring search strategy
+#'
 #' Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes).
 #' Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
+#'
+#' @param data some text
+#' @param source some text
+#' @param buffer_radii some text
+#'
+#' @export
 #' @examples
 #' ringHS()
 
+<<<<<<< HEAD
 ringHS <- function (my_crime_data = crime_data, my_source_data = source_data, 
     buffer_radiuses = c(1000, 2000, 5000)) 
 {
@@ -1426,12 +1418,113 @@ ringHS <- function (my_crime_data = crime_data, my_source_data = source_data,
 }
 
 
+=======
+ringHS <- function(data, source, buffer_radii=c(1000,2000,5000))
+	{
+        #library(RgoogleMaps)
+        #library(rgeos)
+        #library(sp)
+		
+		# function for calculating UTM zone from mean of longitude of crimes
+		long2UTM <- function(long)
+			{
+				(floor((long + 180)/6) %% 60) + 1
+			}
+
+		# calculate UTM zone
+		my_UTM <- long2UTM(mean(crime_data$longitude))
+		
+		# set projections for ease of use
+		my_crs_long_lat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+		my_crs_utm <- paste("+proj=utm +zone=",my_UTM," ellps=WGS84",sep="")
+
+		##load crime and source data and convert to spatial object with projection of choice (UTM and lonlat)
+		crimes <- cbind(my_crime_data $longitude, my_crime_data $latitude)
+		crimes_lonlat <- SpatialPointsDataFrame(coords = as.matrix(crimes), data = as.data.frame(crimes),proj4string = CRS(my_crs_long_lat))
+		sources <- cbind(my_source_data $source_longitude, my_source_data $source_latitude)
+		sources_lonlat <- SpatialPointsDataFrame(coords = as.matrix(sources), data = as.data.frame(sources),proj4string = CRS(my_crs_long_lat))
+		# plot as check
+		# plot(crimes_lonlat)
+		# plot(sources_lonlat)
+		
+		# use params to calculate area of map
+		lonMin <- params$output$longitude_minMax[1]
+		lonMax <- params$output$longitude_minMax[2]
+		latMin <- params$output$latitude_minMax[1]
+		latMax <- params$output$latitude_minMax[2]
+		bounds=matrix(c(lonMin, latMin,
+				lonMin, latMax,
+				lonMax, latMax,
+				lonMax,  latMin,
+				lonMin, latMin
+				),
+				ncol=2, byrow=TRUE)
+		# plot as check		
+		# plot(bounds,type="l")
+		# create polygon as spatial object of bounding box as both longlat and UTM
+		bounds_lonlat <- SpatialPointsDataFrame(coords = as.matrix(bounds), data = as.data.frame(bounds),proj4string = CRS(my_crs_long_lat))
+		bounds_UTM <- spTransform(bounds_lonlat, CRS(my_crs_utm))
+        
+		# turn bounding box into a polygon, and then a spatial polygon with UTM projection to match merged circles
+		p1=Polygon(bounds_UTM)
+		bounds_polygon_utm = SpatialPolygons(list(Polygons(list(p1), ID = "a")), proj4string=CRS(my_crs_utm))
+		# plot(bounds_polygon_utm, axes = TRUE)
+
+		# area in metres square of map (for hit score calculations later)
+		map_area_m_sq <- gArea(bounds_polygon_utm)
+		
+		#convert to UTM so we can use m for gBuffer function, width is radius in m
+		crimes_UTM <- spTransform(crimes_lonlat, CRS(my_crs_utm))
+		# plot(crimes_UTM)
+		sources_UTM <- spTransform(sources_lonlat, CRS(my_crs_utm))
+		# plot(sources_UTM)
+
+		# extract number of sources and calculate for each the distance to the nearest crime (in m)
+		no_sources <- dim(sources_lonlat)[1]
+		min_dists <- rep(NA,no_sources)
+		for(i in 1:no_sources)
+			{
+				min_dists[i] <- min(spDistsN1(crimes_lonlat, sources_lonlat[i,1],longlat=TRUE))*1000
+			}
+		# min_dists
+>>>>>>> origin/develop
 
 
 
 
+<<<<<<< HEAD
 
 
 
 		
 #------------------------------------------------
+=======
+		ringCols <-  gp.colors(length(stored_contours))
+		ringColsTransp = AddAlpha(ringCols,0.05)
+		
+		# plot contours
+		for(cc in length(stored_contours):1)
+			{
+				PlotPolysOnStaticMap(MyMap, stored_contours[[cc]],add=TRUE,col=ringColsTransp[cc],border= "black",lwd=1)
+			}
+		# plot bounding box
+		box_to_plot <- spTransform(bounds_polygon_utm,CRS(my_crs_long_lat))
+		PlotPolysOnStaticMap(MyMap, box_to_plot,add=TRUE,col=NULL,border="black",lwd=2)
+		# add crimes and sources
+		PlotOnStaticMap(MyMap,crime_data$latitude,crime_data$longitude, pch=16,add=TRUE)
+		PlotOnStaticMap(MyMap,source_data$source_latitude,source_data$source_longitude, pch=15,col="red",add=TRUE)
+	
+		ring_table<-data.frame(stored_results)
+		ring_hs <- ring_table[,4]
+		ring_areas <- ring_table[,3]
+		
+		# return results
+		# with polygons
+		# ring_output <- list(ring_table=ring_table,ring_areas=ring_areas,ring_hs=ring_hs,my_UTM= my_UTM,map_area_m_sq=map_area_m_sq,stored_buffers=stored_buffers)
+		# without polygons
+		ring_output <- list(ring_table=ring_table,ring_areas=ring_areas,ring_hs=ring_hs,my_UTM=my_UTM,map_area_m_sq=map_area_m_sq)
+		return(ring_output)
+}
+		
+#------------------------------------------------
+>>>>>>> origin/develop

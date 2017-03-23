@@ -26,4 +26,3 @@ myParams <- geoParams(myData, sigma_var=1)
 myMCMC <- geoMCMC(myData, myParams)
 mySurface <- geoSmooth(myData, myParams, myMCMC, lambda=0.5, df=2)
 }
-

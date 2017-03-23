@@ -1,6 +1,7 @@
 
 /*
- TO DO
+ TODO
+    - come up with better way of dealing with transformation issues. At the moment moving to cartesian space and back causes issues because the final geoProfile matrix does not have cells of the same height&width when tranformed back to lat/lon scale. Perhaps define grid in lat/lon space and store binned values of mu in this already-transformed matrix?
     - this script could do with some organising and reshuffling. Should make MCMCobject class and chain class, and get all MCMC functions within these. Would also allow to clean up burn-in vs. sampling phase.
     - group variable to start at 0
     
@@ -13,7 +14,6 @@
 #include "Hungarian.h"
 
 using namespace std;
-
 
 //------------------------------------------------
 // run main MCMC.
@@ -40,8 +40,6 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     double tau2 = tau*tau;
     double alpha_shape = Rcpp::as<double>(params_model["alpha_shape"]);
     double alpha_rate = Rcpp::as<double>(params_model["alpha_rate"]);
-    
-    //return Rcpp::List::create(Rcpp::Named("dummy")=9);
     
     int chains = Rcpp::as<int>(params_MCMC["chains"]);
     int burnin = Rcpp::as<int>(params_MCMC["burnin"]);
@@ -339,6 +337,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
                 mu_postMean_y[j] = (sum_y[j]/sigma2)*mu_postVar[j];
                 mu_postDraw_x[j] = rnorm1(mu_postMean_x[j],sqrt(mu_postVar[j]));
                 mu_postDraw_y[j] = rnorm1(mu_postMean_y[j],sqrt(mu_postVar[j]));
+                
                 if (mu_postDraw_x[j]>=x_min && mu_postDraw_x[j]<=x_max && mu_postDraw_y[j]>=y_min && mu_postDraw_y[j]<=y_max) {
                     geoSurface[floor((mu_postDraw_y[j]-y_min)/double(y_cellSize))][floor((mu_postDraw_x[j]-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha);
                 }
