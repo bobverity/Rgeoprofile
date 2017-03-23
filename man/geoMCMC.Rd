@@ -20,4 +20,3 @@ myParams <- geoParams(myData, sigma_var=1)
 myMCMC <- geoMCMC(myData, myParams)
 geoPlotSigma(myParams, myMCMC$sigma)
 }
-

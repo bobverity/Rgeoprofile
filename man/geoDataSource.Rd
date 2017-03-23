@@ -15,6 +15,6 @@ geoDataSource(source_longitude = NULL, source_latitude = NULL)
 Simple function that ensures that sources are in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 }
 \examples{
-geoDataSource()
+data(WaterPumps)
+geoDataSource(WaterPumps[,1], WaterPumps[,2])
 }
-

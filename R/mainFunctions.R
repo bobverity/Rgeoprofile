@@ -210,7 +210,8 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #'
 #' @export
 #' @examples
-#' geoDataSource()
+#' data(WaterPumps)
+#' geoDataSource(WaterPumps[,1], WaterPumps[,2])
 
 geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     

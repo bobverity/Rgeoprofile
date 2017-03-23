@@ -19,4 +19,3 @@ Calculates hit scores for a ring-search strategy (ie searching in an expanding r
 \examples{
 ringHS()
 }
-

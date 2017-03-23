@@ -22,4 +22,3 @@ based on the number of crimes; otherwise, this is calculated based on the number
 \examples{
 geoPlotLorenz()
 }
-

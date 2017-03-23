@@ -18,4 +18,3 @@ Check that all data for use in Rgeoprofile MCMC is in the correct format.
 myData <- geoData()
 geoDataCheck(myData)
 }
-

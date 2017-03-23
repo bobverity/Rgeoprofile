@@ -16,4 +16,4 @@ Imports:
     Bolstad2,
     sp
 LinkingTo: Rcpp
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
