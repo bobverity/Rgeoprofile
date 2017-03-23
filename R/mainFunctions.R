@@ -1348,10 +1348,10 @@ ringHS <- function(params,crime_data, source_data, buffer_radii=c(1000,2000,5000
     my_crs_long_lat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
     my_crs_utm <- paste("+proj=utm +zone=", my_UTM, " ellps=WGS84", 
         sep = "")
-    crimes <- cbind(my_crime_data$longitude, my_crime_data$latitude)
+    crimes <- cbind(crime_data$longitude, crime_data$latitude)
     crimes_lonlat <- SpatialPointsDataFrame(coords = as.matrix(crimes), 
         data = as.data.frame(crimes), proj4string = CRS(my_crs_long_lat))
-    sources <- cbind(my_source_data$source_longitude, my_source_data$source_latitude)
+    sources <- cbind(source_data$source_longitude, source_data$source_latitude)
     sources_lonlat <- SpatialPointsDataFrame(coords = as.matrix(sources), 
         data = as.data.frame(sources), proj4string = CRS(my_crs_long_lat))
     lonMin <- params$output$longitude_minMax[1]
@@ -1403,8 +1403,8 @@ ringHS <- function(params,crime_data, source_data, buffer_radii=c(1000,2000,5000
     
         
     stored_contours <- list()
-    for (contour_number in 1:length(buffer_radiuses)) {
-        b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radiuses[contour_number])
+    for (contour_number in 1:length(buffer_radii)) {
+        b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radii[contour_number])
         b2 <- gUnaryUnion(b)
         clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, 
             drop_lower_td = TRUE)
