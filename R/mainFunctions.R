@@ -181,7 +181,8 @@ rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 #'
 #' @export
 #' @examples
-#' geoData()
+#' data(Cholera)
+#' geoData(Cholera[,1],Cholera[,2])
 
 geoData <- function(longitude=NULL, latitude=NULL) {
     
