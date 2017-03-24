@@ -326,7 +326,6 @@ require(RgeoProfile)
 data(cholera)
 data(cholera.Rd)
 save(crime_data,file="cholera.rda")
-save(crime_data,file="cholera.rda")
 # _______________________________________________________#
 # LOAD ANY OTHER USEFUL FUNCTIONS#
 # _______________________________________________________#
@@ -385,3 +384,130 @@ d
 library(RgeoProfile)
 d <- data(cholera)
 d
+document()
+library(devtools)
+document()
+?geoParams
+document()
+?geoParams
+document()
+?geoParams
+document()
+?geoPlotMap
+document()
+document()
+document()
+document()
+?geoPlotMap
+document()
+?geoPlotMap
+document()
+?geoPlotMap
+document()
+?geoPlotMap
+document()
+document()
+document()
+document()
+document()
+?geoPlotMap
+document()
+?geoPlotMap
+data(Cholera)#
+d <- geoData(Cholera[,1],Cholera[,2])#
+data(WaterPumps)#
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])#
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),#
+priorMean_latitude=mean(dat$latitude),guardRail=0.1)#
+m <- geoMCMC(d,p)#
+gp <- geoProfile(m$surface)#
+#
+# basic map#
+#
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),#
+crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)#
+#
+# changing the colour palette, background map, transparency and range of geoprofile to plot#
+#
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),#
+crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
+data(Cholera)#
+d <- geoData(Cholera[,1],Cholera[,2])#
+data(WaterPumps)#
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
+document()
+?geoPlotMap
+data(Cholera)#
+d <- geoData(Cholera[,1],Cholera[,2])#
+data(WaterPumps)#
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])#
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),#
+priorMean_latitude=mean(d$latitude),guardRail=0.1)#
+m <- geoMCMC(d,p)#
+gp <- geoProfile(m$surface)#
+#
+# basic map#
+#
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),#
+crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+# changing the colour palette, background map, transparency and range of geoprofile to plot#
+#
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
+crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+?RgeoProfile
+?Rgeoprofile
+R CMD Rd2pdf RGeoProfile
+CMD Rd2pdf RGeoProfile
+library(devtools)#
+#
+check(cleanup = FALSE,manual = TRUE,path = getwd())
+system("R CMD Rd2pdf RgeoProfile")
+system("R CMD Rd2pdf Rgeoprofile")
+library(devtools)
+system("R CMD Rd2pdf Rgeoprofile")
+system("R CMD Rd2pdf RgeoProfile")
+system("R CMD Rd2pdf MyRpackage")
+system("R CMD Rd2pdf Rgeoprofile")
+system("R CMD Rd2pdf RgeoProfile")
+?r2d2pdf
+system("R CMD Rd2pdf Rgeoprofile")
+system("R CMD Rd2pdf RgeoProfile")
+system(R CMD Rd2pdf "RgeoProfile")
+?system
+pack <- "Rgeoprofile"#
+#
+path <- find.package(pack)#
+#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+pack <- "Rgeoprofile"#
+#
+path <- find.package(Rgeoprofile)#
+#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+path <- find.package(RgeoProfile)
+path <- find.package("RgeoProfile")
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+# create pdf but seems to need TeX binary#
+#
+pack <- "Rgeoprofile"#
+path <- find.package("RgeoProfile")#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+pack <- "Rgeoprofile"#
+path <- find.package("RgeoProfile")#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+$ which pdftex
+sys.setenv("PKG_CXXFLAGS"="-std=c++11")
+Sys.setenv("PKG_CXXFLAGS"="-std=c++11")
+pack <- "Rgeoprofile"#
+path <- find.package("RgeoProfile")#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+bash-3.2$ which tex /usr/texbin/tex
+bash-3.2$ which pdftex
+pack <- "Rgeoprofile"#
+path <- find.package("RgeoProfile")#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
