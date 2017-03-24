@@ -258,11 +258,8 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' @examples
 #' data(Cholera)
 #' dat <- geoData(Cholera[,1],Cholera[,2])
-#' 
 #' # using weak prior on sigma
-#' 
-geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
-#' 
+#' geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
 #' # using fixed sigma
 #' geoParams(dat,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
 
@@ -934,10 +931,11 @@ geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 #'
 #' @export
 #' @examples
-#' myData <- geoData()
-#' myParams <- geoParams(myData, sigma_var=1)
-#' myMCMC <- geoMCMC(myData, myParams)
-#' myMCMC$profile <- geoProfile(myMCMC$surface)
+#' data(Cholera)
+#' dat <- geoData(Cholera[,1],Cholera[,2])
+#' p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+#' m <- geoMCMC(dat,p)
+#' geoProfile(m$surface)
 
 geoProfile <- function(surface) {
     
