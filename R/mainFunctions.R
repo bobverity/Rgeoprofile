@@ -969,7 +969,8 @@ geoProfile <- function(surface) {
 #' @export
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,
+#' priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
 #' m <- geoMCMC(d,p)
 #' geoPlotAllocation(m$allocation)
 
@@ -1189,7 +1190,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #' @examples
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-data(WaterPumps)
+#' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
 #' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
 #' m <- geoMCMC(data=d,params=p)
