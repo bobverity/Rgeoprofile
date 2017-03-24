@@ -256,8 +256,16 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #'
 #' @export
 #' @examples
-#' myData <- geoData()
-#' geoParams(myData, sigma_var=1)
+#' data(Cholera)
+#' dat <- geoData(Cholera[,1],Cholera[,2])
+#' 
+#' # using weak prior on sigma
+#' 
+geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+#' 
+#' # using fixed sigma
+#' geoParams(dat,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+
 
 geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
     
@@ -620,9 +628,12 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #'
 #' @export
 #' @examples
-#' myData <- geoData()
-#' myParams <- geoParams(myData, sigma_var=1)
-#' geoPlotSigma(myParams)
+#' data(Cholera)
+#' dat <- geoData(Cholera[,1],Cholera[,2])
+#' p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+#' m <- geoMCMC(dat,p)
+#' geoPlotSigma(p,m$sigma)
+
 
 geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   

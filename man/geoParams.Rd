@@ -55,6 +55,9 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
 This function can be used to generate parameters in the format required by other Rgeoprofile functions. Any parameter value can be specified as an input argument to this function. Alternatively, if data is input as an argument then some parameters can take default values directly from the data.
 }
 \examples{
-myData <- geoData()
-geoParams(myData, sigma_var=1)
+data(Cholera)
+dat <- geoData(Cholera[,1],Cholera[,2])
+geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+# using fixed sigma
+geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
 }
