@@ -12,7 +12,7 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
   sourceCex = 1.5, sourceCol = "blue")
 }
 \arguments{
-\item{params}{parameters list in the format defined by geoParams().}
+\item{params}{parameters list in the format defined bygeoParams().}
 
 \item{data}{data object in the format defined by geoData().}
 
@@ -24,31 +24,48 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 
 \item{mapSource}{which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").}
 
-\item{transparency}{some text.}
+\item{mapType}{the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).}
 
-\item{plotContours}{some text.}
+\item{transparency}{alpha value for colours in geoprofile.}
 
-\item{breakPercent}{some text.}
+\item{plotContours}{whether or not to plot contours.}
 
-\item{contourCols}{some text.}
+\item{breakPercent}{vector describing which contours of the geoprofile to plot.}
 
-\item{crimeCex}{some text.}
+\item{contourCols}{list of two or more colours from which to derive the contour colours.}
 
-\item{crimeCol}{some text.}
+\item{crimeCex}{relative size of symbols showing crimes.}
 
-\item{crimeBorderCol}{some text.}
+\item{crimeCol}{colour to plot crimes.}
 
-\item{crimeBorderWidth}{some text.}
+\item{crimeBorderCol}{border colour for crimes.}
 
-\item{sourceCex}{some text.}
+\item{crimeBorderWidth}{width of border for symbol used to show crimes.}
 
-\item{sourceCol}{some text.}
+\item{sourceCex}{relative size of symbols showing ssuspect sites.}
 
-\item{params}{mapType the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).}
+\item{sourceCol}{colour to plot suspect sites.}
 }
 \description{
-Uses ggmap to download a map for the region specified by params. Various elements can be overlaid onto this map, including raw observation data, potential source locations, and a final geoprofile. Plotting options such as the type of map, the size and colour of points, and the contours of the geoprofile can be controlled.
+Plots geoprofile on map, with various customisable options.
 }
 \examples{
-geoQuickPlot(surface)
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+data(WaterPumps)
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+priorMean_latitude=mean(d$latitude),guardRail=0.1)
+m <- geoMCMC(d,p)
+gp <- geoProfile(m$surface)
+
+# basic map
+
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),
+crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+
+# changing the colour palette, background map, transparency and range of geoprofile to plot
+
+geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),
+crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
 }

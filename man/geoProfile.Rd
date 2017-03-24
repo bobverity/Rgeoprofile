@@ -14,8 +14,9 @@ Converts surface to rank order geoprofile.
 }
 \examples{
 data(Cholera)
-dat <- geoData(Cholera[,1],Cholera[,2])
-p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
-m <- geoMCMC(dat,p)
+d <- geoData(Cholera[,1],Cholera[,2])
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+priorMean_latitude=mean(d$latitude),guardRail=0.1)
+m <- geoMCMC(data=d,params=p)
 geoProfile(m$surface)
 }

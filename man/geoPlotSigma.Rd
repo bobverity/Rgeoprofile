@@ -19,7 +19,8 @@ Plot prior distribution of sigma as defined by current parameter values. Can opt
 \examples{
 data(Cholera)
 dat <- geoData(Cholera[,1],Cholera[,2])
-p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude)
+,priorMean_latitude=mean(dat$latitude),guardRail=0.05)
 m <- geoMCMC(dat,p)
 geoPlotSigma(p,m$sigma)
 }

@@ -20,5 +20,14 @@ should equal the number of suspect sites. If this is present, the function calcu
 based on the number of crimes; otherwise, this is calculated based on the number of suspect sites.
 }
 \examples{
-geoPlotLorenz()
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+data(WaterPumps)
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+m <- geoMCMC(data=d,params=p)
+gp <- geoProfile(surface=m$surface)
+hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+geoPlotLorenz(hit_scores=hs)
+geoPlotLorenz(hit_scores=hs,crimeNumbers=c(10,1,2,3,1,1,1))
 }

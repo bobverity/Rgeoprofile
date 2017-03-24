@@ -15,8 +15,10 @@ geoMCMC(data, params)
 This function carries out the main MCMC under the Rgeoprofile model.
 }
 \examples{
-myData <- geoData()
-myParams <- geoParams(myData, sigma_var=1)
-myMCMC <- geoMCMC(myData, myParams)
-geoPlotSigma(myParams, myMCMC$sigma)
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),
+priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+m <- geoMCMC(datda=d,params=p)
 }

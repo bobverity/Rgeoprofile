@@ -259,12 +259,13 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #'
-#' @section Fitting sigma:
-#' define prior so that the model fits sigma from the data.
-#' geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
-#' @section Fixed sigma:
-#' use a fixed value of sigma.
-#' geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
+#' # define prior so that the model fits sigma from the data
+#' geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+#' priorMean_latitude=mean(d$latitude),guardRail=0.1)
+#'
+#' # use a fixed value of sigma
+#' geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+#'priorMean_latitude=mean(d$latitude),guardRail=0.1)
 
 
 geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
@@ -630,7 +631,8 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #' @examples
 #' data(Cholera)
 #' dat <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+#' p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude)
+#',priorMean_latitude=mean(dat$latitude),guardRail=0.05)
 #' m <- geoMCMC(dat,p)
 #' geoPlotSigma(p,m$sigma)
 
@@ -721,7 +723,8 @@ dts <- function(x,df,scale=1,log=FALSE) {
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' 
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),
+#' priorMean_latitude=mean(dat$latitude),guardRail=0.1)
 #' m <- geoMCMC(datda=d,params=p)
 
 geoMCMC <- function(data, params) {
@@ -937,7 +940,8 @@ geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 #' @examples
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
+#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+#' priorMean_latitude=mean(d$latitude),guardRail=0.1)
 #' m <- geoMCMC(data=d,params=p)
 #' geoProfile(m$surface)
 
@@ -1058,18 +1062,18 @@ getZoom <- function(x,y) {
 #------------------------------------------------
 #' Plot a map and overlay data and/or geoprofile
 #'
-#' Uses ggmap to download a map for the region specified by params. Various elements can be overlaid onto this map, including raw observation data, potential source locations, and a final geoprofile. Plotting options such as the type of map, the size and colour of points, and the contours of the geoprofile can be controlled.
+#' Plots geoprofile on map, with various customisable options.
 #'
-#' @param params parameters list in the format defined by geoParams().
+#' @param params parameters list in the format defined bygeoParams().
 #' @param data data object in the format defined by geoData().
 #' @param source potential sources object in the format defined by geoDataSource().
 #' @param surface a surface to overlay onto the map, typically a geoprofile produced from the output of geoMCMC().
 #' @param zoom some text.
 #' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
-#' @param params mapType the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).
+#' @param mapType the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).
 #' @param transparency alpha value for colours in geoprofile. 
 #' @param plotContours whether or not to plot contours.
-#' @param breakPercent vector describing which contours of the geoprofile to plot. For example, breakPercent=seq(0,20,2) will plot the top 20% of the geoprofile, with contours in 2% increments.
+#' @param breakPercent vector describing which contours of the geoprofile to plot.
 #' @param contourCols list of two or more colours from which to derive the contour colours.
 #' @param crimeCex relative size of symbols showing crimes.
 #' @param crimeCol colour to plot crimes.
@@ -1084,11 +1088,20 @@ getZoom <- function(x,y) {
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+#'priorMean_latitude=mean(d$latitude),guardRail=0.1)
 #' m <- geoMCMC(d,p)
 #' gp <- geoProfile(m$surface)
-#' geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+#' 
+#' # basic map
+#'
+#' geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),
+#'crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+#' 
+#' # changing the colour palette, background map, transparency and range of geoprofile to plot
+#' 
+#' geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),
+#'crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
 
 geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto", mapSource="google", mapType="hybrid", transparency=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue') {
     

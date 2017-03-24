@@ -56,9 +56,13 @@ This function can be used to generate parameters in the format required by other
 }
 \examples{
 data(Cholera)
-dat <- geoData(Cholera[,1],Cholera[,2])
-# using weak prior on sigma
-geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
-# using fixed sigma
-geoParams(dat,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.05)
+d <- geoData(Cholera[,1],Cholera[,2])
+
+# define prior so that the model fits sigma from the data
+geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+priorMean_latitude=mean(d$latitude),guardRail=0.1)
+
+# use a fixed value of sigma
+geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+priorMean_latitude=mean(d$latitude),guardRail=0.1)
 }
