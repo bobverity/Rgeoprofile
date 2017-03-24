@@ -59,10 +59,11 @@ data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 
 # define prior so that the model fits sigma from the data
-geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
-priorMean_latitude=mean(d$latitude),guardRail=0.1)
+geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,
+priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
 
 # use a fixed value of sigma
-geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
+geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,
+burnin=1000,priorMean_longitude=mean(d$longitude),
 priorMean_latitude=mean(d$latitude),guardRail=0.1)
 }

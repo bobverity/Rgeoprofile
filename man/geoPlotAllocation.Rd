@@ -16,3 +16,12 @@ geoPlotAllocation(allocation, colours = "default", barBorderCol = "white",
 \description{
 Produces plot of posterior allocation from output of MCMC.
 }
+\examples{
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,
+chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),
+priorMean_latitude=mean(dat$latitude),guardRail=0.1)
+m <- geoMCMC(d,p)
+geoPlotAllocation(m$allocation)
+}
