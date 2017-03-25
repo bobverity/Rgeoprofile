@@ -7,11 +7,11 @@
 geoReportHitscores(params, source_data, surface)
 }
 \arguments{
-\item{params}{some text}
+\item{params}{input parameters in the format defined by geoParams().}
 
-\item{source_data}{some text}
+\item{source_data}{slatitude and longitude of one or more source locations in the format defined by geoDatSource().}
 
-\item{surface}{some text}
+\item{surface}{surface for which to calculate hitscores; usually a ranked surface produced by geoProfile().}
 }
 \description{
 Calculate hitscores of the potential sources based on the final geoprofile surface.

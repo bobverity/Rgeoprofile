@@ -164,7 +164,7 @@ cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
 #'
 #' @export
 #' @examples
-#' produces five points centred on QMUL, with sigma = 1 km
+#' # produces five points centred on QMUL, with sigma = 1 km
 #' rnorm_sphere(n = 5, centre_lat = 51.5235505, centre_lon = -0.04217491, sigma = 1)
 
 rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
@@ -1274,12 +1274,11 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #'
 #' Calculate hitscores of the potential sources based on the final geoprofile surface.
 #'
-#' @param params some text
-#' @param source_data some text
-#' @param surface some text
+#' @param params input parameters in the format defined by geoParams().
+#' @param source_data slatitude and longitude of one or more source locations in the format defined by geoDatSource().
+#' @param surface surface for which to calculate hitscores; usually a ranked surface produced by geoProfile(). 
 #'
 #' @export
-#' @examples
 #' @examples
 #' # john snow cholera data
 #' data(Cholera)
