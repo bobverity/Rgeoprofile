@@ -605,3 +605,6 @@ m <- geoMCMC(data=d,params=p)
 library(devtools)#
 document()
 ?geoMCMC
+library(devtools)
+document()
+?geoMCMC
