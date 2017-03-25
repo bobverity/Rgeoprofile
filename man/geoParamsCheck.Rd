@@ -15,7 +15,20 @@ geoParamsCheck(params, silent = FALSE)
 Check that all parameters for use in Rgeoprofile MCMC are in the correct format.
 }
 \examples{
-myData <- geoData()
-myParams <- geoParams(myData, sigma_var=1)
-geoParamsCheck(myParams)
+# john snow cholera data
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+geoParamsCheck(p)
+
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(Cholera[,1], Cholera[,2])
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+geoParamsCheck(p)
 }

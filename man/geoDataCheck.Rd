@@ -15,6 +15,7 @@ geoDataCheck(data, silent = FALSE)
 Check that all data for use in Rgeoprofile MCMC is in the correct format.
 }
 \examples{
-myData <- geoData()
-geoDataCheck(myData)
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+geoDataCheck(d)
 }

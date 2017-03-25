@@ -27,5 +27,7 @@ Provides random draws from a 2D spatial Dirichlet process mixture model. Both si
 Output includes the lat/long locations of the points drawn from the DPM model, along with the underlying group allocation (i.e. which points belong to which sources) and the lat/long locations of the sources.
 }
 \examples{
-rDPM(10)
+# produces clusters of points from sources centred on QMUL
+rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
+alpha=1, sigma=1, tau=3)50 
 }

@@ -55,15 +55,20 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
 This function can be used to generate parameters in the format required by other Rgeoprofile functions. Any parameter value can be specified as an input argument to this function. Alternatively, if data is input as an argument then some parameters can take default values directly from the data.
 }
 \examples{
+# john snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
-
 # define prior so that the model fits sigma from the data
-geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,
-priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
+geoParams(data= d, sigma_mean = 1.0 ,sigma_squared_shape = 2, samples = 20000, chains = 10, 
+burnin = 1000, priorMean_longitude=mean(d$longitude), priorMean_latitude = 
+mean(d$latitude), guardRail = 0.1)
 
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(sim$longitude, sim $latitude)
 # use a fixed value of sigma
-geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,
-burnin=1000,priorMean_longitude=mean(d$longitude),
-priorMean_latitude=mean(d$latitude),guardRail=0.1)
+geoParams(data = d, sigma_mean = 1.0, sigma_var = 0, samples = 20000, chains=10, 
+burnin=1000,priorMean_longitude=mean(d$longitude), priorMean_latitude = mean(d$latitude), 
+guardRail = 0.1)
 }

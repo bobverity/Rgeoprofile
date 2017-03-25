@@ -22,7 +22,9 @@
 #'
 #' @export
 #' @examples
-#' rDPM(10)
+#' # produces clusters of points from sources centred on QMUL
+#' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
+#' alpha=1, sigma=1, tau=3)50 
 
 # The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
 #' @useDynLib RgeoProfile
@@ -162,7 +164,8 @@ cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
 #'
 #' @export
 #' @examples
-#' rnorm_sphere(5, 51.5074, -0.1277, 1)
+#' produces five points centred on QMUL, with sigma = 1 km
+#' rnorm_sphere(n = 5, centre_lat = 51.5235505, centre_lon = -0.04217491, sigma = 1)
 
 rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 	x <- rnorm(n,sd=sigma)
@@ -181,8 +184,14 @@ rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' geoData(Cholera[,1],Cholera[,2])
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
 
 geoData <- function(longitude=NULL, latitude=NULL) {
     
@@ -210,8 +219,15 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(WaterPumps)
 #' geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' s <- geoDataSource(sim$source_longitude, sim$source_latitude)
+#' s
 
 geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     
@@ -256,18 +272,22 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#'
 #' # define prior so that the model fits sigma from the data
-#'geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,
-#'priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
-#'
+#' geoParams(data= d, sigma_mean = 1.0 ,sigma_squared_shape = 2, samples = 20000, chains = 10, 
+#' burnin = 1000, priorMean_longitude=mean(d$longitude), priorMean_latitude = 
+#' mean(d$latitude), guardRail = 0.1)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
 #' # use a fixed value of sigma
-#' geoParams(data=d,sigma_mean=1.0,sigma_var=0,samples=20000,chains=10,
-#'burnin=1000,priorMean_longitude=mean(d$longitude),
-#'priorMean_latitude=mean(d$latitude),guardRail=0.1)
-
+#' geoParams(data = d, sigma_mean = 1.0, sigma_var = 0, samples = 20000, chains=10, 
+#' burnin=1000,priorMean_longitude=mean(d$longitude), priorMean_latitude = mean(d$latitude), 
+#' guardRail = 0.1)
 
 geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
     
@@ -435,8 +455,9 @@ get_alpha_beta <- function(sigma_mean,sigma_var) {
 #'
 #' @export
 #' @examples
-#' myData <- geoData()
-#' geoDataCheck(myData)
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' geoDataCheck(d)
 
 geoDataCheck <- function(data, silent=FALSE) {
     
@@ -476,9 +497,22 @@ geoDataCheck <- function(data, silent=FALSE) {
 #'
 #' @export
 #' @examples
-#' myData <- geoData()
-#' myParams <- geoParams(myData, sigma_var=1)
-#' geoParamsCheck(myParams)
+#' # john snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' geoParamsCheck(p)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(Cholera[,1], Cholera[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' geoParamsCheck(p)
 
 geoParamsCheck <- function(params, silent=FALSE) {
   
@@ -630,13 +664,24 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
-#' dat <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude)
-#',priorMean_latitude=mean(dat$latitude),guardRail=0.05)
-#' m <- geoMCMC(dat,p)
-#' geoPlotSigma(p,m$sigma)
-
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' geoPlotSigma(params = p,sigma = m$sigma)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' geoPlotSigma(params = p,sigma = m$sigma)
 
 geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   
@@ -721,12 +766,22 @@ dts <- function(x,df,scale=1,log=FALSE) {
 #'
 #' @export
 #' @examples
-#' data(Cholera) #
+#' # john snow cholera data
+#' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,
-#' burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),
-#' guardRail=0.1)
-#' m <- geoMCMC(data=d,params=p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
 
 geoMCMC <- function(data, params) {
 
@@ -939,13 +994,24 @@ geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,
-#'burnin=1000,priorMean_longitude=mean(d$longitude),
-#' priorMean_latitude=mean(d$latitude),guardRail=0.1)
-#' m <- geoMCMC(data=d,params=p)
-#' geoProfile(m$surface)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
 
 geoProfile <- function(surface) {
     
@@ -970,12 +1036,23 @@ geoProfile <- function(surface) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,
-#'chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),
-#'priorMean_latitude=mean(dat$latitude),guardRail=0.1)
-#' m <- geoMCMC(d,p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' geoPlotAllocation(m$allocation)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
 #' geoPlotAllocation(m$allocation)
 
 geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, xTicks_on=FALSE, xTicks_size=1, orderBy="group") {
@@ -1089,25 +1166,35 @@ getZoom <- function(x,y) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,
-#'chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
-#'priorMean_latitude=mean(d$latitude),guardRail=0.1)
-#' m <- geoMCMC(d,p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
 #' gp <- geoProfile(m$surface)
-#' 
 #' # basic map
-#'
-#' geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),
-#'crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
+#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
 #' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
 #' # changing the colour palette, background map, transparency and range of geoprofile to plot
-#' 
-#' geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),
-#'crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
+#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
 
 geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto", mapSource="google", mapType="hybrid", transparency=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue') {
     
@@ -1193,15 +1280,37 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #'
 #' @export
 #' @examples
+#' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,
-#' chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),
-#' priorMean_latitude=mean(d$latitude),guardRail=0.1)
-#' m <- geoMCMC(data=d,params=p)
-#' gp <- geoProfile(surface=m$surface)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
+#' # basic map
+#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
+#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
+#' # changing the colour palette, background map, transparency and range of geoprofile to plot
+#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
 #' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
 
 geoReportHitscores <- function(params, source_data, surface) {
@@ -1250,18 +1359,42 @@ geoReportHitscores <- function(params, source_data, surface) {
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,
-#'burnin=1000,priorMean_longitude=mean(dat$longitude),
-#'priorMean_latitude=mean(dat$latitude),guardRail=0.1)
-#' m <- geoMCMC(data=d,params=p)
-#' gp <- geoProfile(surface=m$surface)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
+#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
 #' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' # Lorenz plot
 #' geoPlotLorenz(hit_scores=hs)
-#' geoPlotLorenz(hit_scores=hs,crimeNumbers=c(10,1,2,3,1,1,1))
+
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- geoProfile(m$surface)
+#' # changing the colour palette, background map, transparency and range of geoprofile to plot
+#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
+#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)#' geoPlotLorenz(hit_scores=hs)
+#' # Lorenz plot using number of incidents per source
+#' cr <- table(sim$group)
+#' geoPlotLorenz(hit_scores=hs,crimeNumbers=cr)
 
 geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", crimes_col="blue") {
    		# define function using trapezoid rule
@@ -1357,14 +1490,28 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,
-#'burnin=1000,priorMean_longitude=mean(dat$longitude),
-#'priorMean_latitude=mean(dat$latitude),guardRail=0.1)
-#' m <- geoMCMC(data=d,params=p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
+
+
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
 #' prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
 
 prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)

@@ -19,5 +19,6 @@ rnorm_sphere(n, centre_lat, centre_lon, sigma)
 Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution. The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon} to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere - rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
 }
 \examples{
-rnorm_sphere(5, 51.5074, -0.1277, 1)
+produces five points centred on QMUL, with sigma = 1 km
+rnorm_sphere(n = 5, centre_lat = 51.5235505, centre_lon = -0.04217491, sigma = 1)
 }

@@ -20,16 +20,39 @@ should equal the number of suspect sites. If this is present, the function calcu
 based on the number of crimes; otherwise, this is calculated based on the number of suspect sites.
 }
 \examples{
+# john snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 data(WaterPumps)
 s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,
-burnin=1000,priorMean_longitude=mean(dat$longitude),
-priorMean_latitude=mean(dat$latitude),guardRail=0.1)
-m <- geoMCMC(data=d,params=p)
-gp <- geoProfile(surface=m$surface)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+gp <- geoProfile(m$surface)
+geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
+crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
 hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+# Lorenz plot
 geoPlotLorenz(hit_scores=hs)
-geoPlotLorenz(hit_scores=hs,crimeNumbers=c(10,1,2,3,1,1,1))
+
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(sim$longitude, sim $latitude)
+s <- geoDataSource(sim$source_lon, sim$source_lat)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+gp <- geoProfile(m$surface)
+# changing the colour palette, background map, transparency and range of geoprofile to plot
+geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
+sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
+hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)#' geoPlotLorenz(hit_scores=hs)
+# Lorenz plot using number of incidents per source
+cr <- table(sim$group)
+geoPlotLorenz(hit_scores=hs,crimeNumbers=cr)
 }

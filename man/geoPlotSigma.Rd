@@ -17,10 +17,22 @@ geoPlotSigma(params, sigma = NULL, plotMax = NULL)
 Plot prior distribution of sigma as defined by current parameter values. Can optionally overlay a kernel density plot of posterior draws of sigma.
 }
 \examples{
+# john snow cholera data
 data(Cholera)
-dat <- geoData(Cholera[,1],Cholera[,2])
-p <- geoParams(dat,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude)
-,priorMean_latitude=mean(dat$latitude),guardRail=0.05)
-m <- geoMCMC(dat,p)
-geoPlotSigma(p,m$sigma)
+d <- geoData(Cholera[,1],Cholera[,2])
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+geoPlotSigma(params = p,sigma = m$sigma)
+
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(sim$longitude, sim $latitude)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+geoPlotSigma(params = p,sigma = m$sigma)
 }

@@ -26,13 +26,25 @@ The function returns the position of the two chosen crimes in the original
 list, their lon/lat and the probability that they come from the same source.
 }
 \examples{
+# john snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 data(WaterPumps)
 s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,
-burnin=1000,priorMean_longitude=mean(dat$longitude),
-priorMean_latitude=mean(dat$latitude),guardRail=0.1)
-m <- geoMCMC(data=d,params=p)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
+
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(sim$longitude, sim $latitude)
+s <- geoDataSource(sim$source_lon, sim$source_lat)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
 prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
 }
