@@ -29,4 +29,12 @@ double logSum(double logA, double logB);
 // take the mean of a vector
 double mean(std::vector<double> &x);
 
+//------------------------------------------------
+// round a number to defined decimal places
+double round_decimal(double x, int places=0);
+
+//------------------------------------------------
+// round a number to defined significant figures
+double round_sigfig(double x, int sigfig=1);
+
 #endif

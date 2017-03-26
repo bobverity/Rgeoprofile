@@ -101,3 +101,27 @@ double mean(std::vector<double> &x) {
     }
     return(m/double(x.size()));
 }
+
+//------------------------------------------------
+// round a number to defined decimal places
+double round_decimal(double x, int places) {
+    double scale = pow(10,places);
+    double output = (x>0) ? floor(x*scale+0.5) : ceil(x*scale-0.5);
+    return(output/scale);
+}
+
+//------------------------------------------------
+// round a number to defined significant figures
+double round_sigfig(double x, int sigfig) {
+    double scale = 1;
+    while (x>10) {
+        x *= 0.1;
+        scale *= 10;
+    }
+    while (x<1) {
+        x *= 10;
+        scale *= 0.1;
+    }
+    double output = scale*round_decimal(x,sigfig-1);
+    return(output);
+}

@@ -37,7 +37,6 @@
 #' @import ggplot2
 #' @import ggmap
 #' @import RColorBrewer
-#' @exportPattern "^[[:alpha:]]+"
 
 rDPM <- function(n, sigma=1, tau=10, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, alpha=1) {
 	
@@ -767,6 +766,41 @@ dts <- function(x,df,scale=1,log=FALSE) {
 }
 
 #------------------------------------------------
+# Bin values in two dimensions
+# (not exported)
+
+bin2D <- function(x, y, x_breaks, y_breaks) {
+    
+    # get number of breaks in each dimension
+    nx <- length(x_breaks)
+    ny <- length(y_breaks)
+    
+    # create table of binned values
+    tab1 <- table(findInterval(x, x_breaks), findInterval(y, y_breaks))
+    
+    # convert to dataframe and force numeric
+    df1 <- as.data.frame(tab1, stringsAsFactors=FALSE)
+    names(df1) <- c("x", "y", "count")
+    df1$x <- as.numeric(df1$x)
+    df1$y <- as.numeric(df1$y)
+    
+    # subset to within breaks range
+    df2 <- subset(df1, x>0 & x<nx & y>0 & y<ny)
+    
+    # fill in matrix
+    mat1 <- matrix(0,ny-1,nx-1)
+    mat1[cbind(df2$y, df2$x)] <- df2$count
+    
+    # calculate cell midpoints
+    x_mids <- (x_breaks[-1]+x_breaks[-nx])/2
+    y_mids <- (y_breaks[-1]+y_breaks[-ny])/2
+    
+    # return output as list
+    output <- list(x_mids=x_mids, y_mids=y_mids, z=mat1)
+    return(output)
+}
+
+#------------------------------------------------
 #' MCMC under Rgeoprofile model
 #'
 #' This function carries out the main MCMC under the Rgeoprofile model.
@@ -794,130 +828,144 @@ dts <- function(x,df,scale=1,log=FALSE) {
 #' m <- geoMCMC(data = d, params = p)
 
 geoMCMC <- function(data, params) {
-
-  # check that data and parameters in correct format
-  geoDataCheck(data)
-  geoParamsCheck(params)
-  cat("\n")
-  
-  # transform data and map limits to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior)
-  data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
-  limits_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$output$latitude_minMax, params$output$longitude_minMax)
-  
-  # add these cartesian coordinates to data and params objects before feeding into C++ function
-  data$x <- data_cartesian$x
-  data$y <- data_cartesian$y
-  params$output$x_minMax <- limits_cartesian$x
-  params$output$y_minMax <- limits_cartesian$y
-  
-  # if using fixed sigma model then change alpha and beta from NULL to -1. This value will be ignored, but needs to be numeric before feeding into the C++ function.
-  if (params$model$sigma_var==0) {
-  	params$model$sigma_squared_shape <- -1
-  	params$model$sigma_squared_rate <- -1
-  }
     
-  # carry out MCMC using efficient C++ function
-  rawOutput <- C_geoMCMC(data, params)
-  
-  # extract raw draws and check that at least one posterior draw in chosen region
-  surface_raw <- matrix(unlist(rawOutput$geoSurface), params$output$latitude_cells, byrow=TRUE)
-  if (all(surface_raw==0))
-      stop('chosen lat/long window contains no posterior draws')
-  
-  # get size of each cell
-  cells_x <- params$output$longitude_cells
-  cells_y <- params$output$latitude_cells
-  cellSize_x <- diff(limits_cartesian$x)/cells_x
-  cellSize_y <- diff(limits_cartesian$y)/cells_y
-  
-  # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
-  railSize_x <- cells_x
-  railSize_y <- cells_y
-  railMat_x <- matrix(0,cells_y,railSize_x)
-  railMat_y <- matrix(0,railSize_y,cells_x+2*railSize_x)
-  
-  surface_normalised <- surface_raw/sum(surface_raw)
-  surface_normalised <- cbind(railMat_x, surface_normalised, railMat_x)
-  surface_normalised <- rbind(railMat_y, surface_normalised, railMat_y)
-  
-  # calculate Fourier transform of posterior surface
-  f1 = fftw2d(surface_normalised)
-  
-  # produce surface that kernel will be calculated over
-  kernel_x <- cellSize_x * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
-  kernel_y <- cellSize_y * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
-  kernel_x_mat <- outer(rep(1,length(kernel_y)), kernel_x)
-  kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
-  kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
-  
-  # set lambda (bandwidth) increment size based on cell size
-  lambda_step <- min(cellSize_x, cellSize_y)/5
-  
-  # loop through range of values of lambda
-  cat('Smoothing posterior surface\n')
-  flush.console()
-  logLike <- -Inf
-  for (i in 1:100) {
-      
-    # calculate Fourier transform of kernel
-    lambda <- lambda_step*i
-    kernel <- dts(kernel_s_mat,df=3,scale=lambda)
-    f2 = fftw2d(kernel)
+    # check that data and parameters in correct format
+    geoDataCheck(data)
+    geoParamsCheck(params)
+    cat("\n")
     
-    # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
-    f3 = f1*f2
-    f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+    # extract ranges etc. from params object
+    min_lon <- params$output$longitude_minMax[1]
+    max_lon <- params$output$longitude_minMax[2]
+    min_lat <- params$output$latitude_minMax[1]
+    max_lat <- params$output$latitude_minMax[2]
+    cells_lon <- params$output$longitude_cells
+    cells_lat <- params$output$latitude_cells
+    cellSize_lon <- (max_lon-min_lon)/cells_lon
+    cellSize_lat <- (max_lat-min_lat)/cells_lat
+    breaks_lon <- seq(min_lon, max_lon, l=cells_lon+1)
+    breaks_lat <- seq(min_lat, max_lat, l=cells_lat+1)
+    mids_lon <- breaks_lon[-1] - cellSize_lon/2
+    mids_lat <- breaks_lat[-1] - cellSize_lat/2
+    mids_lon_mat <- outer(rep(1,length(mids_lat)), mids_lon)
+    mids_lat_mat <- outer(mids_lat, rep(1,length(mids_lon)))
     
-    # subtract from f4 the probability density of each point measured from itself. In other words, move towards a leave-one-out kernel density method
-    f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
-    f5[f5<0] <- 0
-    f5 <- f5/sum(f4)
+    # transform data to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior). Add transformed coordinates to data object before feeding into C++ function
+    data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
+    data$x <- data_cartesian$x
+    data$y <- data_cartesian$y
     
-    # calculate leave-one-out log-likelihood at each point on surface
-    f6 <- surface_normalised*log(f5)
+    # if using fixed sigma model then change alpha and beta from NULL to -1. This value will be ignored, but needs to be numeric before feeding into the C++ function.
+    if (params$model$sigma_var==0) {
+        params$model$sigma_squared_shape <- -1
+        params$model$sigma_squared_rate <- -1
+    }
     
-    # break if total log-likelihood is at a maximum
-    if (sum(f6,na.rm=T)<logLike)
-      break()
-    logLike <- sum(f6,na.rm=T)
-
-  }
-  cat(paste('maximum likelihood lambda = ',round(lambda,3),sep=''))
-  
-  # remove guard rail
-  f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
-  f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
-  
-  # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
-  x_mids <- seq(limits_cartesian$x[1], limits_cartesian$x[2], l=ncol(f4)+1)[-1] - cellSize_x/2
-  y_mids <- seq(limits_cartesian$y[1], limits_cartesian$y[2], l=nrow(f4)+1)[-1] - cellSize_y/2
-  x_mids_mat <- outer(rep(1,cells_y),x_mids)
-  y_mids_mat <- outer(y_mids,rep(1,cells_x))
-  
-  priorMat <- dnorm(x_mids_mat,sd=params$model$tau)*dnorm(y_mids_mat,sd=params$model$tau)*(cellSize_x*cellSize_y)
-  
-  # finalise output format
-  output <- list()
-  
-  # sigma
-  output$sigma <- rawOutput$sigma
-  
-  # alpha
-  alpha <- rawOutput$alpha
-  output$alpha <- alpha
-  
-  # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
-  output$surface_raw <- surface_raw
-  n <- length(data$longitude)
-  output$surface <-  f4 + priorMat*mean(alpha/(alpha+n))
-  
-  # posterior allocation
-  allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
-  allocation <- data.frame(allocation/params$MCMC$samples)
-  names(allocation) <- paste("group",1:ncol(allocation),sep="")
-  output$allocation <- allocation
-  
-  return(output)
+    # carry out MCMC using efficient C++ function
+    rawOutput <- C_geoMCMC(data, params)
+    
+    # extract mu draws and convert from cartesian to lat/lon coordinates
+    mu_draws <- cartesian_to_latlon(params$model$priorMean_latitude, params$model$priorMean_longitude, rawOutput$mu_x, rawOutput$mu_y)
+    
+    # bin mu draws in two dimensions and check that at least one posterior draw in chosen region
+    surface_raw <- bin2D(mu_draws$longitude, mu_draws$latitude, breaks_lon, breaks_lat)$z
+    if (all(surface_raw==0))
+    stop('chosen lat/long window contains no posterior draws')
+    
+    # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
+    railSize_x <- cells_lon
+    railSize_y <- cells_lat
+    railMat_x <- matrix(0,cells_lat,railSize_x)
+    railMat_y <- matrix(0,railSize_y,cells_lon+2*railSize_x)
+    
+    surface_normalised <- surface_raw/sum(surface_raw)
+    surface_normalised <- cbind(railMat_x, surface_normalised, railMat_x)
+    surface_normalised <- rbind(railMat_y, surface_normalised, railMat_y)
+    
+    # calculate Fourier transform of posterior surface
+    f1 = fftw2d(surface_normalised)
+    
+    # calculate x and y size of one cell in cartesian space. Because of transformation this size will technically be different for each cell, but use centre of prior to get a middling values
+    cellsize_prior <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$model$priorMean_latitude+cellSize_lat, params$model$priorMean_longitude+cellSize_lon)
+    cellsize_x <- cellsize_prior$x
+    cellsize_y <- cellsize_prior$y
+    
+    # produce surface over which kernel will be calculated. This surface wraps around in both x and y (i.e. the kernel is actually defined over a torus).
+    kernel_x <- cellsize_x * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
+    kernel_y <- cellsize_y * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
+    kernel_x_mat <- outer(rep(1,length(kernel_y)), kernel_x)
+    kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
+    kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
+    
+    # set lambda (bandwidth) increment in units of cells
+    lambda_step <- min(cellsize_x, cellsize_y)/5
+    
+    # loop through range of values of lambda
+    cat('Smoothing posterior surface\n')
+    flush.console()
+    logLike <- -Inf
+    for (i in 1:100) {
+        
+        # calculate Fourier transform of kernel
+        lambda <- lambda_step*i
+        kernel <- dts(kernel_s_mat,df=3,scale=lambda)
+        f2 = fftw2d(kernel)
+        
+        # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
+        f3 = f1*f2
+        f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
+        
+        # subtract from f4 the probability density of each point measured from itself. In other words, move towards a leave-one-out kernel density method
+        f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
+        f5[f5<0] <- 0
+        f5 <- f5/sum(f4)
+        
+        # calculate leave-one-out log-likelihood at each point on surface
+        f6 <- surface_normalised*log(f5)
+        
+        # break if total log-likelihood is at a local maximum
+        if (sum(f6,na.rm=T)<logLike)
+        break()
+        logLike <- sum(f6,na.rm=T)
+        
+    }
+    cat(paste('maximum likelihood lambda = ',round(lambda,3),sep=''))
+    
+    # remove guard rail
+    f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
+    f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
+    
+    # calculate coordinates of lat/lon matrix in original cartesian coordinates
+    cart <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, mids_lat_mat, mids_lon_mat)
+    
+    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. However, as the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
+    priorMat <- dnorm(cart$x,sd=params$model$tau)*dnorm(cart$y,sd=params$model$tau)*(cellSize_lon*cellSize_lat)
+    
+    # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
+    n <- length(data$longitude)
+    alpha <- rawOutput$alpha
+    posteriorMat <-  f4 + priorMat*mean(alpha/(alpha+n))
+    
+    # produce geoprofile
+    geoprofile <- geoProfile(posteriorMat)
+    
+    # calculate posterior allocation
+    allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
+    allocation <- data.frame(allocation/params$MCMC$samples)
+    names(allocation) <- paste("group",1:ncol(allocation),sep="")
+    
+    # finalise output format
+    output <- list()
+    output$priorSurface <-  priorMat
+    output$posteriorSurface <-  posteriorMat
+    output$geoProfile <-  geoprofile
+    output$midpoints_longitude <- mids_lon
+    output$midpoints_latitude <- mids_lat
+    output$sigma <- rawOutput$sigma
+    output$alpha <- alpha
+    output$allocation <- allocation
+    
+    return(output)
 }
 
 #------------------------------------------------

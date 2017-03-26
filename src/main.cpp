@@ -8,6 +8,7 @@
 */
 
 #include <Rcpp.h>
+#include <chrono>
 #include "main.h"
 #include "misc.h"
 #include "probability.h"
@@ -19,6 +20,9 @@ using namespace std;
 // run main MCMC.
 // [[Rcpp::export]]
 Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
+    
+    // start timer
+    chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
     
     //read in input
     vector<double> data_x = Rcpp::as<vector<double> >(data["x"]);
@@ -34,8 +38,6 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     double sigma_alpha = Rcpp::as<double>(params_model["sigma_squared_shape"]);
     double sigma_beta = Rcpp::as<double>(params_model["sigma_squared_rate"]);
     bool sigma_fixed = (sigma_var==0);
-    //double priorMean_x = Rcpp::as<double>(params_model["priorMean_longitude"]);
-    //double priorMean_y = Rcpp::as<double>(params_model["priorMean_latitude"]);
     double tau = Rcpp::as<double>(params_model["tau"]);
     double tau2 = tau*tau;
     double alpha_shape = Rcpp::as<double>(params_model["alpha_shape"]);
@@ -47,6 +49,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     int burnin_printConsole = Rcpp::as<int>(params_MCMC["burnin_printConsole"]);
     int samples_printConsole = Rcpp::as<int>(params_MCMC["samples_printConsole"]);
     
+    /*
     vector<double> x_minMax = Rcpp::as<vector<double> >(params_output["x_minMax"]);
     double x_min = x_minMax[0];
     double x_max = x_minMax[1];
@@ -57,7 +60,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     int y_cells = Rcpp::as<int>(params_output["latitude_cells"]);
     double x_cellSize = (x_max-x_min)/double(x_cells);
     double y_cellSize = (y_max-y_min)/double(y_cells);
-
+    */
     
     //## MCMC: burnin #################################################
     
@@ -275,8 +278,10 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     // create objects for storing results
     vector<double> sigma_store(samples);
     vector<double> alpha_store(samples);
-    vector< vector<double> > geoSurface(y_cells, vector<double>(x_cells));
+    //vector< vector<double> > geoSurface(y_cells, vector<double>(x_cells));
     
+    vector<double> mu_postDraw_x_store;
+    vector<double> mu_postDraw_y_store;
     
     // MCMC: sampling
     print("Initiating sampling phase");
@@ -338,9 +343,14 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
                 mu_postDraw_x[j] = rnorm1(mu_postMean_x[j],sqrt(mu_postVar[j]));
                 mu_postDraw_y[j] = rnorm1(mu_postMean_y[j],sqrt(mu_postVar[j]));
                 
+                mu_postDraw_x_store.push_back(mu_postDraw_x[j]);
+                mu_postDraw_y_store.push_back(mu_postDraw_y[j]);
+                
+                /*
                 if (mu_postDraw_x[j]>=x_min && mu_postDraw_x[j]<=x_max && mu_postDraw_y[j]>=y_min && mu_postDraw_y[j]<=y_max) {
                     geoSurface[floor((mu_postDraw_y[j]-y_min)/double(y_cellSize))][floor((mu_postDraw_x[j]-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha);
                 }
+                */
             }
         }
         
@@ -350,12 +360,17 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
      
     } // loop over sampling iterations
     
+    // end timer
+    chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+    chrono::duration<double> time_span = chrono::duration_cast< chrono::duration<double> >(t2-t1);
+    double time_span_round = (time_span.count()<1) ? round_sigfig(time_span.count(), 3) : round_decimal(time_span.count(), 1);
+    
     // final message
-    Rcpp::Rcout << "\nMCMC complete\n";
+    Rcpp::Rcout << "\nMCMC completed in " << time_span_round << " seconds\n";
     R_FlushConsole(); R_ProcessEvents();
     
     // return values
-    return Rcpp::List::create(Rcpp::Named("alpha")=alpha_store, Rcpp::Named("sigma")=sigma_store, Rcpp::Named("allocation")=groupMat, Rcpp::Named("geoSurface")=geoSurface);
+    return Rcpp::List::create(Rcpp::Named("alpha")=alpha_store, Rcpp::Named("sigma")=sigma_store, Rcpp::Named("allocation")=groupMat, Rcpp::Named("mu_x")=mu_postDraw_x_store, Rcpp::Named("mu_y")=mu_postDraw_y_store);
 }
 
 //------------------------------------------------
