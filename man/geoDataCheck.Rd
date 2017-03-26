@@ -9,13 +9,20 @@ geoDataCheck(data, silent = FALSE)
 \arguments{
 \item{data}{a data list object, as defined by geoData().}
 
-\item{silent}{Wwether to report passing check to console.}
+\item{silent}{whether to report passing check to console.}
 }
 \description{
 Check that all data for use in Rgeoprofile MCMC is in the correct format.
 }
 \examples{
+# john snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
+geoDataCheck(d)
+
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(sim$longitude, sim $latitude)
 geoDataCheck(d)
 }

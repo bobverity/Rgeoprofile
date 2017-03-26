@@ -1,81 +1,3 @@
-require("cholera_data")
-data(cholera_data)
-data("cholera_data")
-data("cholera_data.txt")
-data(cholera_data)
-# _______________________________________________________#
-# LOAD ANY OTHER USEFUL FUNCTIONS#
-# _______________________________________________________#
-# allows rotation reflection etc of matrix#
-# note that "reflect_diagonal" only works with square matrices#
-matrix_manipulation <- function(my_matrix,my_operation)#
-	{#
-		if(my_operation=="reflect_y") {return(my_matrix[,ncol(my_matrix):1])}#
-		if(my_operation=="reflect_x") {return(my_matrix[nrow(my_matrix):1,])}#
-		if(my_operation=="rotate_180") {return(my_matrix[nrow(my_matrix):1,ncol(my_matrix):1])}#
-		if(my_operation=="reflect_diag") {return(t(my_matrix))}#
-		if(my_operation=="rotate_90") {return(t(my_matrix)[,nrow(my_matrix):1])}#
-		if(my_operation=="rotate_-90") {return(t(my_matrix)[ncol(my_matrix):1,])}#
-	}#
-#
-# some pre-selected colour options for contours#
-my_rainbow <- c("red","orange","yellow","white")#
-my_reverse_rainbow <- c("white","yellow","orange","red")#
-my_rigel <- c("purple","darkblue","blue","lightblue","darkgreen","green","yellow","red")#
-my_blues <- c("blue","white")#
-my_grays <- c("black","white")#
-my_yellows <- c("yellow","white")#
-my_reds <- c("red","white")#
-# _______________________________________________________#
-# IMPORT DATA#
-# _______________________________________________________#
-# import crimes and sources#
-crime_input <- read.table("~/Dropbox/9 Shared/Work Shared/Cases/Cairo/Cairo MEE/MalariaCases139.txt")#
-sources_input <- read.table("~/Dropbox/9 Shared/Work Shared/Cases/Cairo/Cairo MEE/CairoOriginalVectorList.txt")#
-#
-# _______________________________________________________#
-# LOAD DATA AND SPECIFY MODEL PARAMETERS#
-# _______________________________________________________#
-# load data#
-crime_data <- geoData(crime_input[,1], crime_input[,2])#
-source_data <- geoDataSource(sources_input[,1], sources_input[,2])
-crime_data
-save(crime_data,"cholera.Rd")
-save(crime_data,file="cholera.Rd")
-save(source_data,file="water_pumps.Rd")
-require(cholera)
-data(cholera)
-data(cholera.Rd)
-data("cholera.Rd")
-# _______________________________________________________#
-# NEW MODEL#
-# _______________________________________________________#
-# 22 MARCH 2017#
-# With new version of geoPlotLorenz()#
-#
-# _______________________________________________________#
-# CLEAR WORKSPACE AND LOAD PACKAGE FROM GITHUB OR LOCAL#
-# REPOSITORY#
-# _______________________________________________________#
-rm(list=ls())#
-# if installing for the first time from github, install these#
-# install.packages("devtools")#
-# library(devtools)#
-#
-# install from github or from local copy of package#
-# install stable copy of version 2.0.0 from github#
-# install_github("bobverity/Rgeoprofile",ref="version2.0.0")#
-#
-# install from local github repository#
-# install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)#
-#
-# install from downloaded copy on desktop (NB check name and path)#
-# install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")#
-#
-# load packages#
-library(RgeoProfile)
-require(cholera)
-data(cholera)
 require(RgeoProfile)
 data(cholera)
 data(cholera.Rd)
@@ -378,8 +300,6 @@ priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardR
 geoParamsCheck(p)
 library(devtools)
 document()
-document()
-document()
 ?geoData
 document()
 ?geoDataSource
@@ -413,13 +333,8 @@ d <- geoData(Cholera[,1],Cholera[,2])#
 geoParams(data= d, sigma_mean = 1.0 ,sigma_squared_shape = 2, samples = 20000, chains = 10,
 document()
 ?geoParams
-?geoParams
-?geoParams
-document()
 document()
 ?geoParams
-document()
-document()
 document()
 ?geoParams
 # john snow cholera data#
@@ -469,7 +384,6 @@ geoParamsCheck(p)
 data(Cholera)d <- geoData(Cholera[,1], Cholera[,2])data(WaterPumps)s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), priorMean_latitude = mean(d$latitude), guardRail = 0.1)m <- geoMCMC(d, p)
 document()
 ?geoPlotSigma
-document()
 document()
 ?geoPlotSigma
 # simulated data#
@@ -586,7 +500,6 @@ s <- geoDataSource(sim$source_lon, sim$source_lat)
 s
 sim
 table(sim$group)
-table(sim$group)
 table(sim$group)[1]
 length(table(sim$group))
 document()
@@ -647,3 +560,33 @@ chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), #
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)#
 m <- geoMCMC(data = d, params = p)#
 prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
+library(devtools)
+document()
+?geoPlotSigma
+rm(list=ls())
+ls()
+load(system.file('extdata', 'rgp.Rdata', package = 'RgeoProfile'))#
+geoPlotSigma(params = p,sigma = m$sigma)
+library(RgeoProfile)
+load(system.file('extdata', 'rgp.Rdata', package = 'RgeoProfile'))#
+geoPlotSigma(params = p,sigma = m$sigma)
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)
+sim
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=5)
+sim
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=20)
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=10, sigma=1, tau=3)
+sim
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=5, sigma=1, tau=3)
+sim
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=5, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000,chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude),priorMean_latitude = mean(d$latitude), guardRail = 0.1)m <- geoMCMC(data = d, params = p)gp <- geoProfile(m$surface)#
+geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white",crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
+?geoData
+eoMCMC(data = d, params = p)
+geoMCMC(data = d, params = p)
+library(devtools)
+document()
+library(devtools)
+document()

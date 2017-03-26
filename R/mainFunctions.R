@@ -5,6 +5,7 @@
 # - add Gini coefficient calculation to plotLorenz() function. Use simple trapezoidal rule rather than a package. For example, if you have vectors x and y of same length then the area under curve is given by sum(0.5*(y[-1]+y[-length(y)])*(x[-1]-x[-length(x)]))
 # - in functions geoReportHitscores() and geoPlotLorenz(), add comments and check program flow. Give input arguments defaults where possible (e.g. NULL), and do some formatting checks on inputs in case of bad input (e.g. using stopifnot())
 # - separate functions that print results and those that return results, or just get rid of printing from existing functions. Make sure returned values are e.g. data frames with correctly labelled columns (particularly hitscores function)
+# BOB - Any reason geoSmooth() needs to be exported?
 
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
@@ -24,7 +25,10 @@
 #' @examples
 #' # produces clusters of points from sources centred on QMUL
 #' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
-#' alpha=1, sigma=1, tau=3)50 
+#' alpha=1, sigma=1, tau=3) 
+#' # same, but increasing alpha to generate more clusters
+#' #' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
+#' alpha=5, sigma=1, tau=3) 
 
 # The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
 #' @useDynLib RgeoProfile
@@ -191,7 +195,7 @@ rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
+#' geoData(sim$longitude, sim $latitude)
 
 geoData <- function(longitude=NULL, latitude=NULL) {
     
@@ -226,8 +230,7 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
-#' s <- geoDataSource(sim$source_longitude, sim$source_latitude)
-#' s
+#' geoDataSource(sim$source_longitude, sim$source_latitude)
 
 geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     
@@ -451,12 +454,19 @@ get_alpha_beta <- function(sigma_mean,sigma_var) {
 #' Check that all data for use in Rgeoprofile MCMC is in the correct format.
 #'
 #' @param data a data list object, as defined by geoData().
-#' @param silent Wwether to report passing check to console.
+#' @param silent whether to report passing check to console.
 #'
 #' @export
 #' @examples
+#' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
+#' geoDataCheck(d)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
 #' geoDataCheck(d)
 
 geoDataCheck <- function(data, silent=FALSE) {
@@ -1290,7 +1300,6 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
 #' gp <- geoProfile(m$surface)
-#' # basic map
 #' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 #' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
 #' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
@@ -1306,7 +1315,6 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
 #' gp <- geoProfile(m$surface)
-#' # changing the colour palette, background map, transparency and range of geoprofile to plot
 #' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 #' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
 #' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
@@ -1374,7 +1382,6 @@ geoReportHitscores <- function(params, source_data, surface) {
 #' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
 #' # Lorenz plot
 #' geoPlotLorenz(hit_scores=hs)
-
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
@@ -1511,7 +1518,7 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
+#' prob_coallocation(crime1=1,crime2=25,coallocation_matrix=m$allocation)
 
 prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)
 	{

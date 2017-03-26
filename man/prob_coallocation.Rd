@@ -46,5 +46,5 @@ p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20
 chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 m <- geoMCMC(data = d, params = p)
-prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
+prob_coallocation(crime1=1,crime2=25,coallocation_matrix=m$allocation)
 }
