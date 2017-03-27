@@ -59,7 +59,7 @@ p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20
 chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 m <- geoMCMC(data = d, params = p)
-gp <- geoProfile(m$surface)
+gp <- m$geoProfile
 # basic map
 geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
@@ -74,7 +74,7 @@ p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20
 chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 m <- geoMCMC(data = d, params = p)
-gp <- geoProfile(m$surface)
+gp <- m$geoProfile
 # changing the colour palette, background map, transparency and range of geoprofile to plot
 geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,

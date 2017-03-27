@@ -20,7 +20,7 @@ p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20
 chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 m <- geoMCMC(data = d, params = p)
-gp <- geoProfile(m$surface)
+gp <- geoProfile(m$posteriorSurface)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
@@ -30,5 +30,5 @@ p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20
 chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 m <- geoMCMC(data = d, params = p)
-gp <- geoProfile(m$surface)
+gp <- geoProfile(m$posteriorSurface)
 }

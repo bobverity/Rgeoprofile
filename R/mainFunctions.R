@@ -1059,7 +1059,7 @@ geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- geoProfile(m$posteriorSurface)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
@@ -1069,7 +1069,7 @@ geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- geoProfile(m$posteriorSurface)
 
 geoProfile <- function(surface) {
     
@@ -1233,7 +1233,7 @@ getZoom <- function(x,y) {
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- m$geoProfile
 #' # basic map
 #' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 #' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
@@ -1248,7 +1248,7 @@ getZoom <- function(x,y) {
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- m$geoProfile
 #' # changing the colour palette, background map, transparency and range of geoprofile to plot
 #' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 #' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
@@ -1347,7 +1347,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- m$geoProfile
 #' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 #' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
 #' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
@@ -1362,7 +1362,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- m$geoProfile
 #' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 #' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
 #' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
@@ -1423,7 +1423,7 @@ geoReportHitscores <- function(params, source_data, surface) {
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- m$geoProfile
 #' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 #' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
 #' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
@@ -1440,7 +1440,7 @@ geoReportHitscores <- function(params, source_data, surface) {
 #' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- geoProfile(m$surface)
+#' gp <- m$geoProfile
 #' # changing the colour palette, background map, transparency and range of geoprofile to plot
 #' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 #' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
@@ -1714,3 +1714,91 @@ ringHS <- function(params,crime_data, source_data, buffer_radii=c(1000,2000,5000
     ring_output <- list(ring_table = ring_table, ring_areas = ring_areas, ring_hs = ring_hs, my_UTM = my_UTM, map_area_m_sq = map_area_m_sq)
     return(ring_output)
 }
+
+#------------------------------------------------
+#' Perspective plot of geoprofile or raw probabilities
+#'
+#' Plots persp plot of geoprofile or posterior surface (coloured according to height), reducing matrix dimensions if necessary to avoid grid lines being too close together. NB Only works with square matrix
+#'
+#' @param surface surface to plot; either the geoprofile or posteriorSurface output by geoMCMC(). 
+#' @param aggregate_size the number of cells to aggregate to smooth the surface.
+#' @param surface_type type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.
+#' @param perspCol colour palette. Defaults to red/orange/yellow/white.
+#' @param perspCol colour palette. Defaults to red/orange/yellow/white.
+#'
+#' @export
+#' @examples
+#' # john snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' data(WaterPumps)
+#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' # raw probabilities
+#' perspGP(m$posteriorSurface, surface_type = "prob")
+#' # geoprofile
+#' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' # raw probabilities
+#' perspGP(m$posteriorSurface, surface_type = "prob")
+#' # geoprofile
+#' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
+
+perspGP <- function(surface,aggregate_size=3,perspCol=c("red", "orange", "yellow", "white"),surface_type="gp")
+		{
+			matrix_manipulation <- function(my_matrix,my_operation)
+				{
+					if(my_operation=="reflect_y") {return(my_matrix[,ncol(my_matrix):1])}
+					if(my_operation=="reflect_x") {return(my_matrix[nrow(my_matrix):1,])}
+					if(my_operation=="rotate_180") {return(my_matrix[nrow(my_matrix):1,ncol(my_matrix):1])}
+					if(my_operation=="reflect_diag") {return(t(my_matrix))}
+					if(my_operation=="rotate_90") {return(t(my_matrix)[,nrow(my_matrix):1])}
+					if(my_operation=="rotate_-90") {return(t(my_matrix)[ncol(my_matrix):1,])}
+				}
+
+			if(surface_type=="gp") scale <- -1
+			if(surface_type=="prob") scale <- 1
+			
+			
+			
+			to_plot <-  matrix_manipulation(scale*surface,"reflect_diag")
+			
+			# reduce matrix or not
+			matrix_size <- unique(dim(to_plot))[1]
+			breaks <- seq(1,(matrix_size-(aggregate_size-1)), aggregate_size)
+			output <- matrix(rep(NA,length(breaks)^2),ncol=length(breaks))
+			for(i in 1: length(breaks))
+				{
+					for(j in 1: length(breaks))
+						{
+							output[i,j] <- mean(as.vector(to_plot[breaks[i]:(breaks[i]+(aggregate_size-1)),breaks[j]:(breaks[j]+(aggregate_size-1))]))
+						}
+				}
+			# select colours
+			gp.colors <- colorRampPalette(perspCol)
+			# Generate the desired number of colors from this palette
+			nbcol <- 100
+			color <- gp.colors(nbcol)
+			ncz <- dim(output)[2]
+			nrz <- dim(output)[1]
+			# Compute the z-value at the facet centres
+			zfacet <- output[-1, -1] + output[-1, -ncz] + output[-nrz, -1] + output[-nrz, -ncz]
+			facetcol <- cut(zfacet, nbcol)
+		
+			persp(output,col = color[facetcol],border="black",phi=70,theta=-10,lwd=0.2,box=FALSE)
+
+		
+	}
+	
