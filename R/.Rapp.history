@@ -1,50 +1,3 @@
-require(RgeoProfile)
-data(cholera)
-data(cholera.Rd)
-save(crime_data,file="cholera.rda")
-# _______________________________________________________#
-# LOAD ANY OTHER USEFUL FUNCTIONS#
-# _______________________________________________________#
-# allows rotation reflection etc of matrix#
-# note that "reflect_diagonal" only works with square matrices#
-matrix_manipulation <- function(my_matrix,my_operation)#
-	{#
-		if(my_operation=="reflect_y") {return(my_matrix[,ncol(my_matrix):1])}#
-		if(my_operation=="reflect_x") {return(my_matrix[nrow(my_matrix):1,])}#
-		if(my_operation=="rotate_180") {return(my_matrix[nrow(my_matrix):1,ncol(my_matrix):1])}#
-		if(my_operation=="reflect_diag") {return(t(my_matrix))}#
-		if(my_operation=="rotate_90") {return(t(my_matrix)[,nrow(my_matrix):1])}#
-		if(my_operation=="rotate_-90") {return(t(my_matrix)[ncol(my_matrix):1,])}#
-	}#
-#
-# some pre-selected colour options for contours#
-my_rainbow <- c("red","orange","yellow","white")#
-my_reverse_rainbow <- c("white","yellow","orange","red")#
-my_rigel <- c("purple","darkblue","blue","lightblue","darkgreen","green","yellow","red")#
-my_blues <- c("blue","white")#
-my_grays <- c("black","white")#
-my_yellows <- c("yellow","white")#
-my_reds <- c("red","white")#
-# _______________________________________________________#
-# IMPORT DATA#
-# _______________________________________________________#
-# import crimes and sources#
-crime_input <- read.table("~/Dropbox/9 Shared/Work Shared/Cases/Cairo/Cairo MEE/MalariaCases139.txt")#
-sources_input <- read.table("~/Dropbox/9 Shared/Work Shared/Cases/Cairo/Cairo MEE/CairoOriginalVectorList.txt")#
-#
-# _______________________________________________________#
-# LOAD DATA AND SPECIFY MODEL PARAMETERS#
-# _______________________________________________________#
-# load data#
-crime_data <- geoData(crime_input[,1], crime_input[,2])#
-source_data <- geoDataSource(sources_input[,1], sources_input[,2])
-save(crime_data,file="cholera.rda")
-save(source_data,file="water_pumps.rda")
-data(cholera)
-cholera
-data(cholera)
-cholera
-cholera <- data(cholera)
 cholera
 require(Rgeoprofile)
 require(RgeoProfile)
@@ -589,4 +542,64 @@ geoMCMC(data = d, params = p)
 library(devtools)
 document()
 library(devtools)
+document()
+library(devtools)
+document()
+?perspGP
+library(RgeoProfile)
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=1, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, #
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), #
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)#
+m <- geoMCMC(data = d, params = p)#
+# raw probabilities#
+perspGP(m$posteriorSurface,type="prob")#
+# geoprofile#
+perspGP(surface = m$geoProfile, aggregate_size = 3, type="gp")
+document()
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=1, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, #
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), #
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)#
+m <- geoMCMC(data = d, params = p)#
+# raw probabilities#
+perspGP(m$posteriorSurface,type="prob")#
+# geoprofile#
+perspGP(surface = m$geoProfile, aggregate_size = 3, type="gp")
+?perspGP
+# john snow cholera data#
+data(Cholera)#
+d <- geoData(Cholera[,1],Cholera[,2])#
+data(WaterPumps)#
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, #
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), #
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)#
+m <- geoMCMC(data = d, params = p)#
+# raw probabilities#
+perspGP(m$posteriorSurface, surface_type = "prob")#
+# geoprofile#
+perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=1, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, #
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), #
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)#
+m <- geoMCMC(data = d, params = p)#
+# raw probabilities#
+perspGP(m$posteriorSurface, surface_type = "prob")#
+# geoprofile#
+perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
+perspGP(surface = m$geoProfile, aggregate_size = 10, surface_type = "gp")
 document()

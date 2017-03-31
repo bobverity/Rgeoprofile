@@ -5,7 +5,7 @@
 # - add Gini coefficient calculation to plotLorenz() function. Use simple trapezoidal rule rather than a package. For example, if you have vectors x and y of same length then the area under curve is given by sum(0.5*(y[-1]+y[-length(y)])*(x[-1]-x[-length(x)]))
 # - in functions geoReportHitscores() and geoPlotLorenz(), add comments and check program flow. Give input arguments defaults where possible (e.g. NULL), and do some formatting checks on inputs in case of bad input (e.g. using stopifnot())
 # - separate functions that print results and those that return results, or just get rid of printing from existing functions. Make sure returned values are e.g. data frames with correctly labelled columns (particularly hitscores function)
-# BOB - Any reason geoSmooth() needs to be exported?
+# BOB - Need to have a look at geoSmooth() since surface_raw is no longer an output from geoMCMC()
 
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
@@ -981,10 +981,24 @@ geoMCMC <- function(data, params) {
 #'
 #' @export
 #' @examples
-#' myData <- geoData()
-#' myParams <- geoParams(myData, sigma_var=1)
-#' myMCMC <- geoMCMC(myData, myParams)
-#' mySurface <- geoSmooth(myData, myParams, myMCMC, lambda=0.5, df=2)
+#' # john snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' geoSmooth(data = d, params = p, MCMCoutput  = m$output, lambda=0.5, df=2)
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' geoSmooth(data = d, params = p, MCMCoutput  = m$output, lambda=0.5, df=2)
 
 geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 
@@ -1758,7 +1772,8 @@ ringHS <- function(params,data, source, buffer_radii=c(1000,2000,5000))
 #' @param aggregate_size the number of cells to aggregate to smooth the surface.
 #' @param surface_type type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.
 #' @param perspCol colour palette. Defaults to red/orange/yellow/white.
-#' @param perspCol colour palette. Defaults to red/orange/yellow/white.
+#' @param phiGP value of phi to pass to persp().
+#' @param thetaGP value of theta to pass to persp().
 #'
 #' @export
 #' @examples
@@ -1790,7 +1805,7 @@ ringHS <- function(params,data, source, buffer_radii=c(1000,2000,5000))
 #' # geoprofile
 #' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
 
-perspGP <- function(surface,aggregate_size=3,perspCol=c("red", "orange", "yellow", "white"),surface_type="gp")
+perspGP <- function(surface, aggregate_size = 3, perspCol = c("red", "orange", "yellow", "white"), phiGP = 30, thetaGP = -30, surface_type = "gp")
 		{
 			matrix_manipulation <- function(my_matrix,my_operation)
 				{
@@ -1831,7 +1846,7 @@ perspGP <- function(surface,aggregate_size=3,perspCol=c("red", "orange", "yellow
 			zfacet <- output[-1, -1] + output[-1, -ncz] + output[-nrz, -1] + output[-nrz, -ncz]
 			facetcol <- cut(zfacet, nbcol)
 		
-			persp(output,col = color[facetcol],border="black",phi=70,theta=-10,lwd=0.2,box=FALSE)
+			persp(output,col = color[facetcol],border="black",phi=phiGP,theta= thetaGP,lwd=0.2,box=FALSE)
 
 		
 	}

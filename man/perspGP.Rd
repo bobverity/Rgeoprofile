@@ -5,7 +5,7 @@
 \title{Perspective plot of geoprofile or raw probabilities}
 \usage{
 perspGP(surface, aggregate_size = 3, perspCol = c("red", "orange", "yellow",
-  "white"), surface_type = "gp")
+  "white"), phiGP = 30, thetaGP = -30, surface_type = "gp")
 }
 \arguments{
 \item{surface}{surface to plot; either the geoprofile or posteriorSurface output by geoMCMC().}
@@ -14,9 +14,11 @@ perspGP(surface, aggregate_size = 3, perspCol = c("red", "orange", "yellow",
 
 \item{perspCol}{colour palette. Defaults to red/orange/yellow/white.}
 
-\item{surface_type}{type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.}
+\item{phiGP}{value of phi to pass to persp().}
 
-\item{perspCol}{colour palette. Defaults to red/orange/yellow/white.}
+\item{thetaGP}{value of theta to pass to persp().}
+
+\item{surface_type}{type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.}
 }
 \description{
 Plots persp plot of geoprofile or posterior surface (coloured according to height), reducing matrix dimensions if necessary to avoid grid lines being too close together. NB Only works with square matrix

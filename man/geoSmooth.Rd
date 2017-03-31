@@ -21,8 +21,22 @@ geoSmooth(data, params, MCMCoutput, lambda = 1, df = 3)
 Can be used to perform kernel density smoothing of the "surface_raw" object output from geoMCMC(). Note that geoMCMC() performs this smoothing already using a maximum-likelihood estimate of lambda and outputs it to the "surface" object, and so this function is only needed when a custom level of smoothing is required. The kernel used is a Student's t distribution with a user-defined scale (1 = ordinary Student's t distribution) and degrees of freedom.
 }
 \examples{
-myData <- geoData()
-myParams <- geoParams(myData, sigma_var=1)
-myMCMC <- geoMCMC(myData, myParams)
-mySurface <- geoSmooth(myData, myParams, myMCMC, lambda=0.5, df=2)
+# john snow cholera data
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+geoSmooth(data = d, params = p, MCMCoutput  = m$output, lambda=0.5, df=2)
+
+# simulated data
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+51.5235505, alpha=1, sigma=1, tau=3)
+d <- geoData(sim$longitude, sim $latitude)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+m <- geoMCMC(data = d, params = p)
+geoSmooth(data = d, params = p, MCMCoutput  = m$output, lambda=0.5, df=2)
 }
