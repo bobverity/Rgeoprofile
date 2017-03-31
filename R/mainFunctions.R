@@ -1623,7 +1623,6 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 #'
 #' @export
 #' @examples
-#' @examples
 #' # john snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
