@@ -1602,112 +1602,141 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 #'
 #' Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes). Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
 #'
-#' @param crime_data list of incident location longitudes and latitudes, as produced by geoData().
-#' @param source_data list of suspect site location longitudes and latitudes, as produced by geoDataSource().
+#' @param params parameters list in the format defined by geoParams().
+#' @param data data object in the format defined by geoData().
+#' @param source potential sources object in the format defined by geoDataSource().
 #' @param buffer_radii vector of search radiuses to draw around incidents, in metres. Default is 1000m, 2000m and 5000.
 #'
 #' @export
 #' @examples
-#' ringHS()
+#' @examples
+#' # john snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' data(WaterPumps)
+#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- m$geoProfile
+#' # basic map
+#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
+#' geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
+#'
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- m$geoProfile
+#' # changing the colour palette, background map, transparency and range of geoprofile to plot
+#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
+#' geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
 
-ringHS <- function(params,crime_data, source_data, buffer_radii=c(1000,2000,5000))
-{
-    library(RgoogleMaps)
-    library(rgeos)
-    library(sp)
-    long2UTM <- function(long) {
+ringHS <- function(params,data, source, buffer_radii=c(1000,2000,5000))
+	{
+		long2UTM <- function(long)
+    		{
         (floor((long + 180)/6)%%60) + 1
-    }
-    my_UTM <- long2UTM(mean(crime_data$longitude))
-    my_crs_long_lat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-    my_crs_utm <- paste("+proj=utm +zone=", my_UTM, " ellps=WGS84", 
-        sep = "")
-    crimes <- cbind(crime_data$longitude, crime_data$latitude)
-    crimes_lonlat <- SpatialPointsDataFrame(coords = as.matrix(crimes), 
-        data = as.data.frame(crimes), proj4string = CRS(my_crs_long_lat))
-    sources <- cbind(source_data$source_longitude, source_data$source_latitude)
-    sources_lonlat <- SpatialPointsDataFrame(coords = as.matrix(sources), 
-        data = as.data.frame(sources), proj4string = CRS(my_crs_long_lat))
-    lonMin <- params$output$longitude_minMax[1]
-    lonMax <- params$output$longitude_minMax[2]
-    latMin <- params$output$latitude_minMax[1]
-    latMax <- params$output$latitude_minMax[2]
-    bounds = matrix(c(lonMin, latMin, lonMin, latMax, lonMax, 
-        latMax, lonMax, latMin, lonMin, latMin), ncol = 2, byrow = TRUE)
-    bounds_lonlat <- SpatialPointsDataFrame(coords = as.matrix(bounds), 
-        data = as.data.frame(bounds), proj4string = CRS(my_crs_long_lat))
-    bounds_UTM <- spTransform(bounds_lonlat, CRS(my_crs_utm))
-    p1 = Polygon(bounds_UTM)
-    bounds_polygon_utm = SpatialPolygons(list(Polygons(list(p1), 
-        ID = "a")), proj4string = CRS(my_crs_utm))
-    map_area_m_sq <- gArea(bounds_polygon_utm)
-    crimes_UTM <- spTransform(crimes_lonlat, CRS(my_crs_utm))
-    sources_UTM <- spTransform(sources_lonlat, CRS(my_crs_utm))
-    no_sources <- dim(sources_lonlat)[1]
-    min_dists <- rep(NA, no_sources)
-    for (i in 1:no_sources) {
-        min_dists[i] <- min(spDistsN1(crimes_lonlat, sources_lonlat[i, 
-            1], longlat = TRUE)) * 1000
-    }
-    stored_results <- matrix(rep(NA, no_sources * 4), ncol = 4)
-    stored_buffers <- list()
-    colnames(stored_results) <- c("ring_lon", "ring_lat", "merged_buffer_area_m2", 
-        "ring_hs")
+			}
+		
+		my_UTM <- long2UTM(mean(data$longitude))
+		my_crs_long_lat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+		my_crs_utm <- paste("+proj=utm +zone=", my_UTM, " ellps=WGS84", sep = "")
+		
+		crimes <- cbind(data$longitude, data$latitude)
+		crimes_lonlat <- SpatialPointsDataFrame(coords = as.matrix(crimes), data = as.data.frame(crimes), proj4string = CRS(my_crs_long_lat))
+		
+		sources <- cbind(source$source_longitude, source$source_latitude)
+		sources_lonlat <- SpatialPointsDataFrame(coords = as.matrix(sources), data = as.data.frame(sources), proj4string = CRS(my_crs_long_lat))
+		
+		lonMin <- params$output$longitude_minMax[1]
+		lonMax <- params$output$longitude_minMax[2]
+		latMin <- params$output$latitude_minMax[1]
+		latMax <- params$output$latitude_minMax[2]
+		
+		bounds = matrix(c(lonMin, latMin, lonMin, latMax, lonMax, latMax, lonMax, latMin, lonMin, latMin), ncol = 2, byrow = TRUE)
+		bounds_lonlat <- SpatialPointsDataFrame(coords = as.matrix(bounds), data = as.data.frame(bounds), proj4string = CRS(my_crs_long_lat))
+		bounds_UTM <- spTransform(bounds_lonlat, CRS(my_crs_utm))
+		p1 = Polygon(bounds_UTM)
+		bounds_polygon_utm = SpatialPolygons(list(Polygons(list(p1), ID = "a")), proj4string = CRS(my_crs_utm))
+		map_area_m_sq <- gArea(bounds_polygon_utm)
+		
+		crimes_UTM <- spTransform(crimes_lonlat, CRS(my_crs_utm))
+		sources_UTM <- spTransform(sources_lonlat, CRS(my_crs_utm))
+		
+		no_sources <- dim(sources_lonlat)[1]
+		min_dists <- rep(NA, no_sources)
+		for (i in 1:no_sources)
+			{
+				min_dists[i] <- min(spDistsN1(crimes_lonlat, sources_lonlat[i, 1], longlat = TRUE)) * 1000
+			}
+		stored_results <- matrix(rep(NA, no_sources * 4), ncol = 4)
+		stored_buffers <- list()
+		colnames(stored_results) <- c("ring_lon", "ring_lat", "merged_buffer_area_m2", "ring_hs")
     
-    
-   for (source_number_to_check in 1:no_sources)
-    {
-       ifelse(
-       min_dists[source_number_to_check]==0,
+		for (source_number_to_check in 1:no_sources)
+			{
+				ifelse(
+						min_dists[source_number_to_check]==0,
        
-       stored_results[source_number_to_check, ] <- c(sources[source_number_to_check, 
-            ], 0, 0),
+						{stored_results[source_number_to_check, ] <- c(sources[source_number_to_check, ], 0, 0)},
        
-       {b <- gBuffer(crimes_UTM, byid = FALSE, width = min_dists[source_number_to_check])
-        b2 <- gUnaryUnion(b)
-        clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, 
-            drop_lower_td = TRUE)
-        merged_area <- gArea(clip)
-        ring_hs_for_this_source <- merged_area/map_area_m_sq
-        stored_results[source_number_to_check, ] <- c(sources[source_number_to_check, 
-            ], merged_area, ring_hs_for_this_source)
-        }
-        )
-    }
+       					{	b <- gBuffer(crimes_UTM, byid = FALSE, width = min_dists[source_number_to_check])
+        					b2 <- gUnaryUnion(b)
+        					clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, drop_lower_td = TRUE)
+							merged_area <- gArea(clip)
+							ring_hs_for_this_source <- merged_area/map_area_m_sq
+							stored_results[source_number_to_check, ] <- c(sources[source_number_to_check, ], merged_area, ring_hs_for_this_source)
+        				}
+        				)
+    		}
     
-        
-    stored_contours <- list()
-    for (contour_number in 1:length(buffer_radii)) {
-        b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radii[contour_number])
-        b2 <- gUnaryUnion(b)
-        clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, 
-            drop_lower_td = TRUE)
-        clip_lonlat <- spTransform(clip, CRS(my_crs_long_lat))
-        stored_contours[contour_number] <- clip_lonlat
-    }
+		stored_contours <- list()
+			for (contour_number in 1:length(buffer_radii))
+			{
+				b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radii[contour_number])
+				b2 <- gUnaryUnion(b)
+				clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, drop_lower_td = TRUE)
+				clip_lonlat <- spTransform(clip, CRS(my_crs_long_lat))
+				stored_contours[contour_number] <- clip_lonlat
+    		}
     
+		my_bounds  <- make_bbox(lon = bounds[,1], lat = bounds[,2], f = 1)
+		df_data <- data.frame(long=data$longitude, lat=data$latitude)
+		source_df_data <- data.frame(long=source$source_longitude, lat=source$source_latitude)
+		
+		MyMap <- get_map(location=my_bounds)
+		MyMap <-ggmap(MyMap)
+
+		gp.colors <- colorRampPalette(c("red","white"))
+    	ringCols <- gp.colors(length(stored_contours))
+    	ringColsTransp = AddAlpha(ringCols, 0.05)
     
-    
-    MyMap <- GetMap.bbox(params$output$longitude_minMax, params$output$latitude_minMax, 
-        maptype = "roadmap")
-    MyMap <- GetMap.bbox(params$output$longitude_minMax, params$output$latitude_minMax, 
-        maptype = "roadmap", destfile = "MyTile.png")
-    quartz("ring search")
-    PlotOnStaticMap(MyMap)
-    gp.colors <- colorRampPalette(my_reds)
-    ringCols <- gp.colors(length(stored_contours))
-    ringColsTransp = AddAlpha(ringCols, 0.05)
-    for (cc in length(stored_contours):1) {
-        PlotPolysOnStaticMap(MyMap, stored_contours[[cc]], add = TRUE, 
-            col = ringColsTransp[cc], border = "black", lwd = 1)
-    }
-    box_to_plot <- spTransform(bounds_polygon_utm, CRS(my_crs_long_lat))
-    PlotPolysOnStaticMap(MyMap, box_to_plot, add = TRUE, col = NULL, 
-        border = "black", lwd = 2)
-    PlotOnStaticMap(MyMap, crime_data$latitude, crime_data$longitude, 
-        pch = 16, add = TRUE)
-    PlotOnStaticMap(MyMap, source_data$source_latitude, source_data$source_longitude, 
-        pch = 15, col = "red", add = TRUE)
+    	for (cc in length(stored_contours):1)
+    		{
+				MyMap <- MyMap + geom_polygon(aes(x=long, y=lat, group=group), fill=ringColsTransp[cc], color='black', lwd=0.5,data= stored_contours[[cc]],alpha=0.2)
+			}
+		MyMap  <- MyMap + geom_point(aes(x=long, y=lat),data=df_data) 
+		MyMap  <- MyMap + geom_point(aes(x=long, y=lat),data=source_df_data,pch=15,col="blue")
+
+		box_to_plot <- spTransform(bounds_polygon_utm,CRS(my_crs_long_lat))
+
+		MyMap <- MyMap + geom_polygon(aes(x=long, y=lat, group=group),fill=NA, col="black",lwd=0.5,data= box_to_plot,alpha=0.2)
+
+		plot(MyMap)    
+      
     ring_table <- data.frame(stored_results)
     ring_hs <- ring_table[, 4]
     ring_areas <- ring_table[, 3]
