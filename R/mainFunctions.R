@@ -1646,6 +1646,11 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 
 ringHS <- function(params,data, source, buffer_radii=c(1000,2000,5000))
 	{
+		library(sp)
+		library(ggmap)
+		library(rgeos)
+		library(RgoogleMaps)
+		
 		long2UTM <- function(long)
     		{
         (floor((long + 180)/6)%%60) + 1
