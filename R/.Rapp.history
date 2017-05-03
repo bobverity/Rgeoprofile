@@ -1,6 +1,3 @@
-cholera
-require(Rgeoprofile)
-require(RgeoProfile)
 data(cholera)
 cholera
 crime_data
@@ -602,4 +599,7 @@ perspGP(m$posteriorSurface, surface_type = "prob")#
 # geoprofile#
 perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
 perspGP(surface = m$geoProfile, aggregate_size = 10, surface_type = "gp")
+document()
+library(devtools)
+document()
 document()

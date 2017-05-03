@@ -1235,6 +1235,8 @@ getZoom <- function(x,y) {
 #' @param crimeBorderWidth width of border for symbol used to show crimes.
 #' @param sourceCex relative size of symbols showing ssuspect sites.
 #' @param sourceCol colour to plot suspect sites.
+#' @param gpLegend whether to plot legend or not.
+
 #'
 #' @export
 #' @examples
@@ -1263,12 +1265,12 @@ getZoom <- function(x,y) {
 #' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 #' m <- geoMCMC(data = d, params = p)
 #' gp <- m$geoProfile
-#' # changing the colour palette, background map, transparency and range of geoprofile to plot
+#' # changing colour palette, map type, transparency and range of geoprofile and omit legend
 #' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 #' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
+#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7,gpLegend = FALSE)
 
-geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto", mapSource="google", mapType="hybrid", transparency=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue') {
+geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto", mapSource="google", mapType="hybrid", transparency=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue',gpLegend=TRUE) {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -1318,6 +1320,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 		# add surface and hitscore legend
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=transparency, data=df_noNA)
 		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
+		if(gpLegend=="FALSE") myMap <- myMap + theme(legend.position="none")
 
 		# add contours
 		if (plotContours) {
