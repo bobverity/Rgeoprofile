@@ -1320,7 +1320,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 		# add surface and hitscore legend
 		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=transparency, data=df_noNA)
 		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
-		if(gpLegend==FALSE) myMap <- myMap + theme(legend.position="none")
+		if(gpLegend==FALSE) {myMap <- myMap + theme(legend.position="none")}
 
 		# add contours
 		if (plotContours) {
