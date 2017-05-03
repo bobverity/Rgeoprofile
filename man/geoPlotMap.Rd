@@ -9,7 +9,7 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
   transparency = 0.6, plotContours = TRUE, breakPercent = seq(0, 100, l =
   11), contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5,
   crimeCol = "red", crimeBorderCol = "white", crimeBorderWidth = 0.5,
-  sourceCex = 1.5, sourceCol = "blue")
+  sourceCex = 1.5, sourceCol = "blue", gpLegend = TRUE)
 }
 \arguments{
 \item{params}{parameters list in the format defined bygeoParams().}
@@ -45,6 +45,8 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 \item{sourceCex}{relative size of symbols showing ssuspect sites.}
 
 \item{sourceCol}{colour to plot suspect sites.}
+
+\item{gpLegend}{whether to plot legend or not.}
 }
 \description{
 Plots geoprofile on map, with various customisable options.
@@ -75,8 +77,8 @@ chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude),
 priorMean_latitude = mean(d$latitude), guardRail = 0.1)
 m <- geoMCMC(data = d, params = p)
 gp <- m$geoProfile
-# changing the colour palette, background map, transparency and range of geoprofile to plot
+# changing colour palette, map type, transparency and range of geoprofile and omit legend
 geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
 contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
+sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7,gpLegend = FALSE)
 }
