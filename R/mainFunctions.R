@@ -1855,17 +1855,16 @@ perspGP <- function(surface, aggregate_size = 3, perspCol = c("red", "orange", "
 
 #------------------------------------------------
 #' Incorporate shapefile information into a geoprofile
-#'
+#' 
 #' This function allows information from a shapefile to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp. 
-#'
+#' 
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
 #' @param shapefile the SpatialPolygonsDataFrame object to include.
 #' @param masterProj the projection to use, eg "+proj=longlat +datum=WGS84".
 #' @param scaleValue value by which probabilities should be multiplied inside (or outside, depending on excludeShapefile) the shapefile. Set to zero to exclude completely.
 #' @param excludeShapefile must be set to TRUE (multiply areas outside the shapefile by scaleValue) or FALSE (multiply areas inside the shapefile by scaleValue).
-
-#'
+#' 
 #' @export
 #' @examples
 #' # to come
@@ -1876,7 +1875,7 @@ GPshapefile <- function(probSurface, params, shapefile, masterProj, scaleValue, 
 probSurface  <- probSurface[params$output$longitude_cells:1,]
 
 # extent and projection
-master_extent<- rbind(params$output$longitude_minMax, params $output$latitude_minMax)
+master_extent<- rbind(params$output$longitude_minMax, params$output$latitude_minMax)
 masterproj <- masterProj
 
 # raster of probability surface
@@ -1911,5 +1910,4 @@ rank_adjusted_surface <- rank(-adjusted_surface)
 adjSurface <- list(rank = matrix(rank_adjusted_surface,ncol=500,byrow=TRUE), prob = matrix(adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE))
     return(adjSurface)
 	}
-#------------------------------------------------
 	
