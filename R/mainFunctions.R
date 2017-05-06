@@ -1908,6 +1908,6 @@ for(i in 1: params$output$longitude_cells)
 adjusted_surface <- combined_mat
 rank_adjusted_surface <- rank(-adjusted_surface)
 
-adjSurface <- list(rank = matrix(rank_adjusted_surface,ncol=500,byrow=TRUE), prob = matrix(adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE))
+adjSurface <- list(rank = matrix(rank_adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE), prob = matrix(adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE))
     return(adjSurface)
 	}
