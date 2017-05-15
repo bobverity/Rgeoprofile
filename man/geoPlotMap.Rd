@@ -5,80 +5,82 @@
 \title{Plot a map and overlay data and/or geoprofile}
 \usage{
 geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
-  zoom = "auto", mapSource = "google", mapType = "hybrid",
-  transparency = 0.6, plotContours = TRUE, breakPercent = seq(0, 100, l =
-  11), contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5,
+  zoom = NULL, mapSource = "google", mapType = "hybrid", opacity = 0.6,
+  plotContours = TRUE, breakPercent = seq(0, 100, l = 11),
+  contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5,
   crimeCol = "red", crimeBorderCol = "white", crimeBorderWidth = 0.5,
   sourceCex = 1.5, sourceCol = "blue", gpLegend = TRUE)
 }
 \arguments{
-\item{params}{parameters list in the format defined bygeoParams().}
+\item{params}{parameters list in the format defined by geoParams().}
 
 \item{data}{data object in the format defined by geoData().}
 
 \item{source}{potential sources object in the format defined by geoDataSource().}
 
-\item{surface}{a surface to overlay onto the map, typically a geoprofile produced from the output of geoMCMC().}
+\item{surface}{a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().}
 
-\item{zoom}{some text.}
+\item{zoom}{zoom level of map. If NULL then choose optimal zoom from params.}
 
 \item{mapSource}{which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").}
 
-\item{mapType}{the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).}
+\item{mapType}{the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).}
 
-\item{transparency}{alpha value for colours in geoprofile.}
+\item{opacity}{value between 0 and 1 givin the opacity of surface colours.}
 
-\item{plotContours}{whether or not to plot contours.}
+\item{plotContours}{whether or not to add contours to the surface plot.}
 
-\item{breakPercent}{vector describing which contours of the geoprofile to plot.}
+\item{breakPercent}{vector of values between 0 and 100 describing where in the surface contours appear.}
 
 \item{contourCols}{list of two or more colours from which to derive the contour colours.}
 
 \item{crimeCex}{relative size of symbols showing crimes.}
 
-\item{crimeCol}{colour to plot crimes.}
+\item{crimeCol}{colour of crime symbols.}
 
-\item{crimeBorderCol}{border colour for crimes.}
+\item{crimeBorderCol}{border colour of crime symbols.}
 
-\item{crimeBorderWidth}{width of border for symbol used to show crimes.}
+\item{crimeBorderWidth}{width of border of crime symbols.}
 
-\item{sourceCex}{relative size of symbols showing ssuspect sites.}
+\item{sourceCex}{relative size of symbols showing suspect sites.}
 
-\item{sourceCol}{colour to plot suspect sites.}
+\item{sourceCol}{colour of suspect sites symbols.}
 
-\item{gpLegend}{whether to plot legend or not.}
+\item{gpLegend}{whether or not to add legend to plot.}
 }
 \description{
 Plots geoprofile on map, with various customisable options.
 }
 \examples{
-# john snow cholera data
+# London example data
+d <- geoData()
+s <- geoDataSource()
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p)
+# produce simple map
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 data(WaterPumps)
 s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-m <- geoMCMC(data = d, params = p)
-gp <- m$geoProfile
-# basic map
-geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
+# produce simple map
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
 d <- geoData(sim$longitude, sim $latitude)
 s <- geoDataSource(sim$source_lon, sim$source_lat)
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
-gp <- m$geoProfile
-# changing colour palette, map type, transparency and range of geoprofile and omit legend
-geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+# change colour palette, map type, opacity and range of geoprofile and omit legend
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
 contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7,gpLegend = FALSE)
+sourceCol = "red", sourceCex = 2, opacity = 0.7, gpLegend = FALSE)
 }

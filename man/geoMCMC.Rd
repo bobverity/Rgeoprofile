@@ -4,31 +4,29 @@
 \alias{geoMCMC}
 \title{MCMC under Rgeoprofile model}
 \usage{
-geoMCMC(data, params)
+geoMCMC(data, params, lambda = NULL)
 }
 \arguments{
 \item{data}{input data in the format defined by geoData().}
 
 \item{params}{input parameters in the format defined by geoParams().}
+
+\item{lambda}{bandwidth to use in posterior smoothing. If NULL then optimal bandwidth is chosen automatically by maximum-likelihood.}
 }
 \description{
-This function carries out the main MCMC under the Rgeoprofile model.
+This function carries out the main MCMC under the Rgeoprofile model. Posterior draws are smoothed to produce a posterior surface, and converted into a geoProfile. Outputs include posterior draws of alpha and sigma under the variable-sigma model.
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-m <- geoMCMC(data = d, params = p)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
 d <- geoData(sim$longitude, sim $latitude)
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
 }

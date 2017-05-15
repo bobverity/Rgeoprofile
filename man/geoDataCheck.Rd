@@ -9,13 +9,13 @@ geoDataCheck(data, silent = FALSE)
 \arguments{
 \item{data}{a data list object, as defined by geoData().}
 
-\item{silent}{whether to report passing check to console.}
+\item{silent}{whether to report if data passes checks to console.}
 }
 \description{
 Check that all data for use in Rgeoprofile MCMC is in the correct format.
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 geoDataCheck(d)

@@ -4,12 +4,12 @@
 \alias{geoPlotSigma}
 \title{Plot prior and posterior distributions of sigma.}
 \usage{
-geoPlotSigma(params, sigma = NULL, plotMax = NULL)
+geoPlotSigma(params, mcmc = NULL, plotMax = NULL)
 }
 \arguments{
 \item{params}{a list of parameters as defined by geoParams().}
 
-\item{sigma}{a vector of posterior draws of sigma. Leave as NULL to plot prior only.}
+\item{mcmc}{stored output obtained by running geoMCMC(). Leave as NULL to plot prior only.}
 
 \item{plotMax}{maximum x-axis range to plot. Leave as NULL to use default settings.}
 }
@@ -17,22 +17,18 @@ geoPlotSigma(params, sigma = NULL, plotMax = NULL)
 Plot prior distribution of sigma as defined by current parameter values. Can optionally overlay a kernel density plot of posterior draws of sigma.
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+p <- geoParams(data = d, sigma_mean = 0.2, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
-geoPlotSigma(params = p,sigma = m$sigma)
+geoPlotSigma(params = p, mcmc = m)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
-d <- geoData(sim$longitude, sim $latitude)
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+d <- geoData(sim$longitude, sim$latitude)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
-geoPlotSigma(params = p,sigma = m$sigma)
+geoPlotSigma(params = p, mcmc = m)
 }

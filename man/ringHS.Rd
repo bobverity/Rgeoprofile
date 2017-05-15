@@ -19,21 +19,16 @@ ringHS(params, data, source, buffer_radii = c(1000, 2000, 5000))
 Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes). Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 data(WaterPumps)
 s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-m <- geoMCMC(data = d, params = p)
-gp <- m$geoProfile
-# basic map
-geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
-geoReportHitscores(params=p,source_data=s,surface=m$surface)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+geoReportHitscores(mcmc=m, source=s)
 ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
 
 # simulated data
@@ -41,15 +36,11 @@ sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =
 51.5235505, alpha=1, sigma=1, tau=3)
 d <- geoData(sim$longitude, sim $latitude)
 s <- geoDataSource(sim$source_lon, sim$source_lat)
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
-gp <- m$geoProfile
-# changing the colour palette, background map, transparency and range of geoprofile to plot
-geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
-contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
-geoReportHitscores(params=p,source_data=s,surface=m$surface)
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
+contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
+sourceCol = "red", sourceCex = 2, opacity = 0.7)
+hs <- geoReportHitscores(mcmc=m, source=s)
 ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
 }

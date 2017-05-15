@@ -13,22 +13,18 @@ geoProfile(surface)
 Converts surface to rank order geoprofile.
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-m <- geoMCMC(data = d, params = p)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
 gp <- geoProfile(m$posteriorSurface)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
 d <- geoData(sim$longitude, sim $latitude)
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
 gp <- geoProfile(m$posteriorSurface)
 }

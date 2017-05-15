@@ -7,8 +7,8 @@
 geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
   sigma_squared_shape = NULL, sigma_squared_rate = NULL,
   priorMean_longitude = NULL, priorMean_latitude = NULL, tau = NULL,
-  alpha_shape = 0.1, alpha_rate = 0.1, chains = 10, burnin = 500,
-  samples = 5000, burnin_printConsole = 100, samples_printConsole = 1000,
+  alpha_shape = 0.1, alpha_rate = 0.1, chains = 10, burnin = 1000,
+  samples = 10000, burnin_printConsole = 100, samples_printConsole = 1000,
   longitude_minMax = NULL, latitude_minMax = NULL, longitude_cells = 500,
   latitude_cells = 500, guardRail = 0.05)
 }
@@ -19,15 +19,15 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
 
 \item{sigma_var}{the variance of the prior on sigma.}
 
-\item{sigma_squared_shape}{as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. This is the shape parameter of the inverse-gamma prior.}
+\item{sigma_squared_shape}{as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. If so, this is the shape parameter of the inverse-gamma prior.}
 
-\item{sigma_squared_rate}{this is the rate parameter of the inverse-gamma prior on sigma^2.}
+\item{sigma_squared_rate}{the rate parameter of the inverse-gamma prior on sigma^2.}
 
-\item{priorMean_longitude}{the position of the prior mean on source locations in degrees longitude.}
+\item{priorMean_longitude}{the mean longitude of the normal prior on source locations (in degrees). If NULL then defaults to the midpoint of the range of the data, or -0.1277 if no data provided.}
 
-\item{priorMean_latitude}{the position of the prior mean on source locations in degrees latitude.}
+\item{priorMean_latitude}{the mean latitude of the normal prior on source locations (in degrees). If NULL then defaults to the midpoint of the range of the data, or 51.5074 if no data provided.}
 
-\item{tau}{the standard deviation of the normal prior on source locations, i.e. how far we expect sources to lie from the centre. Leave as NULL to use default value, in which case tau is set equal to the maximum distance of any observation from the prior mean.}
+\item{tau}{the standard deviation of the normal prior on source locations, i.e. how far we expect sources to lie from the centre. If NULL then defaults to the maximum distance of any observation from the prior mean, or 10.0 if no data provided.}
 
 \item{alpha_shape}{shape parameter of the gamma prior on the parameter alpha.}
 
@@ -43,32 +43,32 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
 
 \item{samples_printConsole}{how frequently (in iterations) to report progress to the console during the sampling phase.}
 
-\item{longitude_minMax}{vector containing minimum and maximum longitude over which to generate geoprofile.}
+\item{longitude_minMax}{vector containing minimum and maximum longitude over which to generate geoprofile. If NULL then defaults to the range of the data plus a guard rail on either side, or c(-0.1377,-0.1177) if no data provided.}
 
-\item{latitude_minMax}{vector containing minimum and maximum latitude over which to generate geoprofile.}
+\item{latitude_minMax}{vector containing minimum and maximum latitude over which to generate geoprofile. If NULL then defaults to the range of the data plus a guard rail on either side, or c(51.4974, 51.5174) if no data provided.}
 
 \item{longitude_cells}{number of cells in the final geoprofile (longitude direction). Higher values generate smoother distributions, but take longer to run.}
 
 \item{latitude_cells}{number of cells in the final geoprofile (latitude direction). Higher values generate smoother distributions, but take longer to run.}
+
+\item{guardRail}{when data input is used, longitude_minMax and latitude_minMax default to the range of the data plus a guard rail. This parameter defines the size of the guard rail as a proportion of the range. For example, a value of 0.05 would give an extra 5 percent on the range of the data.}
 }
 \description{
-This function can be used to generate parameters in the format required by other Rgeoprofile functions. Any parameter value can be specified as an input argument to this function. Alternatively, if data is input as an argument then some parameters can take default values directly from the data.
+This function can be used to generate parameters in the format required by other Rgeoprofile functions. Parameter values can be specified as input arguments to this function, or alternatively if data is input as an argument then some parameters can take default values directly from the data.
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
-d <- geoData(Cholera[,1],Cholera[,2])
-# define prior so that the model fits sigma from the data
-geoParams(data= d, sigma_mean = 1.0 ,sigma_squared_shape = 2, samples = 20000, chains = 10, 
-burnin = 1000, priorMean_longitude=mean(d$longitude), priorMean_latitude = 
-mean(d$latitude), guardRail = 0.1)
+d <- geoData(Cholera[,1], Cholera[,2])
+# define parameters such that the model fits sigma from the data
+geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, 
+chains = 10, burnin = 1000, samples = 10000, guardRail = 0.1)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
 d <- geoData(sim$longitude, sim $latitude)
 # use a fixed value of sigma
-geoParams(data = d, sigma_mean = 1.0, sigma_var = 0, samples = 20000, chains=10, 
-burnin=1000,priorMean_longitude=mean(d$longitude), priorMean_latitude = mean(d$latitude), 
-guardRail = 0.1)
+geoParams(data = d, sigma_mean = 1.0, sigma_var = 0,
+chains=10, burnin=1000, samples = 10000, guardRail = 0.1)
 }

@@ -8,15 +8,15 @@ prob_coallocation(crime1, crime2, coallocation_matrix, offset = 0.005,
   plot.graph = TRUE)
 }
 \arguments{
-\item{crime1}{numerical index of first crime}
+\item{crime1}{numerical index of first crime.}
 
-\item{crime2}{numerical index of second crime}
+\item{crime2}{numerical index of second crime.}
 
-\item{coallocation_matrix}{matrix of coallocations between all observations, as produced the "allocation" output of the function geoMCMC()}
+\item{coallocation_matrix}{matrix of coallocations between all observations, as produced the "allocation" output of the function geoMCMC().}
 
-\item{offset}{vertical offset of second line to ensure readability}
+\item{offset}{vertical offset of second line to ensure readability.}
 
-\item{plot.graph}{whether to plot the graph}
+\item{plot.graph}{whether to plot the graph (if FALSE simply prints probability to console).}
 }
 \description{
 Calculates the probability that two crimes are from the same source.
@@ -26,25 +26,21 @@ The function returns the position of the two chosen crimes in the original
 list, their lon/lat and the probability that they come from the same source.
 }
 \examples{
-# john snow cholera data
+# John Snow cholera data
 data(Cholera)
 d <- geoData(Cholera[,1],Cholera[,2])
 data(WaterPumps)
 s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-m <- geoMCMC(data = d, params = p)
-prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
+prob_coallocation(crime1=1, crime2=3, coallocation_matrix=m$allocation)
 
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
 d <- geoData(sim$longitude, sim $latitude)
 s <- geoDataSource(sim$source_lon, sim$source_lat)
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
-prob_coallocation(crime1=1,crime2=25,coallocation_matrix=m$allocation)
+prob_coallocation(crime1=1, crime2=25, coallocation_matrix=m$allocation)
 }

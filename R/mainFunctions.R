@@ -28,15 +28,7 @@
 #' alpha=1, sigma=1, tau=3) 
 #' # same, but increasing alpha to generate more clusters
 #' #' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
-#' alpha=5, sigma=1, tau=3) 
-
-# The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package. Do not alter!
-#' @useDynLib RgeoProfile
-#' @importFrom Rcpp evalCpp
-#' @import fftwtools
-#' @import ggplot2
-#' @import ggmap
-#' @import RColorBrewer
+#' alpha=5, sigma=1, tau=3)
 
 rDPM <- function(n, sigma=1, tau=10, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, alpha=1) {
 	
@@ -182,12 +174,12 @@ rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 #'
 #' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 #'
-#' @param longitude the longitudinal positions of the observed data.
-#' @param latitude the latitudinal positions of the observed data.
+#' @param longitude the locations of the observed data in degrees longitude.
+#' @param latitude the locations of the observed data in degrees latitude.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' geoData(Cholera[,1],Cholera[,2])
 #' 
@@ -197,19 +189,21 @@ rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 #' geoData(sim$longitude, sim $latitude)
 
 geoData <- function(longitude=NULL, latitude=NULL) {
-    
-  # generate dummy data if none read in
-  if (is.null(longitude) & is.null(latitude)) {
-    longitude <- c(-0.104545976281589, -0.102659272660916, -0.0967390020136406, -0.0996246226730725, -0.100775342233937, -0.101073477576196, -0.100932674617746, -0.0983001766339886, -0.0913571765598557, -0.100211479242536, -0.139508969429415, -0.14403082311245, -0.143607222414313, -0.137174795971723, -0.140884394738737, -0.142723755125487, -0.143380928147727, -0.136989691342132, -0.13837666855334, -0.138297288871952, -0.0773858357074935, -0.0818743917621333, -0.0738310357273188, -0.0744118149244568, -0.0757833597110897, -0.0762193916493531, -0.0810467015747727, -0.110052994420826, -0.106600836874167, -0.105104028808356, -0.101934241194567, -0.0683752111183375, -0.0758607240702608, -0.079153744918552, -0.087964365345432)
-    latitude <- c(51.4996147329979, 51.4925230579844, 51.4947129689414, 51.4922683109254, 51.5007532206834, 51.4960640374896, 51.4996917836745, 51.4976936749008, 51.4977904998888, 51.4894186202378, 51.5002583182117, 51.5033510595094, 51.4984697991335, 51.5063306206839, 51.4961516950408, 51.4994464819411, 51.5067557678594, 51.4977275537675, 51.4988718377984, 51.4974782970503, 51.5137643501102, 51.5204498816501, 51.5213788858189, 51.5144343479237, 51.5212383455566, 51.5088225370868, 51.512547894056, 51.5144758355252, 51.5218865924773, 51.5218808497196, 51.5152330574081, 51.4836680563637, 51.4885211991595, 51.486842412489, 51.48845301363455)
-  } else {
-  	if (is.null(longitude) | is.null(latitude))
-  		stop("Both longitude and latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
-  }
-  
-  # combine and return
-  data <- list(longitude=longitude, latitude=latitude)
-  return(data)
+	
+	# use example data if none read in
+	if (is.null(longitude) & is.null(latitude)) {
+		data(LondonExample_crimes)
+  	    longitude <- LondonExample_crimes$longitude
+		latitude <- LondonExample_crimes$latitude
+	} else {
+		if (is.null(longitude) | is.null(latitude)) {
+			stop("Both longitude and latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
+		}
+	}
+	
+	# combine and return
+	data <- list(longitude=longitude, latitude=latitude)
+	return(data)
 }
 
 #------------------------------------------------
@@ -217,12 +211,12 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #'
 #' Simple function that ensures that sources are in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
 #'
-#' @param longitude the longitudinal positions of the potential sources.
-#' @param latitude the latitudinal positions of the potential sources.
+#' @param longitude the locations of the potential sources in degrees longitude.
+#' @param latitude the locations of the potential sources in degrees latitude.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(WaterPumps)
 #' geoDataSource(WaterPumps[,1], WaterPumps[,2])
 #' 
@@ -235,8 +229,9 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
     
   # generate dummy data if none read in
   if (is.null(source_longitude) & is.null(source_latitude)) {
-      source_longitude <- c(-0.1, -0.14, -0.105, -0.08, -0.08)
-      source_latitude <- c(51.495, 51.5, 51.52, 51.515, 51.49)
+		data(LondonExample_sources)
+  	    source_longitude <- LondonExample_sources$longitude
+		source_latitude <- LondonExample_sources$latitude
   } else {
   	if (is.null(source_longitude) | is.null(source_latitude))
   		stop("Both source_longitude and source_latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
@@ -250,16 +245,16 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #------------------------------------------------
 #' Create Rgeoprofile parameters object
 #'
-#' This function can be used to generate parameters in the format required by other Rgeoprofile functions. Any parameter value can be specified as an input argument to this function. Alternatively, if data is input as an argument then some parameters can take default values directly from the data.
+#' This function can be used to generate parameters in the format required by other Rgeoprofile functions. Parameter values can be specified as input arguments to this function, or alternatively if data is input as an argument then some parameters can take default values directly from the data.
 #'
 #' @param data observations in the format defined by geoData().
 #' @param sigma_mean the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution).
 #' @param sigma_var the variance of the prior on sigma.
-#' @param sigma_squared_shape as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. This is the shape parameter of the inverse-gamma prior.
-#' @param sigma_squared_rate this is the rate parameter of the inverse-gamma prior on sigma^2.
-#' @param priorMean_longitude the position of the prior mean on source locations in degrees longitude.
-#' @param priorMean_latitude the position of the prior mean on source locations in degrees latitude.
-#' @param tau the standard deviation of the normal prior on source locations, i.e. how far we expect sources to lie from the centre. Leave as NULL to use default value, in which case tau is set equal to the maximum distance of any observation from the prior mean.
+#' @param sigma_squared_shape as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. If so, this is the shape parameter of the inverse-gamma prior.
+#' @param sigma_squared_rate the rate parameter of the inverse-gamma prior on sigma^2.
+#' @param priorMean_longitude the mean longitude of the normal prior on source locations (in degrees). If NULL then defaults to the midpoint of the range of the data, or -0.1277 if no data provided.
+#' @param priorMean_latitude the mean latitude of the normal prior on source locations (in degrees). If NULL then defaults to the midpoint of the range of the data, or 51.5074 if no data provided.
+#' @param tau the standard deviation of the normal prior on source locations, i.e. how far we expect sources to lie from the centre. If NULL then defaults to the maximum distance of any observation from the prior mean, or 10.0 if no data provided.
 #' @param alpha_shape shape parameter of the gamma prior on the parameter alpha.
 #' @param alpha_rate rate parameter of the gamma prior on the parameter alpha.
 #' @param chains number of MCMC chains to use in the burn-in step.
@@ -267,31 +262,30 @@ geoDataSource <- function(source_longitude=NULL, source_latitude=NULL) {
 #' @param samples number of sampling iterations. These iterations are used to generate final posterior distribution.
 #' @param burnin_printConsole how frequently (in iterations) to report progress to the console during the burn-in phase.
 #' @param samples_printConsole how frequently (in iterations) to report progress to the console during the sampling phase.
-#' @param longitude_minMax vector containing minimum and maximum longitude over which to generate geoprofile.
-#' @param latitude_minMax vector containing minimum and maximum latitude over which to generate geoprofile.
+#' @param longitude_minMax vector containing minimum and maximum longitude over which to generate geoprofile. If NULL then defaults to the range of the data plus a guard rail on either side, or c(-0.1377,-0.1177) if no data provided.
+#' @param latitude_minMax vector containing minimum and maximum latitude over which to generate geoprofile. If NULL then defaults to the range of the data plus a guard rail on either side, or c(51.4974, 51.5174) if no data provided.
 #' @param longitude_cells number of cells in the final geoprofile (longitude direction). Higher values generate smoother distributions, but take longer to run.
 #' @param latitude_cells number of cells in the final geoprofile (latitude direction). Higher values generate smoother distributions, but take longer to run.
+#' @param guardRail when data input is used, longitude_minMax and latitude_minMax default to the range of the data plus a guard rail. This parameter defines the size of the guard rail as a proportion of the range. For example, a value of 0.05 would give an extra 5 percent on the range of the data.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' # define prior so that the model fits sigma from the data
-#' geoParams(data= d, sigma_mean = 1.0 ,sigma_squared_shape = 2, samples = 20000, chains = 10, 
-#' burnin = 1000, priorMean_longitude=mean(d$longitude), priorMean_latitude = 
-#' mean(d$latitude), guardRail = 0.1)
+#' d <- geoData(Cholera[,1], Cholera[,2])
+#' # define parameters such that the model fits sigma from the data
+#' geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, 
+#' chains = 10, burnin = 1000, samples = 10000, guardRail = 0.1)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' # use a fixed value of sigma
-#' geoParams(data = d, sigma_mean = 1.0, sigma_var = 0, samples = 20000, chains=10, 
-#' burnin=1000,priorMean_longitude=mean(d$longitude), priorMean_latitude = mean(d$latitude), 
-#' guardRail = 0.1)
+#' geoParams(data = d, sigma_mean = 1.0, sigma_var = 0,
+#' chains=10, burnin=1000, samples = 10000, guardRail = 0.1)
 
-geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=500, samples=5000, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
+geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=1e3, samples=1e4, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
     
   	# if data argument used then get prior mean and map limits from data
     if (!is.null(data)) {
@@ -336,13 +330,13 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
 		if (is.null(priorMean_latitude))
         	priorMean_latitude <- 51.5074
 		if (is.null(longitude_minMax))
-			longitude_minMax <- priorMean_longitude + c(-0.1,0.1)
+			longitude_minMax <- priorMean_longitude + c(-0.01,0.01)
 		if (is.null(latitude_minMax))
-			latitude_minMax <- priorMean_latitude + c(-0.1,0.1)
+			latitude_minMax <- priorMean_latitude + c(-0.01,0.01)
        	if (is.null(tau))
        		tau <- 10
     }
-    
+	
     # initialise shape and rate parameters for prior on sigma^2
     alpha <- NULL
     beta <- NULL
@@ -394,7 +388,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
 			sigma_var <- beta/(alpha-1)-sigma_mean^2
 	    }
     }
-        
+    
     # check that chosen inputs do in fact uniquely define the distribution. At this stage alpha and beta are only allowed to be NULL under the fixed-sigma model
     if (is.null(alpha) | is.null(beta)) {
     	returnError <- TRUE
@@ -453,11 +447,11 @@ get_alpha_beta <- function(sigma_mean,sigma_var) {
 #' Check that all data for use in Rgeoprofile MCMC is in the correct format.
 #'
 #' @param data a data list object, as defined by geoData().
-#' @param silent whether to report passing check to console.
+#' @param silent whether to report if data passes checks to console.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' geoDataCheck(d)
@@ -506,21 +500,17 @@ geoDataCheck <- function(data, silent=FALSE) {
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' geoParamsCheck(p)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(Cholera[,1], Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_var=0)
 #' geoParamsCheck(p)
 
 geoParamsCheck <- function(params, silent=FALSE) {
@@ -668,31 +658,27 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #' Plot prior distribution of sigma as defined by current parameter values. Can optionally overlay a kernel density plot of posterior draws of sigma.
 #'
 #' @param params a list of parameters as defined by geoParams().
-#' @param sigma a vector of posterior draws of sigma. Leave as NULL to plot prior only.
+#' @param mcmc stored output obtained by running geoMCMC(). Leave as NULL to plot prior only.
 #' @param plotMax maximum x-axis range to plot. Leave as NULL to use default settings.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 0.2, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' geoPlotSigma(params = p,sigma = m$sigma)
+#' geoPlotSigma(params = p, mcmc = m)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' d <- geoData(sim$longitude, sim$latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' geoPlotSigma(params = p,sigma = m$sigma)
+#' geoPlotSigma(params = p, mcmc = m)
 
-geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
+geoPlotSigma <- function(params, mcmc=NULL, plotMax=NULL) {
   
   # check params
   geoParamsCheck(params, silent=TRUE)
@@ -715,11 +701,14 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   if (sigma_var==0)
     stop('can only produce this plot under variable-sigma model (i.e. sigma_var>0)')
   
+  # extract sigma draws from mcmc object
+  sigma_draws <- mcmc$sigma
+  
   # default plotMax based on extent of prior distribution AND the extent of posterior draws if available
   if (is.null(plotMax)) {
     plotMax <- sigma_mean+3*sqrt(sigma_var)
-    if (!is.null(sigma)) {
-      plotMax <- max(plotMax, 2*max(sigma,na.rm=TRUE))
+    if (!is.null(sigma_draws)) {
+      plotMax <- max(plotMax, 2*max(sigma_draws,na.rm=TRUE))
     }
   }
   
@@ -728,11 +717,14 @@ geoPlotSigma <- function(params, sigma=NULL, plotMax=NULL) {
   sigma_prior <- dRIG(sigma_vec,alpha,beta)
   
   # plot prior and overlay density of posterior draws if used
-  if (is.null(sigma)) {
+  if (is.null(sigma_draws)) {
+  	
     plot(sigma_vec, sigma_prior, type='l', xlab='sigma (km)', ylab='probability density', main='')
     legend(x='topright', legend='prior', lty=1)
+    
   } else {
-    sigma_posterior <- density(sigma,from=0,to=plotMax)
+  	
+    sigma_posterior <- density(sigma_draws,from=0,to=plotMax)
     y_max <- max(sigma_posterior$y,na.rm=TRUE)
     
     plot(sigma_vec, sigma_prior, type='l', ylim=c(0,y_max), lty=2, xlab='sigma (km)', ylab='probability density', main='')
@@ -803,31 +795,28 @@ bin2D <- function(x, y, x_breaks, y_breaks) {
 #------------------------------------------------
 #' MCMC under Rgeoprofile model
 #'
-#' This function carries out the main MCMC under the Rgeoprofile model.
+#' This function carries out the main MCMC under the Rgeoprofile model. Posterior draws are smoothed to produce a posterior surface, and converted into a geoProfile. Outputs include posterior draws of alpha and sigma under the variable-sigma model.
 #'
 #' @param data input data in the format defined by geoData().
 #' @param params input parameters in the format defined by geoParams().
+#' @param lambda bandwidth to use in posterior smoothing. If NULL then optimal bandwidth is chosen automatically by maximum-likelihood.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
 
-geoMCMC <- function(data, params) {
+geoMCMC <- function(data, params, lambda=NULL) {
     
     # check that data and parameters in correct format
     geoDataCheck(data)
@@ -897,18 +886,28 @@ geoMCMC <- function(data, params) {
     kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
     kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
     
-    # set lambda (bandwidth) increment in units of cells
-    lambda_step <- min(cellsize_x, cellsize_y)/5
+    # set lambda (bandwidth) range to be explored
+    if (is.null(lambda)) {
+	    lambda_step <- min(cellsize_x, cellsize_y)/5
+	    lambda_vec <- lambda_step*(1:100)
+	} else {
+		lambda_vec <- lambda
+	}
     
     # loop through range of values of lambda
-    cat('Smoothing posterior surface\n')
+    cat('Smoothing posterior surface')
     flush.console()
     logLike <- -Inf
-    for (i in 1:100) {
+    for (i in 1:length(lambda_vec)) {
+        
+        if (i>1) {
+        	cat(".")
+        	flush.console()
+        }
         
         # calculate Fourier transform of kernel
-        lambda <- lambda_step*i
-        kernel <- dts(kernel_s_mat,df=3,scale=lambda)
+        lambda_this <- lambda_vec[i]
+        kernel <- dts(kernel_s_mat,df=3,scale=lambda_this)
         f2 = fftw2d(kernel)
         
         # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
@@ -916,7 +915,7 @@ geoMCMC <- function(data, params) {
         f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
         
         # subtract from f4 the probability density of each point measured from itself. In other words, move towards a leave-one-out kernel density method
-        f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda)
+        f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda_this)
         f5[f5<0] <- 0
         f5 <- f5/sum(f4)
         
@@ -924,12 +923,17 @@ geoMCMC <- function(data, params) {
         f6 <- surface_normalised*log(f5)
         
         # break if total log-likelihood is at a local maximum
-        if (sum(f6,na.rm=T)<logLike)
-        break()
+        if (sum(f6,na.rm=T)<logLike) {
+	        break()
+	    }
         logLike <- sum(f6,na.rm=T)
         
     }
-    cat(paste('maximum likelihood lambda = ',round(lambda,3),sep=''))
+    
+    # report chosen value of lambda
+    if (is.null(lambda)) {
+	    cat(paste('\nmaximum likelihood lambda = ',round(lambda_this,3),sep=''))
+	}
     
     # remove guard rail
     f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
@@ -947,7 +951,7 @@ geoMCMC <- function(data, params) {
     posteriorMat <-  f4 + priorMat*mean(alpha/(alpha+n))
     
     # produce geoprofile
-    geoprofile <- geoProfile(posteriorMat)
+    gp <- geoProfile(posteriorMat)
     
     # calculate posterior allocation
     allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
@@ -958,7 +962,7 @@ geoMCMC <- function(data, params) {
     output <- list()
     output$priorSurface <-  priorMat
     output$posteriorSurface <-  posteriorMat
-    output$geoProfile <-  geoprofile
+    output$geoProfile <-  gp
     output$midpoints_longitude <- mids_lon
     output$midpoints_latitude <- mids_lat
     output$sigma <- rawOutput$sigma
@@ -966,95 +970,6 @@ geoMCMC <- function(data, params) {
     output$allocation <- allocation
     
     return(output)
-}
-
-#------------------------------------------------
-#' kernel density smoothing of posterior distribution
-#'
-#' Can be used to perform kernel density smoothing of the "surface_raw" object output from geoMCMC(). Note that geoMCMC() performs this smoothing already using a maximum-likelihood estimate of lambda and outputs it to the "surface" object, and so this function is only needed when a custom level of smoothing is required. The kernel used is a Student's t distribution with a user-defined scale (1 = ordinary Student's t distribution) and degrees of freedom.
-#'
-#' @param data input data in the format defined by geoData().
-#' @param params input parameters in the format defined by geoParams().
-#' @param MCMCoutput stored output of the MCMC obtained by running geoMCMC().
-#' @param lambda scale of smoothing kernel, relative to an ordinary Student's t distribution in which lambda=1. When appled to geoMCMC() output this parameter is in units of km.
-#' @param df degrees of freedom of Student's t smoothing kernel.
-#'
-#' @export
-#' @examples
-#' # john snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' geoSmooth(data = d, params = p, MCMCoutput  = m$output, lambda=0.5, df=2)
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' geoSmooth(data = d, params = p, MCMCoutput  = m$output, lambda=0.5, df=2)
-
-geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
-
-  # get size of each cell
-  limits_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$output$latitude_minMax, params$output$longitude_minMax)
-  cells_x <- params$output$longitude_cells
-  cells_y <- params$output$latitude_cells
-  cellSize_x <- diff(limits_cartesian$x)/cells_x
-  cellSize_y <- diff(limits_cartesian$x)/cells_y
-
-  # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
-  railSize_x <- cells_x
-  railSize_y <- cells_y
-  railMat_x <- matrix(0,cells_y,railSize_x)
-  railMat_y <- matrix(0,railSize_y,cells_x+2*railSize_x)
-  
-  surface_normalised <- MCMCoutput$surface_raw/sum(MCMCoutput$surface_raw, na.rm=TRUE)
-  surface_normalised <- cbind(railMat_x, surface_normalised, railMat_x)
-  surface_normalised <- rbind(railMat_y, surface_normalised, railMat_y)
-  
-  # calculate Fourier transform of posterior surface
-  f1 = fftw2d(surface_normalised)
-  
-  # produce surface that kernel will be calculated over
-  kernel_x <- cellSize_x * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
-  kernel_y <- cellSize_y * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
-  kernel_x_mat <- outer(rep(1,length(kernel_y)), kernel_x)
-  kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
-  kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
-  
-  # calculate Fourier transform of kernel
-  kernel <- dts(kernel_s_mat,df=3,scale=lambda)
-  f2 = fftw2d(kernel)
-    
-  # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
-  f3 = f1*f2
-  f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
-    
-  # remove guard rail
-  f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
-  f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
-  
-  # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. As the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
-  x_mids <- seq(limits_cartesian$x[1], limits_cartesian$x[2], l=ncol(f4)+1)[-1] - cellSize_x/2
-  y_mids <- seq(limits_cartesian$y[1], limits_cartesian$y[2], l=nrow(f4)+1)[-1] - cellSize_y/2
-  x_mids_mat <- outer(rep(1,cells_y),x_mids)
-  y_mids_mat <- outer(y_mids,rep(1,cells_x))
-  
-  priorMat <- dnorm(x_mids_mat,sd=params$model$tau)*dnorm(y_mids_mat,sd=params$model$tau)*(cellSize_x*cellSize_y)
-  
-  # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
-  n <- length(data$longitude)
-  alpha <- MCMCoutput$alpha
-  output <-  f4 + priorMat*mean(alpha/(alpha+n))
-  
-  return(output)
 }
 
 #------------------------------------------------
@@ -1066,22 +981,18 @@ geoSmooth <- function(data, params, MCMCoutput, lambda=1, df=3) {
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
 #' gp <- geoProfile(m$posteriorSurface)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
 #' gp <- geoProfile(m$posteriorSurface)
 
@@ -1104,34 +1015,54 @@ geoProfile <- function(surface) {
 #'
 #' Produces plot of posterior allocation from output of MCMC.
 #'
-#' @param MCMCoutput output generated from an MCMC.
+#' @param mcmc stored output obtained by running geoMCMC().
+#' @param colors vector of colours for each allocation. If NULL then use default colour scheme.
+#' @param barBorderCol colour of borders around each bar. Set as NA to omit this border (useful when there are a large number of observations).
+#' @param barBorderWidth line width of borders around each bar.
+#' @param mainBorderCol colour of border around plot.
+#' @param mainBorderWidth line width of border around plot.
+#' @param yTicks_on whether to include ticks on the y-axis.
+#' @param yTicks vector of y-axis tick positions.
+#' @param xTicks_on whether to include ticks on the x-axis.
+#' @param xTicks_size size of ticks on the x-axis.
+#' @param xlab x-axis label.
+#' @param ylab x-axis label.
+#' @param mainTitle main title over plot.
+#' @param names individual names of each observation, written horizontally below each bar.
+#' @param names_size size of names under each bar.
+#' @param orderBy whether to order segments within each bar by "group" or by "probability". If ordered by group, all segments of a particular group are laid down before moving to the next group. If ordered by probability the segments within each bar are ordered from large to small.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # London example data
+#' d <- geoData()
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' geoPlotAllocation(m)
+#'
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotAllocation(m$allocation)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' geoPlotAllocation(m, barBorderCol=NA)	# (should allocate all to a single source!)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' geoPlotAllocation(m$allocation)
+#' geoPlotAllocation(m)
 
-geoPlotAllocation <- function(allocation, colours="default", barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, xTicks_on=FALSE, xTicks_size=1, orderBy="group") {
+geoPlotAllocation <- function(mcmc, colours="default", barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xTicks_on=FALSE, xTicks_size=1, xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, orderBy="group") {
     
     # check that orderBy is either 'group' or 'probability'
     if (!(orderBy%in%c("group","probability")))
         stop("orderBy must equal 'group' or 'probability'")
+    
+    # get allocation from mcmc object
+    allocation <- mcmc$allocation
     
     # check that allocation is a data frame
     if (!is.data.frame(allocation))
@@ -1218,59 +1149,60 @@ getZoom <- function(x,y) {
 #'
 #' Plots geoprofile on map, with various customisable options.
 #'
-#' @param params parameters list in the format defined bygeoParams().
+#' @param params parameters list in the format defined by geoParams().
 #' @param data data object in the format defined by geoData().
 #' @param source potential sources object in the format defined by geoDataSource().
-#' @param surface a surface to overlay onto the map, typically a geoprofile produced from the output of geoMCMC().
-#' @param zoom some text.
+#' @param surface a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().
+#' @param zoom zoom level of map. If NULL then choose optimal zoom from params.
 #' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
-#' @param mapType the specific type of map of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap).
-#' @param transparency alpha value for colours in geoprofile. 
-#' @param plotContours whether or not to plot contours.
-#' @param breakPercent vector describing which contours of the geoprofile to plot.
+#' @param mapType the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
+#' @param opacity value between 0 and 1 givin the opacity of surface colours.
+#' @param plotContours whether or not to add contours to the surface plot.
+#' @param breakPercent vector of values between 0 and 100 describing where in the surface contours appear.
 #' @param contourCols list of two or more colours from which to derive the contour colours.
 #' @param crimeCex relative size of symbols showing crimes.
-#' @param crimeCol colour to plot crimes.
-#' @param crimeBorderCol border colour for crimes.
-#' @param crimeBorderWidth width of border for symbol used to show crimes.
-#' @param sourceCex relative size of symbols showing ssuspect sites.
-#' @param sourceCol colour to plot suspect sites.
-#' @param gpLegend whether to plot legend or not.
-
+#' @param crimeCol colour of crime symbols.
+#' @param crimeBorderCol border colour of crime symbols.
+#' @param crimeBorderWidth width of border of crime symbols.
+#' @param sourceCex relative size of symbols showing suspect sites.
+#' @param sourceCol colour of suspect sites symbols.
+#' @param gpLegend whether or not to add legend to plot.
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # London example data
+#' d <- geoData()
+#' s <- geoDataSource()
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' # produce simple map
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#'
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' # basic map
-#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' # produce simple map
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' # changing colour palette, map type, transparency and range of geoprofile and omit legend
-#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' # change colour palette, map type, opacity and range of geoprofile and omit legend
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
 #' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7,gpLegend = FALSE)
+#' sourceCol = "red", sourceCex = 2, opacity = 0.7, gpLegend = FALSE)
 
-geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto", mapSource="google", mapType="hybrid", transparency=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue',gpLegend=TRUE) {
+geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, mapSource="google", mapType="hybrid", opacity=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue', gpLegend=TRUE) {
     
     # check that inputs make sense
     geoParamsCheck(params)
@@ -1278,7 +1210,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 	    geoDataCheck(data)
     
     # if zoom=="auto" then set zoom level based on params
-    if (zoom=="auto")
+    if (is.null(zoom))
         zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
     
     # make zoom level appropriate to map source
@@ -1318,13 +1250,13 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 		df_noNA <- df[!is.na(df$cut),]
 		
 		# add surface and hitscore legend
-		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=transparency, data=df_noNA)
+		myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=opacity, data=df_noNA)
 		myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
 		if(gpLegend==FALSE) {myMap <- myMap + theme(legend.position="none")}
 
 		# add contours
 		if (plotContours) {
-			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), colour="grey50", breaks=breakPercent/100*length(surface), size=0.3, alpha=transparency, data=df)
+			myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), colour="grey50", breaks=breakPercent/100*length(surface), size=0.3, alpha=opacity, data=df)
 		}
 	}
 
@@ -1347,74 +1279,61 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom="auto"
 #------------------------------------------------
 #' Calculate hitscores
 #'
-#' Calculate hitscores of the potential sources based on the final geoprofile surface.
+#' Calculate hitscores of the potential sources based on MCMC output.
 #'
-#' @param params input parameters in the format defined by geoParams().
-#' @param source_data slatitude and longitude of one or more source locations in the format defined by geoDatSource().
-#' @param surface surface for which to calculate hitscores; usually a ranked surface produced by geoProfile(). 
+#' @param mcmc stored output obtained by running geoMCMC().
+#' @param source longitude and latitude of one or more source locations in the format defined by geoDatSource().
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
-#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#' hs <- geoReportHitscores(mcmc=m, source=s)
+#' print(hs)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
-#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, opacity = 0.7)
+#' hs <- geoReportHitscores(mcmc=m, source=s)
+#' print(hs)
 
-geoReportHitscores <- function(params, source_data, surface) {
+geoReportHitscores <- function(mcmc, source) {
 	
-	sources <- cbind(source_data$source_longitude,source_data$source_latitude)
-	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
+	# extract coordinates of sources and surface midpoints
+	source_lon <- source$source_longitude
+	source_lat <- source$source_latitude
 	
-	profile_order = order(surface)
-	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
-		ordermat[profile_order[i]] = i
-		}
-	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
-	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
-
-	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
-	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
+	surface_lon <- mcmc$midpoints_longitude
+	surface_lat <- mcmc$midpoints_latitude
 	
-	xdiff = abs(outer(rep(1,nrow(sources)),xvec)-outer(sources[,1],rep(1,params$output$longitude_cells)))
-	ydiff = abs(outer(rep(1,nrow(sources)),yvec)-outer(sources[,2],rep(1,params$output$latitude_cells)))
-
-	msourcex = mapply(which.min,x=split(xdiff,row(xdiff)))
-	msourcey = params$output$longitude_cells-(mapply(which.min,x=split(ydiff,row(ydiff))))+1
-
-	if (nrow(sources)>1) {
-		hitscores = diag(hitscoremat2[msourcey,msourcex])
-	} else {
-		hitscores = hitscoremat2[msourcey,msourcex]
+	# fill score vector with surface value at closest point to all sources
+	score <- rep(NA, length(source_lon))
+	for (i in 1:length(source_lon)) {
+		xindex <- which.min(abs(surface_lon-source_lon[i]))
+		yindex <- which.min(abs(surface_lat-source_lat[i]))
+		score[i] <- mcmc$geoProfile[yindex,xindex]
 	}
-	hit_output <<- cbind(sources,hitscores)
-	colnames(hit_output) <- c("lon","lat","hs")
-	return(hit_output)
-
+	
+	# convert geoprofile score to hitscores
+	hs <- 1-score/length(m$geoProfile)
+	
+	# return output
+	output <- data.frame(lon=source_lon,lat=source_lat,hs=hs)
+	return(output)
 }
 
 #------------------------------------------------
@@ -1431,20 +1350,16 @@ geoReportHitscores <- function(params, source_data, surface) {
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
-#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#' hs <- geoReportHitscores(mcmc=m, source=s)
 #' # Lorenz plot
 #' geoPlotLorenz(hit_scores=hs)
 #' 
@@ -1453,16 +1368,12 @@ geoReportHitscores <- function(params, source_data, surface) {
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' # changing the colour palette, background map, transparency and range of geoprofile to plot
-#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
-#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)#' geoPlotLorenz(hit_scores=hs)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, opacity = 0.7)
+#' hs <- geoReportHitscores(mcmc=m, source=s)
 #' # Lorenz plot using number of incidents per source
 #' cr <- table(sim$group)
 #' geoPlotLorenz(hit_scores=hs,crimeNumbers=cr)
@@ -1553,37 +1464,31 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #' The function returns the position of the two chosen crimes in the original
 #'list, their lon/lat and the probability that they come from the same source.
 #'
-#' @param crime1 numerical index of first crime
-#' @param crime2 numerical index of second crime
-#' @param coallocation_matrix matrix of coallocations between all observations, as produced the "allocation" output of the function geoMCMC()
-#' @param offset vertical offset of second line to ensure readability
-#' @param plot.graph whether to plot the graph
+#' @param crime1 numerical index of first crime.
+#' @param crime2 numerical index of second crime.
+#' @param coallocation_matrix matrix of coallocations between all observations, as produced the "allocation" output of the function geoMCMC().
+#' @param offset vertical offset of second line to ensure readability.
+#' @param plot.graph whether to plot the graph (if FALSE simply prints probability to console).
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' prob_coallocation(crime1=1,crime2=3,coallocation_matrix=m$allocation)
-
-
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' prob_coallocation(crime1=1, crime2=3, coallocation_matrix=m$allocation)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' prob_coallocation(crime1=1,crime2=25,coallocation_matrix=m$allocation)
+#' prob_coallocation(crime1=1, crime2=25, coallocation_matrix=m$allocation)
 
 prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)
 	{
@@ -1626,21 +1531,16 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' # basic map
-#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
-#' geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#' geoReportHitscores(mcmc=m, source=s)
 #' ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
 #'
 #' # simulated data
@@ -1648,29 +1548,20 @@ prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005,
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' # changing the colour palette, background map, transparency and range of geoprofile to plot
-#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
-#' geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, opacity = 0.7)
+#' hs <- geoReportHitscores(mcmc=m, source=s)
 #' ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
 
-ringHS <- function(params,data, source, buffer_radii=c(1000,2000,5000))
+ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
 	{
-		library(sp)
-		library(ggmap)
-		library(rgeos)
-		library(RgoogleMaps)
 		
-		long2UTM <- function(long)
-    		{
-        (floor((long + 180)/6)%%60) + 1
-			}
+		long2UTM <- function(long) {
+        	(floor((long + 180)/6)%%60) + 1
+		}
 		
 		my_UTM <- long2UTM(mean(data$longitude))
 		my_crs_long_lat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
@@ -1779,36 +1670,32 @@ ringHS <- function(params,data, source, buffer_radii=c(1000,2000,5000))
 #'
 #' @export
 #' @examples
-#' # john snow cholera data
+#' # John Snow cholera data
 #' data(Cholera)
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
 #' # raw probabilities
 #' perspGP(m$posteriorSurface, surface_type = "prob")
 #' # geoprofile
-#' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
+#' perspGP(m$geoProfile, aggregate_size = 3, surface_type = "gp")
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
 #' # raw probabilities
 #' perspGP(m$posteriorSurface, surface_type = "prob")
 #' # geoprofile
 #' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
 
-perspGP <- function(surface, aggregate_size = 3, perspCol = c("red", "orange", "yellow", "white"), phiGP = 30, thetaGP = -30, surface_type = "gp")
-		{
+perspGP <- function(surface, aggregate_size = 3, surface_type = "gp", perspCol = c("red", "orange", "yellow", "white"), phiGP = 30, thetaGP = -30) {
+    
 			matrix_manipulation <- function(my_matrix,my_operation)
 				{
 					if(my_operation=="reflect_y") {return(my_matrix[,ncol(my_matrix):1])}
@@ -1837,22 +1724,85 @@ perspGP <- function(surface, aggregate_size = 3, perspCol = c("red", "orange", "
 							output[i,j] <- mean(as.vector(to_plot[breaks[i]:(breaks[i]+(aggregate_size-1)),breaks[j]:(breaks[j]+(aggregate_size-1))]))
 						}
 				}
+                
 			# select colours
 			gp.colors <- colorRampPalette(perspCol)
+            
 			# Generate the desired number of colors from this palette
 			nbcol <- 100
 			color <- gp.colors(nbcol)
 			ncz <- dim(output)[2]
 			nrz <- dim(output)[1]
+            
 			# Compute the z-value at the facet centres
 			zfacet <- output[-1, -1] + output[-1, -ncz] + output[-nrz, -1] + output[-nrz, -ncz]
 			facetcol <- cut(zfacet, nbcol)
 		
-			persp(output,col = color[facetcol],border="black",phi=phiGP,theta= thetaGP,lwd=0.2,box=FALSE)
-
-		
+			persp(output, col=color[facetcol], border="black", phi=phiGP, theta=thetaGP, lwd=0.2, box=FALSE)
+            
 	}
 
+
+#------------------------------------------------
+#' Interactive perspective plot of geoprofile or raw probabilities
+#'
+#' Produces interactive perspective plot of geoprofile or posterior surface (coloured according to height).
+#'
+#' @param surface surface to plot; either the geoprofile or posteriorSurface output by geoMCMC().
+#' @param surface_type type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.
+#' @param perspCol colour palette. Defaults to red/orange/yellow/white.
+#' @param scale vertical scale of surface.
+#'
+#' @export
+#' @examples
+#' # John Snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' data(WaterPumps)
+#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' # raw probabilities
+#' perspGP2(m$posteriorSurface, surface_type = "prob")
+#' # geoprofile
+#' perspGP2(m$geoProfile, surface_type = "gp")
+#' 
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' # raw probabilities
+#' perspGP2(m$posteriorSurface, surface_type = "prob")
+#' # geoprofile
+#' perspGP2(surface = m$geoProfile, surface_type = "gp")
+
+perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "yellow", "white"), scale=1) {
+    
+    # check input formats
+    stopifnot(surface_type%in%c("gp","prob"))
+    
+    # produce x, y and z values
+    xvec <- seq(1,0,l=nrow(surface))
+    yvec <- seq(0,1,l=ncol(surface))
+    zmat <- (surface-min(surface))/(max(surface)-min(surface))
+    
+    # invert if using gp surface
+    if (surface_type=="gp") {
+        zmat <- 1-zmat
+    }
+    
+    # produce colors
+    ncols <- 1e2
+    colRamp <- colorRampPalette(perspCol)
+    colMat <- colRamp(ncols)[cut(zmat,ncols)]
+    
+    # plot surface
+    surface3d(x=xvec, y=yvec, z=scale*zmat, color=colMat)
+    
+}
 
 #------------------------------------------------
 #' Incorporate shapefile information into a geoprofile
