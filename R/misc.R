@@ -13,5 +13,4 @@
 #' @import rgl
 #' @import sp
 #' @import rgeos
-#' @import RgoogleMaps
 NULL
