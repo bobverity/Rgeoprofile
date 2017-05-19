@@ -1,10 +1,9 @@
 
 /*
  TODO
-    - come up with better way of dealing with transformation issues. At the moment moving to cartesian space and back causes issues because the final geoProfile matrix does not have cells of the same height&width when tranformed back to lat/lon scale. Perhaps define grid in lat/lon space and store binned values of mu in this already-transformed matrix?
-    - this script could do with some organising and reshuffling. Should make MCMCobject class and chain class, and get all MCMC functions within these. Would also allow to clean up burn-in vs. sampling phase.
+    - this script could do with some organising and reshuffling. Should make MCMCobject and particle class, and get all MCMC functions within these. Would also allow to clean up burn-in vs. sampling phase.
     - group variable to start at 0
-    
+    - can we uniquely identify source locations in output? May involve changing the way groups are recycled.
 */
 
 #include <Rcpp.h>
@@ -278,7 +277,6 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     // create objects for storing results
     vector<double> sigma_store(samples);
     vector<double> alpha_store(samples);
-    //vector< vector<double> > geoSurface(y_cells, vector<double>(x_cells));
     
     vector<double> mu_postDraw_x_store;
     vector<double> mu_postDraw_y_store;
@@ -370,7 +368,11 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     R_FlushConsole(); R_ProcessEvents();
     
     // return values
-    return Rcpp::List::create(Rcpp::Named("alpha")=alpha_store, Rcpp::Named("sigma")=sigma_store, Rcpp::Named("allocation")=groupMat, Rcpp::Named("mu_x")=mu_postDraw_x_store, Rcpp::Named("mu_y")=mu_postDraw_y_store);
+    return Rcpp::List::create(Rcpp::Named("alpha")=alpha_store,
+                              Rcpp::Named("sigma")=sigma_store,
+                              Rcpp::Named("allocation")=groupMat,
+                              Rcpp::Named("mu_x")=mu_postDraw_x_store,
+                              Rcpp::Named("mu_y")=mu_postDraw_y_store);
 }
 
 //------------------------------------------------

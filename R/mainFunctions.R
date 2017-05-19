@@ -2,10 +2,8 @@
 # TO DO
 # - the function ringHS() uses a lot of packages and seems quite complicated! At the moment all we did was change the unput variable names, but not the names in the function, meaning it won't currently work. If you could have a go at overhauling this function with the minimum dependencies that would be great. For example, if we can get away with adding our own circles rather than using spatialDataFrame objects that would be ideal.
 # - expand help text and examples where needed. Remember that you need to run the function document() to actually create the help files once you've updated the text here. (NB, document() is part of devtools).
-# - add Gini coefficient calculation to plotLorenz() function. Use simple trapezoidal rule rather than a package. For example, if you have vectors x and y of same length then the area under curve is given by sum(0.5*(y[-1]+y[-length(y)])*(x[-1]-x[-length(x)]))
 # - in functions geoReportHitscores() and geoPlotLorenz(), add comments and check program flow. Give input arguments defaults where possible (e.g. NULL), and do some formatting checks on inputs in case of bad input (e.g. using stopifnot())
 # - separate functions that print results and those that return results, or just get rid of printing from existing functions. Make sure returned values are e.g. data frames with correctly labelled columns (particularly hitscores function)
-# BOB - Need to have a look at geoSmooth() since surface_raw is no longer an output from geoMCMC()
 
 #------------------------------------------------
 #' Draw from Dirichlet process mixture model
