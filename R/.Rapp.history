@@ -1,177 +1,3 @@
-save(crime_data,file="cholera.rda")
-require(RgeoProfile)
-data(cholera)
-cholera
-d <- data(cholera)
-d
-library(RgeoProfile)
-d <- data(cholera)
-d
-document()
-library(devtools)
-document()
-?geoParams
-document()
-?geoParams
-document()
-?geoParams
-document()
-?geoPlotMap
-document()
-?geoPlotMap
-document()
-?geoPlotMap
-document()
-?geoPlotMap
-document()
-?geoPlotMap
-document()
-?geoPlotMap
-document()
-?geoPlotMap
-data(Cholera)#
-d <- geoData(Cholera[,1],Cholera[,2])#
-data(WaterPumps)#
-s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])#
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),#
-priorMean_latitude=mean(dat$latitude),guardRail=0.1)#
-m <- geoMCMC(d,p)#
-gp <- geoProfile(m$surface)#
-#
-# basic map#
-#
-geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),#
-crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)#
-#
-# changing the colour palette, background map, transparency and range of geoprofile to plot#
-#
-geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),#
-crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
-data(Cholera)#
-d <- geoData(Cholera[,1],Cholera[,2])#
-data(WaterPumps)#
-s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(dat$latitude),guardRail=0.1)
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=mean(d$latitude),guardRail=0.1)
-document()
-?geoPlotMap
-data(Cholera)#
-d <- geoData(Cholera[,1],Cholera[,2])#
-data(WaterPumps)#
-s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])#
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,burnin=1000,priorMean_longitude=mean(d$longitude),#
-priorMean_latitude=mean(d$latitude),guardRail=0.1)#
-m <- geoMCMC(d,p)#
-gp <- geoProfile(m$surface)#
-#
-# basic map#
-#
-geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),#
-crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
-# changing the colour palette, background map, transparency and range of geoprofile to plot#
-#
-geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,30,5),mapType="terrain",contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp,transparency=0.7)
-crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
-geoPlotMap(params=p, data=d, source=s,breakPercent=seq(0,50,5),mapType="hybrid",contourCols=c("red","orange","yellow","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,sourceCol="red", sourceCex=2,surface=gp)
-?RgeoProfile
-?Rgeoprofile
-R CMD Rd2pdf RGeoProfile
-CMD Rd2pdf RGeoProfile
-library(devtools)#
-#
-check(cleanup = FALSE,manual = TRUE,path = getwd())
-system("R CMD Rd2pdf RgeoProfile")
-system("R CMD Rd2pdf Rgeoprofile")
-library(devtools)
-system("R CMD Rd2pdf Rgeoprofile")
-system("R CMD Rd2pdf RgeoProfile")
-system("R CMD Rd2pdf MyRpackage")
-system("R CMD Rd2pdf Rgeoprofile")
-system("R CMD Rd2pdf RgeoProfile")
-?r2d2pdf
-system("R CMD Rd2pdf Rgeoprofile")
-system("R CMD Rd2pdf RgeoProfile")
-system(R CMD Rd2pdf "RgeoProfile")
-?system
-pack <- "Rgeoprofile"#
-#
-path <- find.package(pack)#
-#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-pack <- "Rgeoprofile"#
-#
-path <- find.package(Rgeoprofile)#
-#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-path <- find.package(RgeoProfile)
-path <- find.package("RgeoProfile")
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-# create pdf but seems to need TeX binary#
-#
-pack <- "Rgeoprofile"#
-path <- find.package("RgeoProfile")#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-pack <- "Rgeoprofile"#
-path <- find.package("RgeoProfile")#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-$ which pdftex
-sys.setenv("PKG_CXXFLAGS"="-std=c++11")
-Sys.setenv("PKG_CXXFLAGS"="-std=c++11")
-pack <- "Rgeoprofile"#
-path <- find.package("RgeoProfile")#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-bash-3.2$ which tex /usr/texbin/tex
-bash-3.2$ which pdftex
-pack <- "Rgeoprofile"#
-path <- find.package("RgeoProfile")#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-library(devtools)#
-document()
-?geoPlotMap
-# then run the following#
-pack <- "Rgeoprofile"#
-path <- find.package("RgeoProfile")#
-system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
-library(devtools)
-document()
-?geoMCMC
-library(RgeoProfile)
-data(Cholera)#
-d <- geoData(Cholera[,1],Cholera[,2])#
-#
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,#
-burnin=1000,priorMean_longitude=mean(dat$longitude),priorMean_latitude=#
-mean(dat$latitude),guardRail=0.1)#
-m <- geoMCMC(datda=d,params=p)
-library(Rgeoprofile)
-library(RgeoProfile)
-document()
-?geoMCMC
-data(Cholera)#
-d <- geoData(Cholera[,1],Cholera[,2])#
-#
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,#
-burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=#
-mean(d$latitude),guardRail=0.1)#
-m <- geoMCMC(datda=d,params=p)
-document()
-?geoMCMC
-data(Cholera)#
-d <- geoData(Cholera[,1],Cholera[,2])#
-#
-p <- geoParams(data=d,sigma_mean=1.0,sigma_squared_shape=2,samples=20000,chains=10,#
-burnin=1000,priorMean_longitude=mean(d$longitude),priorMean_latitude=#
-mean(d$latitude),guardRail=0.1)#
-m <- geoMCMC(data=d,params=p)
-document()
-library(devtools)#
-document()
-library(devtools)
-document()
-library(devtools)
-document()
 ?geoParams
 document()
 library(devtools)
@@ -603,3 +429,296 @@ library(devtools)
 document()
 library(devtools)
 document()
+rm(list=ls())
+ls()
+library(devtools)
+install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source")
+library(rgdal)
+install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source")
+library(devtools)
+library(RgeoProfile)
+document()
+library(devtools)
+document()
+?modelSources
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=10, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
+m <- geoMCMC(data = d, params = p)#
+# extract sources identified by the model#
+ms <- modelSources(mcmc = m, data = d)#
+# plot data showing the sources identified by the model (note: NOT the actual suspect sites)#
+geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",#
+contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, #
+sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+d
+ms
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=10, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
+m <- geoMCMC(data = d, params = p)#
+# extract sources identified by the model#
+ms <- modelSources(mcmc = m, data = d)#
+# plot data showing the sources identified by the model (note: NOT the actual suspect sites)#
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",#
+contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, #
+sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+ms$model_sources
+m$allocation
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,2*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- complete.cases(c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)])))#
+}#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+names(model_sources) <- c("model_source_lon","model_source_lat")#
+return(list(model_sources=model_sources,groups=groups))#
+}
+ms <- modelSources(mcmc = m, data = d)
+ms
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,2*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found <- sources_found[complete.cases(sources_found),]#
+#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+names(model_sources) <- c("model_source_lon","model_source_lat")#
+return(list(model_sources=model_sources,groups=groups))#
+}
+ms <- modelSources(mcmc = m, data = d)
+ms
+geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",#
+contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, #
+sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",#
+contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, #
+sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+ms
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",#
+contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, #
+sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+str(s)
+str(ms$model_sources)
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+d
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,2*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found <- sources_found[complete.cases(sources_found),]#
+#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+names(model_sources) <- c("model_source_lon","model_source_lat")#
+return(model_sources)#
+}#
+ms#
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)#
+str(s)#
+str(ms$model_sources)
+ms <- modelSources(mcmc = m, data = d)
+ms
+geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,2*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found <- sources_found[complete.cases(sources_found),]#
+#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+return(model_sources)#
+}#
+ms <- modelSources(mcmc = m, data = d)#
+ms
+geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,2*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found <- sources_found[complete.cases(sources_found),]#
+#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+return(list(model_sources = model_sources,groups = groups))#
+}
+ms <- modelSources(mcmc = m, data = d)
+ms
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap",contourCols =c("red", "orange","yellow","white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile,gpLegend=TRUE,opacity=0.4)
+rm(list=ls())
+library(devtools)
+install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source")
+?modelSources
+document()
+modelSources
+document()
+library(devtools)
+document()
+library(devtools)
+document()
+?modelSources
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=10, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
+m <- geoMCMC(data = d, params = p)#
+# extract sources identified by the model#
+ms <- modelSources(mcmc = m, data = d)#
+# plot data showing the sources identified by the model (note: NOT the actual suspect sites)#
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), #
+mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",#
+crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,#
+opacity = 0.4)
+ms
+comlete.cases(sources_found)
+complete.cases(sources_found)
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,2*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found  <- sources_found[complete.cases(sources_found),]#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+return(list(model_sources=model_sources,groups=groups))#
+}
+ms <- modelSources(mcmc = m, data = d)
+ms
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), #
++ mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",#
++ crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,#
++ opacity = 0.4)
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,opacity = 0.4)
+ms
+order(groups)
+order(ms$groups)
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,4*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found  <- sources_found[complete.cases(sources_found),]#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+return(list(model_sources=model_sources,groups=groups))#
+}
+ms <- modelSources(mcmc = m, data = d)
+ms
+mcmc <- m#
+data <- d
+groups <- apply(mcmc$allocation,1,which.max)
+groups
+n_groups <- length(unique(groups))
+n_groups
+sources_found <- data.frame(matrix(rep(NA,4*n_groups),ncol=2))
+sources_found
+modelSources <- function(mcmc, data)#
+{#
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,4*n_groups),ncol=2))#
+for(i in 1:7)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found  <- sources_found[complete.cases(sources_found),]#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+return(list(model_sources=model_sources,groups=groups))#
+}
+groups <- apply(mcmc$allocation,1,which.max)#
+n_groups <- length(unique(groups))#
+sources_found <- data.frame(matrix(rep(NA,4*n_groups),ncol=2))#
+for(i in 1:7)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==i)]),mean(d$latitude[which(groups==i)]))#
+}#
+sources_found  <- sources_found[complete.cases(sources_found),]#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])#
+return(list(model_sources=model_sources,groups=groups))
+model_sources
+group_IDs <- unique(groups)
+group_IDs
+mcmc <- m#
+data <- d
+groups <- apply(mcmc$allocation,1,which.max)#
+group_IDs <- unique(groups)#
+n_groups <- length(group_IDs)#
+sources_found <- data.frame(matrix(rep(NA,4*n_groups),ncol=2))#
+for(i in 1:n_groups)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups== group_IDs[i])]),mean(d$latitude[which(groups== group_IDs[i])]))#
+}#
+sources_found  <- sources_found[complete.cases(sources_found),]#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])
+model_sources
+sources_found
+group_IDs
+groups <- apply(mcmc$allocation,1,which.max)#
+group_IDs <- unique(groups)#
+n_groups <- length(group_IDs)#
+sources_found <- data.frame(matrix(rep(NA,4*n_groups),ncol=2))#
+for(i in 1:10)#
+{#
+	sources_found[i,] <- c(mean(d$longitude[which(groups==group_IDs[i])]),mean(d$latitude[which(groups== group_IDs[i])]))#
+}#
+sources_found  <- sources_found[complete.cases(sources_found),]#
+model_sources <- geoDataSource(sources_found[,1], sources_found[,2])
+model_sources
+n_groups
+group_IDs
+group_IDs[5]
+library(devtools)
+document()
+?modelSources
+library(RgeoProfile)
+# simulated data#
+sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
+51.5235505, alpha=10, sigma=1, tau=3)#
+d <- geoData(sim$longitude, sim $latitude)#
+s <- geoDataSource(sim$source_lon, sim$source_lat)#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
+m <- geoMCMC(data = d, params = p)#
+# extract sources identified by the model#
+ms <- modelSources(mcmc = m, data = d)#
+# plot data showing the sources identified by the model (note: NOT the actual suspect sites)#
+geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), #
+mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",#
+crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,#
+opacity = 0.4)

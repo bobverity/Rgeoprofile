@@ -1859,3 +1859,44 @@ rank_adjusted_surface <- rank(-adjusted_surface)
 adjSurface <- list(rank = matrix(rank_adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE), prob = matrix(adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE))
     return(adjSurface)
 	}
+#------------------------------------------------
+#' Extract latitude and longitude of points identified as sources by geoMCMC()
+#' 
+#' This function takes the output of geoMCMC() and, for each 'crime', extracts the group to which it is assigned with the highest probability. For each group, the model returns a list of these groups, and the mean lat/long of all crimes assigned to that group, returning these in a format matching the output of geoDataSource() for easy plotting with geoPLotMap().
+#' 
+#' @param mcmc Model output in the format produced by geoMCMC().
+#' @param data Crime site data, in the format produced by geoData().
+#' 
+#' @export
+#' @examples
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=10, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' # extract sources identified by the model
+#' ms <- modelSources(mcmc = m, data = d)
+#' # plot data showing the sources identified by the model (note: NOT the actual suspect sites)
+#' geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), 
+#' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,
+#' opacity = 0.4)
+
+modelSources <- function (mcmc, data) 
+{
+    groups <- apply(mcmc$allocation, 1, which.max)
+    group_IDs <- unique(groups)
+    max_groups <- max(group_IDs)
+    sources_found <- data.frame(matrix(rep(NA, 2 * max_groups), ncol = 2))
+    n_groups <- length(group_IDs)
+    for (i in 1:n_groups)
+    {
+        sources_found[group_IDs[i], ] <- c(mean(data$longitude[which(groups == group_IDs[i])]), mean(data$latitude[which(groups == group_IDs[i])]))
+    }
+    sources_found <- sources_found[complete.cases(sources_found),]
+    model_sources <- geoDataSource(sources_found[, 1],sources_found[,2])
+    return(list(model_sources = model_sources, groups = groups))
+}
+#------------------------------------------------
