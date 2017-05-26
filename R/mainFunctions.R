@@ -146,19 +146,8 @@ cartesian_to_latlon <- function(centre_lat, centre_lon, data_x, data_y) {
 }
 
 #------------------------------------------------
-#' Draw from bivariate normal distribution transformed to spatial coordinates
-#'
-#' Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution. The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon} to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere - rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
-#'
-#' @param n number of draws.
-#' @param centre_lat latitude of the centre point of the normal distribution.
-#' @param centre_lon longitude of the centre point of the normal distribution.
-#' @param sigma standard deviation of normal distribution in km.
-#'
-#' @export
-#' @examples
-#' # produces five points centred on QMUL, with sigma = 1 km
-#' rnorm_sphere(n = 5, centre_lat = 51.5235505, centre_lon = -0.04217491, sigma = 1)
+# Draw from normal distribution converted to spherical coordinate system. Points are first drawn from an ordinary cartesian 2D normal distribution. The distances to points are then assumed to be great circle distances, and are combined with a random bearing from the point {centre_lat, centre_lon} to produce a final set of lat/lon points. Note that this is not a truly spherical normal distribution, as the domain of the distribution is not the sphere - rather it is a transformation from one coordinate system to another that is satisfactory when the curvature of the sphere is not severe.
+# (not exported)
 
 rnorm_sphere <- function(n, centre_lat, centre_lon, sigma) {
 	x <- rnorm(n,sd=sigma)
@@ -1652,6 +1641,56 @@ ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
     ring_areas <- ring_table[, 3]
     ring_output <- list(ring_table = ring_table, ring_areas = ring_areas, ring_hs = ring_hs, my_UTM = my_UTM, map_area_m_sq = map_area_m_sq)
     return(ring_output)
+}
+
+#------------------------------------------------
+#' Calculate and plot hit scores based on a ring search
+#'
+#' Second attempt at ring search without using other packages. TODO - complete help for this function!
+#'
+#' @export
+
+geoRingHitscores <- function(data, source, mcmc) {
+    
+    # Calculates the percentage of the grid that must be searched before reaching each source under a ring search strategy. This search strategy assumes that we start from a given crime and search outwards in a circle of increasing radius until we reach a source. As there are multiple crimes the strategy assumes a separate individual searching from each crime simultaneously at an equal rate.
+    # The basic logic of the approach here is that calculating the final search radius is easy - it is simply the minimum radius from any crime to this source. The difficulty is calculating the amount of grid that will have been explored by the time we reach this radius, as circles will often overlap and the intersection should not be double-counted (we assume searching moves on if the area has already been explored by someone else). This is done by brute force - a grid is created and cells are filled in solid if they have been explored. The total percentage of filled cells gives the hitscore percentage. The distance matrices used in this brute force step are needed repeatedly, and so they are computed once at the begninning to save time.
+    
+    # get number of crimes and sources
+    n <- length(data$latitude)
+    ns <- length(source$source_latitude)
+    
+    # create matrices giving lat/lon at all points in search grid
+    lonVec <- mcmc$midpoints_longitude
+    latVec <- mcmc$midpoints_latitude
+    lonMat <- matrix(rep(lonVec,each=length(latVec)), length(latVec))
+    latMat <- matrix(rep(latVec,length(lonVec)), length(latVec))
+    
+    # calculate great circle distance from every data point to every point in search grid. This list of distance matrices will be used multiple times so best to pre-compute here.
+    dlist <- list()
+    for (i in 1:n) {
+        dlist[[i]] <- latlon_to_bearing(data$latitude[i], data$longitude[i], latMat, lonMat)$gc_dist
+    }
+    
+    # calculate hitscore for each source in turn
+    hitScore <- rep(NA,ns)
+    for (i in 1:ns) {
+        
+        # get minimum distance (in km) from all crimes to this source. This is how far the ring search must go out before it reaches the source
+        minDist <- min(latlon_to_bearing(source$source_latitude[i], source$source_longitude[i], data$latitude, data$longitude)$gc_dist)
+        
+        # loop through all crimes, filling in a search matrix as we go if cells are within this minimum distance
+        searchMat <- matrix(0,length(latVec),length(lonVec))
+        for (j in 1:n) {
+            searchMat[dlist[[j]]<=minDist] <- 1
+        }
+        
+        # calculate hitscore percentage from proportion of filled cells
+        hitScore[i] <- mean(searchMat)*100
+        
+    }
+    
+    # return hitscore percentages
+    return(hitScore)
 }
 
 #------------------------------------------------
