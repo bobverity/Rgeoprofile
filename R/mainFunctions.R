@@ -1298,7 +1298,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, 
 #' hs <- geoReportHitscores(mcmc=m, source=s)
 #' print(hs)
 
-geoReportHitscores <- function function (mcmc, source) 
+geoReportHitscores <- function (mcmc, source) 
 {
     source_lon <- source$source_longitude
     source_lat <- source$source_latitude
