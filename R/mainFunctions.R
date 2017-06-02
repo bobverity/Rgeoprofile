@@ -1943,8 +1943,9 @@ modelSources <- function (mcmc, data)
 #' 
 #' Like geoPlotMap(), this function takes the output of geoMCMC() and plots the resulting geoprofile, but this time in an active window allowing the user to click on two points that define an area on which to zoom. For simplicity, the original plot and the zoom plot returned by the function lack most of the options of geoPlotMap() (for example, it doesn't plot sources, or allow custom colours, contours etc). However, the function returns new params and surface objects ($paramsZoom and $surfaceZoom respectively) which can be used with geoPLotMap(). NOTE: The function gglocator() from ggmap is relatively slow to process the first click, so users should wait until the cross hairs reappear before clicking a second time.
 #' 
-#' @my_data Crime site data, in the format produced by geoData().
-#' @my_params A params object, in the format produced by geoParams().
+#' @param my_data Crime site data, in the format produced by geoData().
+#' @param my_params A params object, in the format produced by geoParams().
+#' @param my_surface Surface to plot.
 #' 
 #' @export
 #' @examples

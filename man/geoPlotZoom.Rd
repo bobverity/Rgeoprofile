@@ -4,7 +4,14 @@
 \alias{geoPlotZoom}
 \title{Interactive map with zoom function}
 \usage{
-geoPlotZoom(my_data = d, my_params = p, my_surface = surface_to_use)
+geoPlotZoom(my_data, my_params, my_surface)
+}
+\arguments{
+\item{my_data}{Crime site data, in the format produced by geoData().}
+
+\item{my_params}{A params object, in the format produced by geoParams().}
+
+\item{my_surface}{Surface to plot.}
 }
 \description{
 Like geoPlotMap(), this function takes the output of geoMCMC() and plots the resulting geoprofile, but this time in an active window allowing the user to click on two points that define an area on which to zoom. For simplicity, the original plot and the zoom plot returned by the function lack most of the options of geoPlotMap() (for example, it doesn't plot sources, or allow custom colours, contours etc). However, the function returns new params and surface objects ($paramsZoom and $surfaceZoom respectively) which can be used with geoPLotMap(). NOTE: The function gglocator() from ggmap is relatively slow to process the first click, so users should wait until the cross hairs reappear before clicking a second time.
@@ -18,10 +25,10 @@ s <- geoDataSource(sim$source_lon, sim$source_lat)
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
 # extract sources identified by the model
-z <- geoPlotZoom(d, p, surface_to_use)
+z <- geoPlotZoom(my_data = d, my_params = p, my_surface = m$geoProfile)
 # replot zoom, customising the output with geoPlotMap()
 geoPlotMap(data = d, source = s, params = z$paramsZoom, breakPercent = seq(0, 10, 1), 
 mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), 
 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, 
-surface = z$surfaceZoom,gpLegend=TRUE)
+surface = z$surfaceZoom, gpLegend=TRUE)
 }
