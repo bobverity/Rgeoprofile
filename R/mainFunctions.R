@@ -1310,7 +1310,7 @@ geoReportHitscores <- function (mcmc, source)
         yindex <- which.min(abs(surface_lat - source_lat[i]))
         score[i] <- mcmc$geoProfile[yindex, xindex]
     }
-    hs <- 1 - score/length(m$geoProfile)
+    hs <- score/length(m$geoProfile)
     output <- data.frame(lon = source_lon, lat = source_lat, 
         hs = hs)
     return(output)
