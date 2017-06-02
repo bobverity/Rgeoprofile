@@ -1298,29 +1298,22 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, 
 #' hs <- geoReportHitscores(mcmc=m, source=s)
 #' print(hs)
 
-geoReportHitscores <- function(mcmc, source) {
-	
-	# extract coordinates of sources and surface midpoints
-	source_lon <- source$source_longitude
-	source_lat <- source$source_latitude
-	
-	surface_lon <- mcmc$midpoints_longitude
-	surface_lat <- mcmc$midpoints_latitude
-	
-	# fill score vector with surface value at closest point to all sources
-	score <- rep(NA, length(source_lon))
-	for (i in 1:length(source_lon)) {
-		xindex <- which.min(abs(surface_lon-source_lon[i]))
-		yindex <- which.min(abs(surface_lat-source_lat[i]))
-		score[i] <- mcmc$geoProfile[yindex,xindex]
-	}
-	
-	# convert geoprofile score to hitscores
-	hs <- 1-score/length(m$geoProfile)
-	
-	# return output
-	output <- data.frame(lon=source_lon,lat=source_lat,hs=hs)
-	return(output)
+geoReportHitscores <- function function (mcmc, source) 
+{
+    source_lon <- source$source_longitude
+    source_lat <- source$source_latitude
+    surface_lon <- mcmc$midpoints_longitude
+    surface_lat <- mcmc$midpoints_latitude
+    score <- rep(NA, length(source_lon))
+    for (i in 1:length(source_lon)) {
+        xindex <- which.min(abs(surface_lon - source_lon[i]))
+        yindex <- which.min(abs(surface_lat - source_lat[i]))
+        score[i] <- mcmc$geoProfile[yindex, xindex]
+    }
+    hs <- 1 - score/length(m$geoProfile)
+    output <- data.frame(lon = source_lon, lat = source_lat, 
+        hs = hs)
+    return(output)
 }
 
 #------------------------------------------------
@@ -1648,9 +1641,27 @@ ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
 #'
 #' Second attempt at ring search without using other packages. TODO - complete help for this function!
 #'
+#' @param params parameters list in the format defined by geoParams().
+#' @param data data object in the format defined by geoData().
+#' @param source potential sources object in the format defined by geoDataSource().
+#' @param mcmc mcmc object of the form produced by geoMCMC(). 
+#'
 #' @export
+#' @examples
+#' # John Snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' data(WaterPumps)
+#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#' geoReportHitscores(mcmc=m, source=s)
+#' geoRingHitscores(params = p, data = d, source = s, mcmc = m)
+#'
 
-geoRingHitscores <- function(data, source, mcmc) {
+geoRingHitscores <- function(params, data, source, mcmc) {
     
     # Calculates the percentage of the grid that must be searched before reaching each source under a ring search strategy. This search strategy assumes that we start from a given crime and search outwards in a circle of increasing radius until we reach a source. As there are multiple crimes the strategy assumes a separate individual searching from each crime simultaneously at an equal rate.
     # The basic logic of the approach here is that calculating the final search radius is easy - it is simply the minimum radius from any crime to this source. The difficulty is calculating the amount of grid that will have been explored by the time we reach this radius, as circles will often overlap and the intersection should not be double-counted (we assume searching moves on if the area has already been explored by someone else). This is done by brute force - a grid is created and cells are filled in solid if they have been explored. The total percentage of filled cells gives the hitscore percentage. The distance matrices used in this brute force step are needed repeatedly, and so they are computed once at the begninning to save time.
@@ -1688,7 +1699,14 @@ geoRingHitscores <- function(data, source, mcmc) {
         hitScore[i] <- mean(searchMat)*100
         
     }
+    # convert dlist to an array
+    darray <- array(as.vector(unlist(dlist)), dim = c(length(lonVec),length(latVec),n))
+    for each point in the grid, calculate the distance to the nearest crime
+    nearest_crime_dist <- t(apply(darray,c(1,2),min))
     
+    # output map of ring search strategy
+    print(geoPlotMap(data = data, source = source, params = p, breakPercent = seq(0, 100, 20), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(nearest_crime_dist)))
+
     # return hitscore percentages
     return(hitScore)
 }
