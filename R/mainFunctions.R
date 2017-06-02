@@ -1939,3 +1939,87 @@ modelSources <- function (mcmc, data)
     return(list(model_sources = model_sources, groups = groups))
 }
 #------------------------------------------------
+#' Interactive map with zoom function
+#' 
+#' Like geoPlotMap(), this function takes the output of geoMCMC() and plots the resulting geoprofile, but this time in an active window allowing the user to click on two points that define an area on which to zoom. For simplicity, the original plot and the zoom plot returned by the function lack most of the options of geoPlotMap() (for example, it doesn't plot sources, or allow custom colours, contours etc). However, the function returns new params and surface objects ($paramsZoom and $surfaceZoom respectively) which can be used with geoPLotMap(). NOTE: The function gglocator() from ggmap is relatively slow to process the first click, so users should wait until the cross hairs reappear before clicking a second time.
+#' 
+#' @my_data Crime site data, in the format produced by geoData().
+#' @my_params A params object, in the format produced by geoParams().
+#' 
+#' @export
+#' @examples
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=10, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' # extract sources identified by the model
+#' z <- geoPlotZoom(d, p, surface_to_use)
+#' # replot zoom, customising the output with geoPlotMap()
+#' geoPlotMap(data = d, source = s, params = z$paramsZoom, breakPercent = seq(0, 10, 1), 
+#' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), 
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, 
+#' surface = z$surfaceZoom,gpLegend=TRUE)
+
+geoPlotZoom <- function(my_data = d, my_params = p, my_surface = surface_to_use)
+{
+# plot original map
+print(geoPlotMap(data = my_data, params = my_params, surface = my_surface))
+
+# extract lat long limits for zoom
+print("Please click on the active map window to select two points defining the area you wish to magnify:",quote=FALSE)
+pos <- gglocator(2)
+
+# create new params object from original params
+p2<-p
+p2$output$longitude_minMax <- c(min(pos[,1]),max(pos[,1]))
+p2$output$latitude_minMax <- c(min(pos[,2]),max(pos[,2]))
+
+# calculate part of original geoprofile to extract
+lon_vec_orig <- seq(p$output$longitude_minMax[1],p$output$longitude_minMax[2],length=p$output$longitude_cells)
+lat_vec_orig <- seq(p$output$latitude_minMax[1],p$output$latitude_minMax[2],length=p$output$latitude_cells)
+mat_min_lon <- which(lon_vec_orig>p2$output$longitude_minMax[1])[1]
+mat_max_lon <- which(lon_vec_orig>p2$output$longitude_minMax[2])[1]
+mat_min_lat <- which(lat_vec_orig>p2$output$latitude_minMax[1])[1]
+mat_max_lat <- which(lat_vec_orig>p2$output$latitude_minMax[2])[1]
+sub_mat <- surface_to_use[mat_min_lat:mat_max_lat,mat_min_lon: mat_max_lon]
+
+# function to resize this sub-matrix to the original resolution
+expandMatrix <- function(mat,output_long,output_lat)
+{
+	# define function expanding vector
+	expandVector <- function(input_vec,output_length)
+		{
+			my_vec <- input_vec
+			desired_length <- output_length
+			new_vec <- rep(NA, desired_length)
+
+			vec_ID <- seq(1,length(my_vec),length=desired_length)
+
+			for(i in 1:length(new_vec))
+				{
+					ifelse(vec_ID[i] %% 1 == 0,
+		new_vec[i] <- my_vec[floor(vec_ID[i])],
+		new_vec[i] <- mean((1-vec_ID[i] %% 1) * my_vec[floor(vec_ID[i])] + (vec_ID[i] %% 1) * my_vec[ceiling(vec_ID[i])])
+	)
+				}
+return(new_vec)
+		}
+mat1 <- apply(mat,2, function(x) expandVector(x, output_long))
+mat2 <- apply(mat1,1, function(x) expandVector(x, output_lat))
+return(t(mat2))
+}
+
+# resize zoom area of geoprofile
+zoomed <- expandMatrix(sub_mat,p$output$longitude_cells,p$output$latitude_cells)
+
+# plot without sources
+print(geoPlotMap(data = d, params = p2, surface = zoomed))
+
+# return params and surface objects for further plotting if required
+return(list(paramsZoom=p2,surfaceZoom=zoomed))
+}
+#------------------------------------------------
+
