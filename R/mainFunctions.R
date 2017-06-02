@@ -1961,7 +1961,7 @@ modelSources <- function (mcmc, data)
 #' geoPlotMap(data = d, source = s, params = z$paramsZoom, breakPercent = seq(0, 10, 1), 
 #' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), 
 #' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, 
-#' surface = z$surfaceZoom,gpLegend=TRUE)
+#' surface = z$surfaceZoom, gpLegend=TRUE)
 
 geoPlotZoom <- function(my_data, my_params, my_surface)
 {
@@ -1984,7 +1984,7 @@ mat_min_lon <- which(lon_vec_orig>p2$output$longitude_minMax[1])[1]
 mat_max_lon <- which(lon_vec_orig>p2$output$longitude_minMax[2])[1]
 mat_min_lat <- which(lat_vec_orig>p2$output$latitude_minMax[1])[1]
 mat_max_lat <- which(lat_vec_orig>p2$output$latitude_minMax[2])[1]
-sub_mat <- surface_to_use[mat_min_lat:mat_max_lat,mat_min_lon: mat_max_lon]
+sub_mat <- my_surface[mat_min_lat:mat_max_lat,mat_min_lon: mat_max_lon]
 
 # function to resize this sub-matrix to the original resolution
 expandMatrix <- function(mat,output_long,output_lat)
