@@ -1701,7 +1701,7 @@ geoRingHitscores <- function(params, data, source, mcmc) {
     }
     # convert dlist to an array
     darray <- array(as.vector(unlist(dlist)), dim = c(length(lonVec),length(latVec),n))
-    for each point in the grid, calculate the distance to the nearest crime
+    # for each point in the grid, calculate the distance to the nearest crime
     nearest_crime_dist <- t(apply(darray,c(1,2),min))
     
     # output map of ring search strategy
