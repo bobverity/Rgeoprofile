@@ -1956,14 +1956,14 @@ modelSources <- function (mcmc, data)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
 #' # extract sources identified by the model
-#' z <- geoPlotZoom(d, p, surface_to_use)
+#' z <- geoPlotZoom(my_data = d, my_params = p, my_surface = m$geoProfile)
 #' # replot zoom, customising the output with geoPlotMap()
 #' geoPlotMap(data = d, source = s, params = z$paramsZoom, breakPercent = seq(0, 10, 1), 
 #' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), 
 #' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, 
 #' surface = z$surfaceZoom,gpLegend=TRUE)
 
-geoPlotZoom <- function(my_data = d, my_params = p, my_surface = surface_to_use)
+geoPlotZoom <- function(my_data, my_params, my_surface)
 {
 # plot original map
 print(geoPlotMap(data = my_data, params = my_params, surface = my_surface))
