@@ -1641,10 +1641,11 @@ ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
 #'
 #' Second attempt at ring search without using other packages. TODO - complete help for this function!
 #'
-#' @param params parameters list in the format defined by geoParams().
-#' @param data data object in the format defined by geoData().
-#' @param source potential sources object in the format defined by geoDataSource().
+#' @param params Parameters list in the format defined by geoParams().
+#' @param data Data object in the format defined by geoData().
+#' @param source Potential sources object in the format defined by geoDataSource().
 #' @param mcmc mcmc object of the form produced by geoMCMC(). 
+#' @param buffer_radii Optional vector giving diameter of rings (in km) to show around each crime, suitable merged and clipped. If NULL, full contour map of ring hitscores is plotted instead. 
 #'
 #' @export
 #' @examples
@@ -1658,10 +1659,13 @@ ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
 #' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 #' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 #' geoReportHitscores(mcmc=m, source=s)
+#' # plot full contour plot of ring search
 #' geoRingHitscores(params = p, data = d, source = s, mcmc = m)
+#' # plot rings of 100m, 200m and 500m around points
+#' geoRingHitscores(params = p, data = d, source = s, mcmc = m, buffer_radii = c(0.1, 0.2, 0.5))
 #'
 
-geoRingHitscores <- function(params, data, source, mcmc) {
+geoRingHitscores <- function(params, data, source, mcmc, buffer_radii = NULL) {
     
     # Calculates the percentage of the grid that must be searched before reaching each source under a ring search strategy. This search strategy assumes that we start from a given crime and search outwards in a circle of increasing radius until we reach a source. As there are multiple crimes the strategy assumes a separate individual searching from each crime simultaneously at an equal rate.
     # The basic logic of the approach here is that calculating the final search radius is easy - it is simply the minimum radius from any crime to this source. The difficulty is calculating the amount of grid that will have been explored by the time we reach this radius, as circles will often overlap and the intersection should not be double-counted (we assume searching moves on if the area has already been explored by someone else). This is done by brute force - a grid is created and cells are filled in solid if they have been explored. The total percentage of filled cells gives the hitscore percentage. The distance matrices used in this brute force step are needed repeatedly, and so they are computed once at the begninning to save time.
@@ -1701,14 +1705,31 @@ geoRingHitscores <- function(params, data, source, mcmc) {
     }
     # convert dlist to an array
     darray <- array(as.vector(unlist(dlist)), dim = c(length(lonVec),length(latVec),n))
-    # for each point in the grid, calculate the distance to the nearest crime
     nearest_crime_dist <- t(apply(darray,c(1,2),min))
     
-    # output map of ring search strategy
-    print(geoPlotMap(data = data, source = source, params = p, breakPercent = seq(0, 100, 20), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(nearest_crime_dist)))
-
-    # return hitscore percentages
-    return(hitScore)
+    # if buffer_radii is supplied, plot map showing this. If not, plot 'geoprofile' showing ring search
+ifelse(is.null(buffer_radii)==TRUE,
+   {print(geoPlotMap(data = data, source = source, params = p, breakPercent = seq(0, 100, 20), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(nearest_crime_dist)))},
+    {
+ringsMat <- matrix(rep(length(buffer_radii)+1,(params$output$longitude_cells*params$output$latitude_cells)),nrow=params$output$latitude_cells)
+buffer_radii <- buffer_radii[order(buffer_radii)]
+for(b in length(buffer_radii):1)
+{for(i in 1:params$output$longitude_cells)
+{
+	for(j in 1:params$output$latitude_cells)
+	{
+		if(nearest_crime_dist[i,j] <= buffer_radii[b]) ringsMat[i,j] <- b
+	
+	}
+}
+}
+# contour(ringsMat)
+print(geoPlotMap(data = d, source = s, params = p, breakPercent = seq(0, 100, 5), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(ringsMat),gpLegend=FALSE))})
+    
+    ringHS <- hitScore
+    ringResults <- cbind(source$source_longitude,source$source_latitude, ringHS)
+    colnames(ringResults) <- c("lon","lat","ringHS")    
+    return(ringResults)
 }
 
 #------------------------------------------------

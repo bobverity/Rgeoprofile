@@ -4,8 +4,36 @@
 \alias{geoRingHitscores}
 \title{Calculate and plot hit scores based on a ring search}
 \usage{
-geoRingHitscores(data, source, mcmc)
+geoRingHitscores(params, data, source, mcmc, buffer_radii = NULL)
+}
+\arguments{
+\item{params}{Parameters list in the format defined by geoParams().}
+
+\item{data}{Data object in the format defined by geoData().}
+
+\item{source}{Potential sources object in the format defined by geoDataSource().}
+
+\item{mcmc}{mcmc object of the form produced by geoMCMC().}
+
+\item{buffer_radii}{Optional vector giving diameter of rings (in km) to show around each crime, suitable merged and clipped. If NULL, full contour map of ring hitscores is plotted instead.}
 }
 \description{
 Second attempt at ring search without using other packages. TODO - complete help for this function!
+}
+\examples{
+# John Snow cholera data
+data(Cholera)
+d <- geoData(Cholera[,1],Cholera[,2])
+data(WaterPumps)
+s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+geoReportHitscores(mcmc=m, source=s)
+# plot full contour plot of ring search
+geoRingHitscores(params = p, data = d, source = s, mcmc = m)
+# plot rings of 100m, 200m and 500m around points
+geoRingHitscores(params = p, data = d, source = s, mcmc = m, buffer_radii = c(0.1, 0.2, 0.5))
+
 }
