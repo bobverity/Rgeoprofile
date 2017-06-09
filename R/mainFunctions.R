@@ -1727,7 +1727,7 @@ for(b in length(buffer_radii):1)
 print(geoPlotMap(data = d, source = s, params = p, breakPercent = seq(0, 100, 5), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(ringsMat),gpLegend=FALSE))})
     
     ringHS <- hitScore
-    ringResults <- cbind(source$source_longitude,source$source_latitude, ringHS)
+    ringResults <- data.frame(cbind(source$source_longitude,source$source_latitude, ringHS))
     colnames(ringResults) <- c("lon","lat","ringHS")    
     return(ringResults)
 }
