@@ -1700,7 +1700,7 @@ geoRingHitscores <- function(params, data, source, mcmc, buffer_radii = NULL) {
         }
         
         # calculate hitscore percentage from proportion of filled cells
-        hitScore[i] <- mean(searchMat)*100
+        hitScore[i] <- mean(searchMat)
         
     }
     # convert dlist to an array
