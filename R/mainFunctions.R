@@ -1266,10 +1266,10 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, 
 #------------------------------------------------
 #' Calculate hitscores
 #'
-#' Calculate hitscores of the potential sources based on MCMC output.
+#' Calculate hitscores of the potential sources for a given surface (usually the geoprofile).
 #'
 #' @param mcmc stored output obtained by running geoMCMC().
-#' @param source longitude and latitude of one or more source locations in the format defined by geoDatSource().
+#' @param source longitude and latitude of one or more source locations in the format defined by geoDataSource().
 #'
 #' @export
 #' @examples
@@ -1278,44 +1278,56 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, 
 #' d <- geoData(Cholera[,1],Cholera[,2])
 #' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#' hs <- geoReportHitscores(mcmc=m, source=s)
-#' print(hs)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' m <- geoMCMC(data = d, params = p)
+#' gp <- m$geoProfile
+#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
+#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, opacity = 0.7)
-#' hs <- geoReportHitscores(mcmc=m, source=s)
-#' print(hs)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
+#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
+#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
+#' gp <- m$geoProfile
+#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
+#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
+#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
+#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' 
+geoReportHitscores <- function(params, source_data, surface) {
+sources <- cbind(source_data$source_longitude,source_data$source_latitude)
+	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
+	profile_order = order(surface)
+	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
+		ordermat[profile_order[i]] = i
+		}
+	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
+	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
 
-geoReportHitscores <- function (mcmc, source) 
-{
-    source_lon <- source$source_longitude
-    source_lat <- source$source_latitude
-    surface_lon <- mcmc$midpoints_longitude
-    surface_lat <- mcmc$midpoints_latitude
-    score <- rep(NA, length(source_lon))
-    for (i in 1:length(source_lon)) {
-        xindex <- which.min(abs(surface_lon - source_lon[i]))
-        yindex <- which.min(abs(surface_lat - source_lat[i]))
-        score[i] <- mcmc$geoProfile[yindex, xindex]
-    }
-    hs <- score/length(m$geoProfile)
-    output <- data.frame(lon = source_lon, lat = source_lat, 
-        hs = hs)
-    return(output)
+	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
+	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
+xdiff = abs(outer(rep(1,nrow(sources)),xvec)-outer(sources[,1],rep(1,params$output$longitude_cells)))
+ydiff = abs(outer(rep(1,nrow(sources)),yvec)-outer(sources[,2],rep(1,params$output$latitude_cells)))
+
+msourcex = mapply(which.min,x=split(xdiff,row(xdiff)))
+msourcey = params$output$longitude_cells-(mapply(which.min,x=split(ydiff,row(ydiff))))+1
+
+	if (nrow(sources)>1) {
+		hitscores = diag(hitscoremat2[msourcey,msourcex])
+	} else {
+		hitscores = hitscoremat2[msourcey,msourcex]}
+hit_output <<- cbind(sources,hitscores)
+	colnames(hit_output) <- c("lon","lat","hs")
+	return(hit_output)
 }
-
 #------------------------------------------------
 #' Produce Lorenz Plot
 #'
