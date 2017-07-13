@@ -1899,56 +1899,104 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #' 
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
-#' @param shapefile the SpatialPolygonsDataFrame object to include.
+#' @param shapefile the spatial information to include. Must be either SpatialPolygonsDataFrame or RasterLayer.
 #' @param masterProj the projection to use, eg "+proj=longlat +datum=WGS84".
 #' @param scaleValue value by which probabilities should be multiplied inside (or outside, depending on excludeShapefile) the shapefile. Set to zero to exclude completely.
-#' @param excludeShapefile must be set to TRUE (multiply areas outside the shapefile by scaleValue) or FALSE (multiply areas inside the shapefile by scaleValue).
+#' @param operation thow to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile.
 #' 
 #' @export
 #' @examples
 #' # to come
 
-GPshapefile <- function(probSurface, params, shapefile, masterProj, scaleValue, excludeShapefile=FALSE)
-	{
-# orient probability surface
-probSurface  <- probSurface[params$output$longitude_cells:1,]
+GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=longlat +datum=WGS84", scaleValue = 0, 
+    operation = "inside") 
+{
+    # check shapefile is of type SpatialPolygonsDataFrame or RasterLayer
+    stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame","RasterLayer"))
+    
+    # check required operation is one of those permitted
+    # inside considers only areas inside the supplied shapefile/raster, and sets others to zero
+    # outside considers only areas outside the supplied shapefile/raster, and sets others to zero
+    # near assigns greater weight to points in the study area nearer the shapefile/raster (eg water bodies)
+    # far assigns greater weight to points in the study area further from the shapefile/raster (eg water bodies)
+    # continuous uses individual values from the shapefile/raster (eg altitude, depth) to assign weights
+	stopifnot(operation %in% c("inside","outside","near","far","continuous"))
+    
+    # if input is of class RasterLayer, convert to SpatialPolygonsDataFrame
+    # NB this is a little inelegant, since it is later converted back to a RasterLayer
+    if(class(shapefile)=="RasterLayer"){shapefile  <- rasterToPolygons(shapefile,n=16)}
 
-# extent and projection
-master_extent<- rbind(params$output$longitude_minMax, params$output$latitude_minMax)
-masterproj <- masterProj
+    # convert geoprofile and shapefile to grids with common dimensions and extents
+    probSurface <- probSurface[params$output$longitude_cells:1, 
+        ]
+    master_extent <- rbind(params$output$longitude_minMax, params$output$latitude_minMax)
+    masterproj <- masterProj
+    r <- raster(probSurface, crs = masterproj, xmn = params$output$longitude_minMax[1], 
+        xmx = params$output$longitude_minMax[2], ymn = params$output$latitude_minMax[1], 
+        ymx = params$output$latitude_minMax[2])
+    raster_probSurface <- r
+    r <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
+    extent(r) <- extent(shapefile)
+    rf <- rasterize(shapefile, r)
+    new_spatial_data_to_include <- projectRaster(rf, raster_probSurface, 
+        crs = master_proj)
+    new_data_as_scaled_matrix <- matrix(new_spatial_data_to_include@data@values, 
+        ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
+    GP_as_scaled_matrix <- matrix(raster_probSurface@data@values, 
+        ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
+    
+    # create an empty matrix to store adjusted surface
+    combined_mat <- matrix(rep(NA, (params$output$longitude_cells * 
+        params$output$latitude_cells), nrows = params$output$longitude_cells), 
+        ncol = params$output$longitude_cells)
+    
+    # separate routines for different operations (see above)
+    if(operation == "inside"){
+    	for (i in 1:params$output$longitude_cells) {
+        for (j in 1:params$output$latitude_cells) {
+            new_value <- ifelse(is.na(new_data_as_scaled_matrix[i, 
+                j]) == FALSE, GP_as_scaled_matrix[i, 
+                j], (scaleValue * GP_as_scaled_matrix[i, j]))
+            combined_mat[i, j] <- new_value
+        }
+    }
+}    
+    
+        if(operation == "outside"){
+    	for (i in 1:params$output$longitude_cells) {
+        for (j in 1:params$output$latitude_cells) {
+            new_value <- ifelse(is.na(new_data_as_scaled_matrix[i, 
+                j]) == TRUE, GP_as_scaled_matrix[i, 
+                j], (scaleValue * GP_as_scaled_matrix[i, j]))
+            combined_mat[i, j] <- new_value
+        }
+    }
+}  
 
-# raster of probability surface
-r<-raster(probSurface, crs=masterproj, xmn= params$output$longitude_minMax[1], xmx= params$output$longitude_minMax[2], ymn= params$output$latitude_minMax[1], ymx= params$output$latitude_minMax[2])
-raster_probSurface <- r
+    if(operation == "continuous"){
+    	combined_mat <- new_data_as_scaled_matrix * GP_as_scaled_matrix
+}    
 
-# set raster details, with matching extent
-r<-raster(ncol=params$output$longitude_cells, nrow=params$output$latitude_cells)
-extent(r)<-extent(shapefile)
-rf<- rasterize(shapefile, r)
+    if(operation == "near"){
+    	distance_mat <- distance(new_spatial_data_to_include)
+    	distance_mat <-  matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
+    	combined_mat <- 1/distance_mat * GP_as_scaled_matrix
+}    
 
-# match extent and resolution of rasters
-new_spatial_data_to_include <- projectRaster(rf, raster_probSurface,crs=master_proj)
+      if(operation == "far"){
+    	distance_mat <- distance(new_spatial_data_to_include)
+    	distance_mat <-  matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
+    	combined_mat <- distance_mat * GP_as_scaled_matrix
+}    
 
-# convert scaled raster info to numerical matrix for manipulation
-new_data_as_scaled_matrix <- matrix(new_spatial_data_to_include@data@values,ncol= params$output$longitude_cells)[, params$output$latitude_cells:1]
-GP_as_scaled_matrix <- matrix(raster_probSurface@data@values,ncol= params$output$longitude_cells)[, params$output$latitude_cells:1]
-
-# NB excludeShapefile must be set to TRUE or FALSE
-combined_mat <- matrix(rep(NA,(params$output$longitude_cells*params$output$latitude_cells),nrows= params$output$longitude_cells),ncol= params$output$longitude_cells)
-for(i in 1: params$output$longitude_cells)
-	{
-		for(j in 1: params$output$latitude_cells)
-		{
-			new_value <- ifelse(is.na(new_data_as_scaled_matrix[i,j])==excludeShapefile, GP_as_scaled_matrix[i,j],(scaleValue*GP_as_scaled_matrix[i,j]))
-			combined_mat[i,j] <- new_value
-		}
-	}
-adjusted_surface <- combined_mat
-rank_adjusted_surface <- rank(-adjusted_surface)
-
-adjSurface <- list(rank = matrix(rank_adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE), prob = matrix(adjusted_surface,ncol=params$output$longitude_cells,byrow=TRUE))
+    # rank adjusted surface and return the raw surface and the ranks
+    adjusted_surface <- combined_mat
+    rank_adjusted_surface <- rank(-adjusted_surface)
+    adjSurface <- list(rank = matrix(rank_adjusted_surface, ncol = params$output$longitude_cells, 
+        byrow = TRUE), prob = matrix(adjusted_surface, ncol = params$output$longitude_cells, 
+        byrow = TRUE))
     return(adjSurface)
-	}
+}
 #------------------------------------------------
 #' Extract latitude and longitude of points identified as sources by geoMCMC()
 #' 
