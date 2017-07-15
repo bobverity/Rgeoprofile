@@ -1908,7 +1908,7 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #' @examples
 #' # to come
 
-geoShapefile <- function (probSurface, params, shapefile, masterProj = "+proj=longlat +datum=WGS84", 
+GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=longlat +datum=WGS84", 
     scaleValue = 1, operation = "inside") 
 {
     stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame", 
