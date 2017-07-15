@@ -1,0 +1,3 @@
+FerrySusLong	FerrySusLat
+-2.863758	56.474656
+-2.875073	56.472307
