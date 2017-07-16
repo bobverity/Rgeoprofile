@@ -1945,10 +1945,9 @@ GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=lon
                   j]) == FALSE, GP_as_scaled_matrix[i, j], (scaleValue * 
                   GP_as_scaled_matrix[i, j]))
                 combined_mat[i, j] <- new_value
-                
             }
         }
-    scaleMatrix <- new_data_as_scaled_matrix
+        scaleMatrix <- new_data_as_scaled_matrix
     }
     if (operation == "outside") {
         for (i in 1:params$output$longitude_cells) {
@@ -1959,8 +1958,8 @@ GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=lon
                 combined_mat[i, j] <- new_value
             }
         }
-   scaleMatrix <- new_data_as_scaled_matrix
-   }
+        scaleMatrix <- new_data_as_scaled_matrix
+    }
     if (operation == "continuous") {
         combined_mat <- new_data_as_scaled_matrix * GP_as_scaled_matrix
         scaleMatrix <- new_data_as_scaled_matrix
@@ -1969,23 +1968,24 @@ GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=lon
         distance_mat <- distance(new_spatial_data_to_include)
         distance_mat <- matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, 
             params$output$latitude_cells:1]
-        combined_mat <- 1/(distance_mat^scaleValue) * GP_as_scaled_matrix
         scaleMatrix <- 1/(distance_mat^scaleValue)
-
+        scaleMatrix[scaleMatrix=="Inf"] <- 1
+        combined_mat <- scaleMatrix * GP_as_scaled_matrix
+        
     }
     if (operation == "far") {
         distance_mat <- distance(new_spatial_data_to_include)
         distance_mat <- matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, 
             params$output$latitude_cells:1]
-        combined_mat <- (distance_mat^scaleValue) * GP_as_scaled_matrix
         scaleMatrix <- distance_mat^scaleValue
-
+        scaleMatrix[scaleMatrix=="Inf"] <- 1
+        combined_mat <- scaleMatrix * GP_as_scaled_matrix
     }
     adjusted_surface <- combined_mat
     rank_adjusted_surface <- rank(-adjusted_surface)
     adjSurface <- list(rank = matrix(rank_adjusted_surface, ncol = params$output$longitude_cells, 
         byrow = TRUE), prob = matrix(adjusted_surface, ncol = params$output$longitude_cells, 
-        byrow = TRUE)/sum(adjusted_surface),scaleMatrix = scaleMatrix)
+        byrow = TRUE)/sum(adjusted_surface), scaleMatrix = scaleMatrix)
     return(adjSurface)
 }
 #------------------------------------------------
