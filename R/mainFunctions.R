@@ -2122,6 +2122,7 @@ return(list(paramsZoom=p2,surfaceZoom=zoomed))
 #' @param paper_ref A text string, for example a reference to a paper.
 #' @param bgcol Background colour
 #' @param fgcol Foreground colour
+#' @param wt line weight
 #' 
 #' @export
 #' @examples
@@ -2132,7 +2133,7 @@ return(list(paramsZoom=p2,surfaceZoom=zoomed))
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' unknownPleasures(m$geoProfile,paper_ref = "Rgeoprofile v2.0.0")
+#' unknownPleasures(m$geoProfile, paper_ref = "Rgeoprofile v2.0.0")
 
 unknownPleasures <- function(input_matrix, paper_ref = NULL, nlines = 80, bgcol = "black", fgcol = "white", wt = 2)
 {
