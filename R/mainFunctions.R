@@ -1895,7 +1895,7 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #------------------------------------------------
 #' Incorporate shapefile information into a geoprofile
 #' 
-#' This function allows information from a shapefile to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp. 
+#' This function allows information from a shapefile to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster. 
 #' 
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
@@ -2113,4 +2113,73 @@ print(geoPlotMap(data = d, params = p2, surface = zoomed))
 return(list(paramsZoom=p2,surfaceZoom=zoomed))
 }
 #------------------------------------------------
+#' Unknown pleasures
+#' 
+#' A frivolous alternative to geoPlotMap(), this function takes the output of geoMCMC() and plots the resulting geoprofile in the style of the cover of Joy Division's 'Unknown pleasures' album.
+#' 
+#' @param input_matrix The surface to plot, usually the object $geoProfile produced by geoMCMC().
+#' @param nlines The number of lines (defaults to the correct number of 80).
+#' @param paper_ref A text string, for example a reference to a paper.
+#' @param bgcol Background colour
+#' @param fgcol Foreground colour
+#' 
+#' @export
+#' @examples
+#' # simulated data
+#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
+#' 51.5235505, alpha=10, sigma=1, tau=3)
+#' d <- geoData(sim$longitude, sim $latitude)
+#' s <- geoDataSource(sim$source_lon, sim$source_lat)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' unknownPleasures(m$geoProfile,paper_ref = "Rgeoprofile v2.0.0")
 
+unknownPleasures <- function(input_matrix, paper_ref = NULL, nlines = 80, bgcol = "black", fgcol = "white", wt = 2)
+{
+	orig_prof <- input_matrix
+	citation <- paper_ref
+	# extract other params
+	ncols <- ncol(orig_prof)
+# functions
+expandMatrix <- function(mat,output_long,output_lat)
+{
+	# define function expanding vector
+	expandVector <- function(input_vec,output_length)
+		{
+			my_vec <- input_vec
+			desired_length <- output_length
+			new_vec <- rep(NA, desired_length)
+
+			vec_ID <- seq(1,length(my_vec),length=desired_length)
+
+			for(i in 1:length(new_vec))
+				{
+					ifelse(vec_ID[i] %% 1 == 0,
+		new_vec[i] <- my_vec[floor(vec_ID[i])],
+		new_vec[i] <- mean((1-vec_ID[i] %% 1) * my_vec[floor(vec_ID[i])] + (vec_ID[i] %% 1) * my_vec[ceiling(vec_ID[i])])
+	)
+				}
+return(new_vec)
+		}
+mat1 <- apply(mat,2, function(x) expandVector(x, output_long))
+mat2 <- apply(mat1,1, function(x) expandVector(x, output_lat))
+return(t(mat2))	
+}
+# reduce to manageable number of rows and columns!
+reduced_mat <- expandMatrix(orig_prof ,nlines, ncols)
+# scale so values fall between -0.5 and +0.5
+reduced_mat <- 1-reduced_mat/max(reduced_mat)-0.5
+# set y coordinates of lines
+yvals <- seq(0, 1,length = nlines)
+# plot
+par(bg = bgcol)
+plot(1:ncols,reduced_mat[nlines,]+yvals[nlines],type="l",ylim=c(-1,max(yvals)+0.5),axes=FALSE,xlab="",ylab="",col=fgcol)
+for(i in nlines:1)
+{
+	
+	polygon(c(min(reduced_mat[i,]),reduced_mat[i,]+yvals[i],min(reduced_mat[i,])),col=bgcol,border=bgcol)
+	points(1:ncol(reduced_mat),reduced_mat[i,]+yvals[i],type="l", col=fgcol,lwd=wt)
+}
+text(0,-0.6,citation,adj=0,col=fgcol)
+}
+#------------------------------------------------

@@ -4,21 +4,22 @@
 \alias{GPshapefile}
 \title{Incorporate shapefile information into a geoprofile}
 \usage{
-GPshapefile(probSurface, params, shapefile, masterProj, scaleValue,
-  excludeShapefile = FALSE)
+GPshapefile(probSurface, params, shapefile,
+  masterProj = "+proj=longlat +datum=WGS84", scaleValue = 1,
+  operation = "inside")
 }
 \arguments{
 \item{probSurface}{the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().}
 
 \item{params}{an object produced by geoParams().}
 
-\item{shapefile}{the SpatialPolygonsDataFrame object to include.}
+\item{shapefile}{the spatial information to include. Must be either SpatialPolygonsDataFrame or RasterLayer.}
 
 \item{masterProj}{the projection to use, eg "+proj=longlat +datum=WGS84".}
 
-\item{scaleValue}{value by which probabilities should be multiplied inside (or outside, depending on excludeShapefile) the shapefile. Set to zero to exclude completely.}
+\item{scaleValue}{different functions depending on value of "operation". For "inside' or "outside", the value by which probabilities should be multiplied inside or outside the shapefile; set to zero to exclude completely. For "near" and "far", the importance of proximity to, or distance from, the object described in the RasterLayer or SpatialPointsDataFrame. Not used for "continuous".}
 
-\item{excludeShapefile}{must be set to TRUE (multiply areas outside the shapefile by scaleValue) or FALSE (multiply areas inside the shapefile by scaleValue).}
+\item{operation}{thow to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile.}
 }
 \description{
 This function allows information from a shapefile to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp.
