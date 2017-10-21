@@ -1895,7 +1895,7 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #------------------------------------------------
 #' Incorporate shapefile information into a geoprofile
 #' 
-#' This function allows information from a shapefile to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster. 
+#' This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster. 
 #' 
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
@@ -1903,18 +1903,22 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #' @param masterProj the projection to use, eg "+proj=longlat +datum=WGS84".
 #' @param scaleValue different functions depending on value of "operation". For "inside' or "outside", the value by which probabilities should be multiplied inside or outside the shapefile; set to zero to exclude completely. For "near" and "far", the importance of proximity to, or distance from, the object described in the RasterLayer or SpatialPointsDataFrame. Not used for "continuous".
 #' @param operation thow to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile.
+#' @param maths one of "add", "subtract", multiply" or "divide. The mathematical operation used to combine the new spatial data with the geoprofile when operation = "continuous".
 #' 
 #' @export
 #' @examples
 #' # to come
 
 GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=longlat +datum=WGS84", 
-    scaleValue = 1, operation = "inside") 
+    scaleValue = 1, operation = "inside",maths = "multiply") 
 {
     stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame", 
         "RasterLayer"))
     stopifnot(operation %in% c("inside", "outside", "near", "far", 
         "continuous"))
+    stopifnot(maths %in% c("multiply", "divide", "add", "subtract", 
+        "continuous"))
+
     if (class(shapefile) == "RasterLayer") {
         shapefile <- rasterToPolygons(shapefile, n = 16)
     }
@@ -1961,7 +1965,11 @@ GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=lon
         scaleMatrix <- new_data_as_scaled_matrix
     }
     if (operation == "continuous") {
-        combined_mat <- new_data_as_scaled_matrix * GP_as_scaled_matrix
+        
+        if(maths == "add"){combined_mat <- GP_as_scaled_matrix + new_data_as_scaled_matrix}
+        if(maths == "subtract"){combined_mat <- GP_as_scaled_matrix - new_data_as_scaled_matrix}
+        if(maths == "multiply"){combined_mat <- GP_as_scaled_matrix * new_data_as_scaled_matrix}
+        if(maths == "divide"){combined_mat <- GP_as_scaled_matrix/new_data_as_scaled_matrix}
         scaleMatrix <- new_data_as_scaled_matrix
     }
     if (operation == "near") {
@@ -1969,16 +1977,15 @@ GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=lon
         distance_mat <- matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, 
             params$output$latitude_cells:1]
         scaleMatrix <- 1/(distance_mat^scaleValue)
-        scaleMatrix[scaleMatrix=="Inf"] <- 1
+        scaleMatrix[scaleMatrix == "Inf"] <- 1
         combined_mat <- scaleMatrix * GP_as_scaled_matrix
-        
     }
     if (operation == "far") {
         distance_mat <- distance(new_spatial_data_to_include)
         distance_mat <- matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, 
             params$output$latitude_cells:1]
         scaleMatrix <- distance_mat^scaleValue
-        scaleMatrix[scaleMatrix=="Inf"] <- 1
+        scaleMatrix[scaleMatrix == "Inf"] <- 1
         combined_mat <- scaleMatrix * GP_as_scaled_matrix
     }
     adjusted_surface <- combined_mat
