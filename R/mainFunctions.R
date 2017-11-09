@@ -1895,7 +1895,7 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #------------------------------------------------
 #' Incorporate shapefile or raster information into a geoprofile
 #' 
-#' This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The spatial used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster. 
+#' This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The spatial object used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster. 
 #' 
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
