@@ -2199,3 +2199,114 @@ for(i in nlines:1)
 text(0,-0.6,citation,adj=0,col=fgcol)
 }
 #------------------------------------------------
+#' Variatn of geoPlotMap that allows crimes or sources to be displayed as character strings or numbers
+#'
+#' Plots geoprofile on map, with various customisable options.
+#'
+#' @param params parameters list in the format defined by geoParams().
+#' @param data data object in the format defined by geoData().
+#' @param source potential sources object in the format defined by geoDataSource().
+#' @param crimeNames vector of character strings for crimes. If NULL, numbers are used.
+#' @param sourceNames vector of character strings for sources. If NULL, numbers are used.
+#' @param surface a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().
+#' @param zoom zoom level of map. If NULL then choose optimal zoom from params.
+#' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
+#' @param mapType the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
+#' @param opacity value between 0 and 1 givin the opacity of surface colours.
+#' @param plotContours whether or not to add contours to the surface plot.
+#' @param breakPercent vector of values between 0 and 100 describing where in the surface contours appear.
+#' @param contourCols list of two or more colours from which to derive the contour colours.
+#' @param crimeCex relative size of symbols showing crimes.
+#' @param crimeCol colour of crime symbols.
+#' @param crimeBorderCol border colour of crime symbols.
+#' @param crimeBorderWidth width of border of crime symbols.
+#' @param sourceCex relative size of symbols showing suspect sites.
+#' @param sourceCol colour of suspect sites symbols.
+#' @param gpLegend whether or not to add legend to plot.
+#'
+#' @export
+#' @examples
+#' # John Snow cholera data
+#' data(Cholera)
+#' d <- geoData(Cholera[,1],Cholera[,2])
+#' data(WaterPumps)
+#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' mySources <- letters[1:13]
+#' # produce map showing the crimes as numbers and the water pumps as names
+#' geoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames = mySources, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+
+geoPlotMapText <- function (params, data = NULL, source = NULL, crimeNames = NULL, sourceNames = NULL, surface = NULL, 
+    zoom = NULL, mapSource = "google", mapType = "hybrid", opacity = 0.6, 
+    plotContours = TRUE, breakPercent = seq(0, 100, l = 11), 
+    contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5, 
+    crimeCol = "red", crimeBorderCol = "white", crimeBorderWidth = 0.5, 
+    sourceCex = 1.5, sourceCol = "blue", gpLegend = TRUE) 
+{
+    geoParamsCheck(params)
+    if (!is.null(data)) 
+        geoDataCheck(data)
+    if (is.null(zoom)) 
+        zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
+    if (mapSource == "stamen") 
+        zoom <- min(zoom, 18)
+    rawMap <- get_map(location = c(mean(params$output$longitude_minMax), 
+        mean(params$output$latitude_minMax)), zoom = zoom, source = mapSource, 
+        maptype = mapType)
+    myMap <- ggmap(rawMap) + coord_cartesian(xlim = params$output$longitude_minMax, 
+        ylim = params$output$latitude_minMax)
+    if (!is.null(surface)) {
+        geoCols <- colorRampPalette(contourCols)
+        nbcol = length(breakPercent) - 1
+        longitude_minMax <- params$output$longitude_minMax
+        latitude_minMax <- params$output$latitude_minMax
+        longitude_cells <- params$output$longitude_cells
+        latitude_cells <- params$output$latitude_cells
+        longitude_cellSize <- diff(longitude_minMax)/longitude_cells
+        latitude_cellSize <- diff(latitude_minMax)/latitude_cells
+        longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + 
+            (1:longitude_cells) * longitude_cellSize
+        latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + 
+            (1:latitude_cells) * latitude_cellSize
+        df <- expand.grid(x = longitude_midpoints, y = latitude_midpoints)
+        df$z <- as.vector(t(surface))
+        labs <- paste(round(breakPercent, 1)[-length(breakPercent)], 
+            "-", round(breakPercent, 1)[-1], "%", sep = "")
+        df$cut <- cut(df$z, breakPercent/100 * length(surface), 
+            labels = labs)
+        df_noNA <- df[!is.na(df$cut), ]
+        myMap <- myMap + geom_tile(aes(x = x, y = y, fill = cut), 
+            alpha = opacity, data = df_noNA)
+        myMap <- myMap + scale_fill_manual(name = "Hitscore\npercentage", 
+            values = rev(geoCols(nbcol)))
+        if (gpLegend == FALSE) {
+            myMap <- myMap + theme(legend.position = "none")
+        }
+        if (plotContours) {
+            myMap <- myMap + stat_contour(aes(x = x, y = y, z = z), 
+                colour = "grey50", breaks = breakPercent/100 * 
+                  length(surface), size = 0.3, alpha = opacity, 
+                data = df)
+        }
+    }
+    	if (is.null(crimeNames)) {crimeNames = 1:length(data$longitude)}
+    if (!is.null(data)) {
+        df_data <- data.frame(longitude = data$longitude, latitude = data$latitude,ptno=crimeNames)
+        df_data$ptno <- crimeNames
+        myMap <- myMap + geom_text(aes(x = longitude, y = latitude, label = ptno), 
+            data = df_data, cex = crimeCex,col=crimeCol)
+    }
+    	if (is.null(sourceNames)) {sourceNames = 1:length(source$source_longitude)}
+      if (!is.null(source)) {
+        df_source <- data.frame(longitude = source$source_longitude, 
+            latitude = source$source_latitude,sourceNames)
+        df_source$sptno <- sourceNames
+        myMap <- myMap + geom_text(aes(x = longitude, y = latitude, label = sptno), 
+            data = df_source, cex = sourceCex, col = sourceCol)  
+            
+    }
+    myMap
+}
+
