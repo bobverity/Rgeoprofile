@@ -2,7 +2,7 @@
 % Please edit documentation in R/mainFunctions.R
 \name{GPshapefile}
 \alias{GPshapefile}
-\title{Incorporate shapefile information into a geoprofile}
+\title{Incorporate shapefile or raster information into a geoprofile}
 \usage{
 GPshapefile(probSurface, params, shapefile,
   masterProj = "+proj=longlat +datum=WGS84", scaleValue = 1,
@@ -24,7 +24,7 @@ GPshapefile(probSurface, params, shapefile,
 \item{maths}{one of "add", "subtract", multiply" or "divide. The mathematical operation used to combine the new spatial data with the geoprofile when operation = "continuous".}
 }
 \description{
-This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The shapefile used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster.
+This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The spatial object used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster.
 }
 \examples{
 # to come
