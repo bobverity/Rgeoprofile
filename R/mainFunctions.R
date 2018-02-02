@@ -1,4 +1,3 @@
-
 # TO DO
 # - the function ringHS() uses a lot of packages and seems quite complicated! At the moment all we did was change the unput variable names, but not the names in the function, meaning it won't currently work. If you could have a go at overhauling this function with the minimum dependencies that would be great. For example, if we can get away with adding our own circles rather than using spatialDataFrame objects that would be ideal.
 # - expand help text and examples where needed. Remember that you need to run the function document() to actually create the help files once you've updated the text here. (NB, document() is part of devtools).
@@ -2199,17 +2198,15 @@ for(i in nlines:1)
 text(0,-0.6,citation,adj=0,col=fgcol)
 }
 #------------------------------------------------
-#' geoPlotMapText
-#' 
-#' Variant of geoPlotMap that allows crimes or sources to be displayed as character strings or numbers
+#' Plot a map and overlay data and/or geoprofile
 #'
 #' Plots geoprofile on map, with various customisable options.
 #'
 #' @param params parameters list in the format defined by geoParams().
 #' @param data data object in the format defined by geoData().
 #' @param source potential sources object in the format defined by geoDataSource().
-#' @param crimeNames vector of character strings for crimes. If NULL, numbers are used.
-#' @param sourceNames vector of character strings for sources. If NULL, numbers are used.
+#' @param crimeNames text labels for crimes. If NULL, numbers will be used.
+#' @param sourceNames text labels for crimes. If NULL, numbers will be used.
 #' @param surface a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().
 #' @param zoom zoom level of map. If NULL then choose optimal zoom from params.
 #' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
@@ -2235,10 +2232,11 @@ text(0,-0.6,citation,adj=0,col=fgcol)
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' mySources <- letters[1:13]
-#' # produce map showing the crimes as numbers and the water pumps as names
-#' geoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames = mySources, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#' # produce simple map
+#' geoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames =
+#' letters[1:13], surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 #' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#' 
 
 geoPlotMapText <- function (params, data = NULL, source = NULL, crimeNames = NULL, sourceNames = NULL, surface = NULL, 
     zoom = NULL, mapSource = "google", mapType = "hybrid", opacity = 0.6, 
@@ -2246,7 +2244,7 @@ geoPlotMapText <- function (params, data = NULL, source = NULL, crimeNames = NUL
     contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5, 
     crimeCol = "red", crimeBorderCol = "white", crimeBorderWidth = 0.5, 
     sourceCex = 1.5, sourceCol = "blue", gpLegend = TRUE) 
-{
+    {
     geoParamsCheck(params)
     if (!is.null(data)) 
         geoDataCheck(data)
@@ -2311,4 +2309,5 @@ geoPlotMapText <- function (params, data = NULL, source = NULL, crimeNames = NUL
     }
     myMap
 }
+#------------------------------------------------
 
