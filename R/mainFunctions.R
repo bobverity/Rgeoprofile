@@ -2199,7 +2199,9 @@ for(i in nlines:1)
 text(0,-0.6,citation,adj=0,col=fgcol)
 }
 #------------------------------------------------
-#' Variatn of geoPlotMap that allows crimes or sources to be displayed as character strings or numbers
+#' geoPlotMapText
+#' 
+#' Variant of geoPlotMap that allows crimes or sources to be displayed as character strings or numbers
 #'
 #' Plots geoprofile on map, with various customisable options.
 #'
