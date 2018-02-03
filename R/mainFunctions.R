@@ -1470,7 +1470,7 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' prob_coallocation(crime1=1, crime2=3, coallocation_matrix=m$allocation)
+#' probCoallocation(crime1=1, crime2=3, coallocation_matrix=m$allocation)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
@@ -1479,9 +1479,9 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' prob_coallocation(crime1=1, crime2=25, coallocation_matrix=m$allocation)
+#' probCoallocation(crime1=1, crime2=25, coallocation_matrix=m$allocation)
 
-prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)
+probCoallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)
 	{
         # convert input to matrix and get dimension
         cmat <- as.matrix(coallocation_matrix)
