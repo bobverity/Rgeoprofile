@@ -1999,7 +1999,7 @@ probSurface <- probSurface[params$output$longitude_cells:1,
     rank_adjusted_surface <- rank(-adjusted_surface)
     adjSurface <- list(rank = matrix(rank_adjusted_surface, ncol = params$output$longitude_cells, 
         byrow = TRUE), prob = matrix(adjusted_surface, ncol = params$output$longitude_cells, 
-        byrow = TRUE)/sum(adjusted_surface), scaleMatrix = scaleMatrix)
+        byrow = TRUE)/sum(adjusted_surface[is.na(adjusted_surface)==FALSE]), scaleMatrix = scaleMatrix)
     return(adjSurface)
    }
 #------------------------------------------------
