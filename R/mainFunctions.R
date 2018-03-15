@@ -1912,20 +1912,25 @@ GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=lon
     scaleValue = 1, operation = "inside", maths = "multiply") 
 {
     stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame", 
-        "RasterLayer"))
+        "RasterLayer","SpatialLinesDataFrame"))
     stopifnot(operation %in% c("inside", "outside", "near", "far", 
         "continuous"))
     stopifnot(maths %in% c("multiply", "divide", "add", "subtract", 
         "continuous"))
- if (class(shapefile) == "RasterLayer") {
-       rf <- shapefile
+    if (class(shapefile) == "RasterLayer") {
+        rf <- shapefile
     }
     if (class(shapefile) == "SpatialPolygonsDataFrame") {
         r <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-    extent(r) <- extent(shapefile)
-    rf <- rasterize(shapefile, r)
-     }
-probSurface <- probSurface[params$output$longitude_cells:1, 
+        extent(r) <- extent(shapefile)
+        rf <- rasterize(shapefile, r)
+    }
+    if (class(shapefile) == "SpatialLinesDataFrame") {
+        r <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
+        extent(r) <- extent(shapefile)
+        rf <- rasterize(shapefile, r)
+    }
+    probSurface <- probSurface[params$output$longitude_cells:1, 
         ]
     master_extent <- rbind(params$output$longitude_minMax, params$output$latitude_minMax)
     masterproj <- masterProj
@@ -1933,7 +1938,7 @@ probSurface <- probSurface[params$output$longitude_cells:1,
         xmx = params$output$longitude_minMax[2], ymn = params$output$latitude_minMax[1], 
         ymx = params$output$latitude_minMax[2])
     raster_probSurface <- r
- new_spatial_data_to_include <- projectRaster(rf, raster_probSurface, 
+    new_spatial_data_to_include <- projectRaster(rf, raster_probSurface, 
         crs = master_proj)
     new_data_as_scaled_matrix <- matrix(new_spatial_data_to_include@data@values, 
         ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
@@ -1942,7 +1947,7 @@ probSurface <- probSurface[params$output$longitude_cells:1,
     combined_mat <- matrix(rep(NA, (params$output$longitude_cells * 
         params$output$latitude_cells), nrows = params$output$longitude_cells), 
         ncol = params$output$longitude_cells)
- if (operation == "inside") {
+    if (operation == "inside") {
         for (i in 1:params$output$longitude_cells) {
             for (j in 1:params$output$latitude_cells) {
                 new_value <- ifelse(is.na(new_data_as_scaled_matrix[i, 
@@ -1999,9 +2004,10 @@ probSurface <- probSurface[params$output$longitude_cells:1,
     rank_adjusted_surface <- rank(-adjusted_surface)
     adjSurface <- list(rank = matrix(rank_adjusted_surface, ncol = params$output$longitude_cells, 
         byrow = TRUE), prob = matrix(adjusted_surface, ncol = params$output$longitude_cells, 
-        byrow = TRUE)/sum(adjusted_surface[is.na(adjusted_surface)==FALSE]), scaleMatrix = scaleMatrix)
+        byrow = TRUE)/sum(adjusted_surface[is.na(adjusted_surface) == 
+        FALSE]), scaleMatrix = scaleMatrix)
     return(adjSurface)
-   }
+}
 #------------------------------------------------
 #' Extract latitude and longitude of points identified as sources by geoMCMC()
 #' 
