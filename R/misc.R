@@ -7,7 +7,6 @@
 #' @useDynLib RgeoProfile
 #' @importFrom Rcpp evalCpp
 #' @import fftwtools
-#' @import ggmap
 #' @import ggplot2
 #' @import RColorBrewer
 #' @import rgl

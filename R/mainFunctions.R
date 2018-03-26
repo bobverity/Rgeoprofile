@@ -947,8 +947,13 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, 
   loc <- c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax))
   rawMap <- get_map(location=loc, zoom=zoom, source=mapSource, maptype=mapType)
   
+  
+  return(rawMap)
+  
   # add limits
   myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
+  
+  
   
   # overlay geoprofile
   if (!is.null(surface)) {
