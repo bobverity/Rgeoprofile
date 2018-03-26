@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // C_geoMCMC
 Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params);
-RcppExport SEXP RgeoProfile_C_geoMCMC(SEXP dataSEXP, SEXP paramsSEXP) {
+RcppExport SEXP _RgeoProfile_C_geoMCMC(SEXP dataSEXP, SEXP paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"RgeoProfile_C_geoMCMC", (DL_FUNC) &RgeoProfile_C_geoMCMC, 2},
+    {"_RgeoProfile_C_geoMCMC", (DL_FUNC) &_RgeoProfile_C_geoMCMC, 2},
     {NULL, NULL, 0}
 };
 

@@ -4,7 +4,7 @@
 \alias{geoDataSource}
 \title{Create sources data object in same format as observations}
 \usage{
-geoDataSource(source_longitude = NULL, source_latitude = NULL)
+geoDataSource(longitude = NULL, latitude = NULL)
 }
 \arguments{
 \item{longitude}{the locations of the potential sources in degrees longitude.}

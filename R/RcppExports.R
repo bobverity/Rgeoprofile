@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 C_geoMCMC <- function(data, params) {
-    .Call('RgeoProfile_C_geoMCMC', PACKAGE = 'RgeoProfile', data, params)
+    .Call('_RgeoProfile_C_geoMCMC', PACKAGE = 'RgeoProfile', data, params)
 }
 

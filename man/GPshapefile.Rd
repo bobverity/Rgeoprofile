@@ -13,7 +13,7 @@ GPshapefile(probSurface, params, shapefile,
 
 \item{params}{an object produced by geoParams().}
 
-\item{shapefile}{the spatial information to include. Must be either SpatialPolygonsDataFrame or RasterLayer.}
+\item{shapefile}{the spatial information to include. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer.}
 
 \item{masterProj}{the projection to use, eg "+proj=longlat +datum=WGS84".}
 

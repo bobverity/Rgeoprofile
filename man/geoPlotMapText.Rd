@@ -65,7 +65,8 @@ s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p, lambda=0.05)
 # produce simple map
-geoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames = letters[1:13], surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
+geoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames =
+letters[1:13], surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 
 }
