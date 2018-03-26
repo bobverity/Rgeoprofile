@@ -8,6 +8,7 @@
 #' @importFrom Rcpp evalCpp
 #' @import fftwtools
 #' @import ggplot2
+#' @import ggmap
 #' @import RColorBrewer
 #' @import rgl
 #' @import sp
