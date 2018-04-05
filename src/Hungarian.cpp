@@ -194,8 +194,7 @@ std::vector<int> hungarian(std::vector< std::vector<double> > &M) {
     } // rep loop
     
     Rcout << "Error in Hungarian algorithm\n";
-    exit(1);
-    
+    return(edgesLeft);   // note, this may not be an appropriate exit value, but calling "exit" is not allowed here as it will close R completely!
 }
 
 
