@@ -719,7 +719,7 @@ geoReportHitscores <- function(params, source, surface) {
 #' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,
 #' opacity = 0.4)
 
-modelSources <- function (mcmc, data) {
+geoModelSources <- function (mcmc, data) {
   
   # get mean over data, split by best group
   lon <- mapply(mean, split(data$longitude, mcmc$bestGrouping))
@@ -799,24 +799,24 @@ geoRing <- function(params, data, source, mcmc) {
 #' @examples
 #' # to come
 
-geoMask <- function (probSurface, params, shapefile, scaleValue = 1, operation = "inside", maths = "multiply") {
+geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "inside", maths = "multiply") {
   
   # check input formats
-  stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame", "RasterLayer","SpatialLinesDataFrame"))
+  stopifnot(class(mask) %in% c("SpatialPolygonsDataFrame", "RasterLayer","SpatialLinesDataFrame"))
   stopifnot(operation %in% c("inside", "outside", "near", "far", "continuous"))
   stopifnot(maths %in% c("multiply", "divide", "add", "subtract", "continuous"))
   
-  # convert shapefile to raster
-  if (class(shapefile) == "RasterLayer") { 
-    rf <- shapefile
-  } else if (class(shapefile) == "SpatialPolygonsDataFrame") {
+  # convert mask to raster
+  if (class(mask) == "RasterLayer") { 
+    rf <- mask
+  } else if (class(mask) == "SpatialPolygonsDataFrame") {
     tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-    extent(tmp) <- extent(shapefile)
-    rf <- rasterize(shapefile, tmp)
-  } else if (class(shapefile) == "SpatialLinesDataFrame") {
+    extent(tmp) <- extent(mask)
+    rf <- rasterize(mask, tmp)
+  } else if (class(mask) == "SpatialLinesDataFrame") {
     tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-    extent(tmp) <- extent(shapefile)
-    rf <- rasterize(shapefile, tmp)
+    extent(tmp) <- extent(mask)
+    rf <- rasterize(mask, tmp)
   }
   
   # convert probSurface to raster

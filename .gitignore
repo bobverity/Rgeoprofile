@@ -16,3 +16,4 @@ ignore/
 ^\.Rproj\.user$
 .Rproj.user
 pkgname.Rproj
+R/.*

@@ -512,7 +512,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, surfaceCols
 #' # geoprofile
 #' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
 
-perspGP <- function(surface, aggregate_size=3, surface_type="gp", perspCol=c("red", "orange", "yellow", "white"), phiGP=30, thetaGP=-30) {
+geoPersp <- function(surface, aggregate_size=3, surface_type="gp", perspCol=c("red", "orange", "yellow", "white"), phiGP=30, thetaGP=-30) {
   
   # rescale and transform surface
   scale <- 1
