@@ -10,7 +10,7 @@ geoProfile(surface)
 \item{surface}{matrix to convert to geoprofile}
 }
 \description{
-Converts surface to rank order geoprofile.
+Converts surface to hitscore percentage
 }
 \examples{
 # John Snow cholera data

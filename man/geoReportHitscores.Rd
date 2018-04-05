@@ -4,12 +4,12 @@
 \alias{geoReportHitscores}
 \title{Calculate hitscores}
 \usage{
-geoReportHitscores(params, source_data, surface)
+geoReportHitscores(params, source, surface)
 }
 \arguments{
-\item{mcmc}{stored output obtained by running geoMCMC().}
-
 \item{source}{longitude and latitude of one or more source locations in the format defined by geoDataSource().}
+
+\item{mcmc}{stored output obtained by running geoMCMC().}
 }
 \description{
 Calculate hitscores of the potential sources for a given surface (usually the geoprofile).

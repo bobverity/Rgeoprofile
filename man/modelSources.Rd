@@ -12,7 +12,7 @@ modelSources(mcmc, data)
 \item{data}{Crime site data, in the format produced by geoData().}
 }
 \description{
-This function takes the output of geoMCMC() and, for each 'crime', extracts the group to which it is assigned with the highest probability. For each group, the model returns a list of these groups, and the mean lat/long of all crimes assigned to that group, returning these in a format matching the output of geoDataSource() for easy plotting with geoPLotMap().
+This function takes the output of geoMCMC() and, for each 'crime', extracts the group to which it is assigned with the highest probability. For each group, the model returns the mean lat/long of all crimes assigned to that group.
 }
 \examples{
 # simulated data

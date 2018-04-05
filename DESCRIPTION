@@ -1,6 +1,6 @@
 Package: RgeoProfile
 Title: Geographic profiling in R
-Version: 2.0.1
+Version: 2.1.0
 Date: 2015-08-04
 Author: Robert Verity
 Maintainer: Robert Verity <r.verity@imperial.ac.uk>
@@ -13,8 +13,10 @@ Imports:
     ggplot2,
     ggmap,
     RColorBrewer,
-    rgl,
-    sp,
-    rgeos
+    rgdal,
+    raster,
+    viridis
 LinkingTo: Rcpp
 RoxygenNote: 6.0.1
+SystemRequirements:
+    C++11

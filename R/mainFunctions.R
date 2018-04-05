@@ -1,8 +1,34 @@
+
 # TO DO
 # - the function ringHS() uses a lot of packages and seems quite complicated! At the moment all we did was change the unput variable names, but not the names in the function, meaning it won't currently work. If you could have a go at overhauling this function with the minimum dependencies that would be great. For example, if we can get away with adding our own circles rather than using spatialDataFrame objects that would be ideal.
 # - expand help text and examples where needed. Remember that you need to run the function document() to actually create the help files once you've updated the text here. (NB, document() is part of devtools).
 # - in functions geoReportHitscores() and geoPlotLorenz(), add comments and check program flow. Give input arguments defaults where possible (e.g. NULL), and do some formatting checks on inputs in case of bad input (e.g. using stopifnot())
 # - separate functions that print results and those that return results, or just get rid of printing from existing functions. Make sure returned values are e.g. data frames with correctly labelled columns (particularly hitscores function)
+
+#------------------------------------------------
+# The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package.
+
+# Rcpp          - allows C++ integration
+# fftwtools     - fast Fourier transform, used when smoothing posterior draws into final surface
+# ggplot2       - used to produce layered plots
+# ggmap         - needed for the get_map function, although ggmap function itself is broken
+# RColorBrewer  - used to define default colours in geoPlotAllocation
+# rgdal         - required to load shapefiles
+# raster        - required when using masks
+# viridis       - colour palettes
+
+# TODO - check that packages rgeos and RgoogleMaps are in fact needed. These used to be included in the ringHS function, so might be needed there.
+
+#' @useDynLib RgeoProfile
+#' @importFrom Rcpp evalCpp
+#' @import fftwtools
+#' @import ggplot2
+#' @import ggmap
+#' @import RColorBrewer
+#' @import rgdal
+#' @import raster
+#' @import viridis
+NULL
 
 #------------------------------------------------
 #' Create Rgeoprofile data object
@@ -237,6 +263,30 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
 }
 
 #------------------------------------------------
+#' Import shapefile
+#'
+#' TODO
+#'
+#' @param x TODO
+#'
+#' @export
+#' @examples
+#' # TODO
+
+geoShapefile <- function(fileName=NULL) {
+  
+  # load north London boroughs by default
+  if (is.null(fileName)) {
+    fileName <- system.file('extdata', 'London_north', package='RgeoProfile')
+  }
+  
+  # load shapefile
+  ret <- rgdal::readOGR(fileName, verbose=FALSE)
+  
+  return(ret)
+}
+
+#------------------------------------------------
 #' Check data
 #'
 #' Check that all data for use in Rgeoprofile MCMC is in the correct format.
@@ -442,86 +492,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
 }
 
 #------------------------------------------------
-#' Plot prior and posterior distributions of sigma.
-#'
-#' Plot prior distribution of sigma as defined by current parameter values. Can optionally overlay a kernel density plot of posterior draws of sigma.
-#'
-#' @param params a list of parameters as defined by geoParams().
-#' @param mcmc stored output obtained by running geoMCMC(). Leave as NULL to plot prior only.
-#' @param plotMax maximum x-axis range to plot. Leave as NULL to use default settings.
-#'
-#' @export
-#' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 0.2, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotSigma(params = p, mcmc = m)
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim$latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotSigma(params = p, mcmc = m)
-
-geoPlotSigma <- function(params, mcmc=NULL, plotMax=NULL) {
-  
-  # check params
-  geoParamsCheck(params, silent=TRUE)
-  
-  # check that plotMax is sensible
-  if (!is.null(plotMax)) {
-    stopifnot(is.numeric(plotMax))
-    stopifnot(is.finite(plotMax))
-    stopifnot(plotMax>0)
-  }
-  
-  # extract sigma parameters
-  sigma_mean <- params$model$sigma_mean
-  sigma_var <- params$model$sigma_var
-  alpha <- params$model$sigma_squared_shape
-  beta <- params$model$sigma_squared_rate
-  
-  # stop if using fixed sigma model
-  if (sigma_var==0) { stop('can only produce this plot under variable-sigma model (i.e. sigma_var>0)') }
-  
-  # extract sigma draws from mcmc object
-  sigma_draws <- mcmc$sigma
-  
-  # default plotMax based on extent of prior distribution AND the extent of posterior draws if available
-  if (is.null(plotMax)) {
-    plotMax <- sigma_mean + 3*sqrt(sigma_var)
-    if (!is.null(sigma_draws)) {
-      plotMax <- max(plotMax, 2*max(sigma_draws, na.rm=TRUE))
-    }
-  }
-  
-  # produce prior distribution
-  sigma_vec <- seq(0, plotMax, l=501)
-  sigma_prior <- dRIG(sigma_vec, alpha, beta)
-  
-  # plot prior and overlay density of posterior draws if used
-  if (is.null(sigma_draws)) {
-  	
-    plot(sigma_vec, sigma_prior, type='l', xlab='sigma (km)', ylab='probability density', main='')
-    legend(x='topright', legend='prior', lty=1)
-    
-  } else {
-  	
-    sigma_posterior <- density(sigma_draws, from=0, to=plotMax)
-    y_max <- max(sigma_posterior$y, na.rm=TRUE)
-    
-    plot(sigma_vec, sigma_prior, type='l', ylim=c(0,y_max), lty=2, xlab='sigma (km)', ylab='probability density', main='')
-    lines(sigma_posterior)
-    legend(x='topright', legend=c('prior','posterior'), lty=c(2,1))
-  }
-  
-}
-
-#------------------------------------------------
 #' MCMC under Rgeoprofile model
 #'
 #' This function carries out the main MCMC under the Rgeoprofile model. Posterior draws are smoothed to produce a posterior surface, and converted into a geoProfile. Outputs include posterior draws of alpha and sigma under the variable-sigma model.
@@ -585,107 +555,35 @@ geoMCMC <- function(data, params, lambda=NULL) {
     # extract mu draws and convert from cartesian to lat/lon coordinates
     mu_draws <- cartesian_to_latlon(params$model$priorMean_latitude, params$model$priorMean_longitude, rawOutput$mu_x, rawOutput$mu_y)
     
-    # bin mu draws in two dimensions and check that at least one posterior draw in chosen region
-    surface_raw <- bin2D(mu_draws$longitude, mu_draws$latitude, breaks_lon, breaks_lat)$z
-    if (all(surface_raw==0))
-    stop('chosen lat/long window contains no posterior draws')
-    
-    # temporarily add guard rail to surface to avoid Fourier series bleeding round edges
-    railSize_x <- cells_lon
-    railSize_y <- cells_lat
-    railMat_x <- matrix(0,cells_lat,railSize_x)
-    railMat_y <- matrix(0,railSize_y,cells_lon+2*railSize_x)
-    
-    surface_normalised <- surface_raw/sum(surface_raw)
-    surface_normalised <- cbind(railMat_x, surface_normalised, railMat_x)
-    surface_normalised <- rbind(railMat_y, surface_normalised, railMat_y)
-    
-    # calculate Fourier transform of posterior surface
-    f1 = fftw2d(surface_normalised)
-    
-    # calculate x and y size of one cell in cartesian space. Because of transformation this size will technically be different for each cell, but use centre of prior to get a middling values
-    cellsize_prior <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, params$model$priorMean_latitude+cellSize_lat, params$model$priorMean_longitude+cellSize_lon)
-    cellsize_x <- cellsize_prior$x
-    cellsize_y <- cellsize_prior$y
-    
-    # produce surface over which kernel will be calculated. This surface wraps around in both x and y (i.e. the kernel is actually defined over a torus).
-    kernel_x <- cellsize_x * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised)-1)/2):1)
-    kernel_y <- cellsize_y * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised)-1)/2):1)
-    kernel_x_mat <- outer(rep(1,length(kernel_y)), kernel_x)
-    kernel_y_mat <- outer(kernel_y, rep(1,length(kernel_x)))
-    kernel_s_mat <- sqrt(kernel_x_mat^2+kernel_y_mat^2)
-    
-    # set lambda (bandwidth) range to be explored
-    if (is.null(lambda)) {
-	    lambda_step <- min(cellsize_x, cellsize_y)/5
-	    lambda_vec <- lambda_step*(1:100)
-	} else {
-		lambda_vec <- lambda
-	}
-    
-    # loop through range of values of lambda
-    cat('Smoothing posterior surface')
-    flush.console()
-    logLike <- -Inf
-    for (i in 1:length(lambda_vec)) {
-        
-        if (i>1) {
-        	cat(".")
-        	flush.console()
-        }
-        
-        # calculate Fourier transform of kernel
-        lambda_this <- lambda_vec[i]
-        kernel <- dts(kernel_s_mat,df=3,scale=lambda_this)
-        f2 = fftw2d(kernel)
-        
-        # combine Fourier transformed surfaces and take inverse. f4 will ultimately become the main surface of interest.
-        f3 = f1*f2
-        f4 = Re(fftw2d(f3,inverse=T))/length(surface_normalised)
-        
-        # subtract from f4 the probability density of each point measured from itself. In other words, move towards a leave-one-out kernel density method
-        f5 <- f4 - surface_normalised*dts(0,df=3,scale=lambda_this)
-        f5[f5<0] <- 0
-        f5 <- f5/sum(f4)
-        
-        # calculate leave-one-out log-likelihood at each point on surface
-        f6 <- surface_normalised*log(f5)
-        
-        # break if total log-likelihood is at a local maximum
-        if (sum(f6,na.rm=T)<logLike) {
-	        break()
-	    }
-        logLike <- sum(f6,na.rm=T)
-        
-    }
-    
-    # report chosen value of lambda
-    if (is.null(lambda)) {
-	    cat(paste('\nmaximum likelihood lambda = ',round(lambda_this,3),sep=''))
-	}
-    
-    # remove guard rail
-    f4 <- f4[,(railSize_x+1):(ncol(f4)-railSize_x)]
-    f4 <- f4[(railSize_y+1):(nrow(f4)-railSize_y),]
+    # produce smoothed surface
+    mu_smooth <- geoSmooth(mu_draws$longitude, mu_draws$latitude, breaks_lon, breaks_lat, lambda)
     
     # calculate coordinates of lat/lon matrix in original cartesian coordinates
     cart <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, mids_lat_mat, mids_lon_mat)
     
-    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. However, as the matrix is limited to the region specified by the limits, in reality this matrix will sum to some value less than 1.
-    priorMat <- dnorm(cart$x,sd=params$model$tau)*dnorm(cart$y,sd=params$model$tau)*(cellSize_lon*cellSize_lat)
+    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. However, as the matrix is limited to the region specified by the limits, in reality this matrix will usually sum to less than 1.
+    priorMat <- dnorm(cart$x, sd=params$model$tau) * dnorm(cart$y, sd=params$model$tau) * (cellSize_lon*cellSize_lat)
     
-    # combine prior surface with stored posterior surface (the prior never fully goes away under a DPM model)
+    # combine prior surface with stored posterior surface (the prior never fully goes away under the DPM model)
     n <- length(data$longitude)
     alpha <- rawOutput$alpha
-    posteriorMat <-  f4 + priorMat*mean(alpha/(alpha+n))
+    posteriorMat <-  mu_smooth + priorMat*mean(alpha/(alpha+n))
     
     # produce geoprofile
     gp <- geoProfile(posteriorMat)
     
     # calculate posterior allocation
-    allocation <- matrix(unlist(rawOutput$allocation),n,byrow=T)
+    allocation <- matrix(unlist(rawOutput$allocation), n, byrow=T)
     allocation <- data.frame(allocation/params$MCMC$samples)
-    names(allocation) <- paste("group",1:ncol(allocation),sep="")
+    names(allocation) <- paste("group", 1:ncol(allocation), sep="")
+    
+    # get single best posterior grouping
+    bestGrouping <- apply(allocation, 1, which.max)
+    
+    # calculate posterior co-allocation
+    coAllocation <- matrix(unlist(rawOutput$coAllocation), n, byrow=T)/params$MCMC$samples
+    diag(coAllocation) <- 1
+    coAllocation[row(coAllocation)>col(coAllocation)] <- NA
     
     # finalise output format
     output <- list()
@@ -697,6 +595,8 @@ geoMCMC <- function(data, params, lambda=NULL) {
     output$sigma <- rawOutput$sigma
     output$alpha <- alpha
     output$allocation <- allocation
+    output$bestGrouping <- bestGrouping
+    output$coAllocation <- coAllocation
     
     return(output)
 }
@@ -704,7 +604,7 @@ geoMCMC <- function(data, params, lambda=NULL) {
 #------------------------------------------------
 #' Calculate geoprofile from surface
 #'
-#' Converts surface to rank order geoprofile.
+#' Converts surface to hitscore percentage
 #'
 #' @param surface matrix to convert to geoprofile
 #'
@@ -726,288 +626,16 @@ geoMCMC <- function(data, params, lambda=NULL) {
 #' gp <- geoProfile(m$posteriorSurface)
 
 geoProfile <- function(surface) {
-    
-    # check that surface is in correct format
-    if (!all(is.finite(surface)) | !all(is.numeric(surface)))
-        stop("values in surface must be finite and numeric")
-    if (!is.matrix(surface))
-        stop("surface must be a matrix")
-    
-    # create geoprofile from surface
-    surface[order(surface,decreasing=TRUE)] <- 1:length(surface)
-    
-    return(surface)
-}
-
-#------------------------------------------------
-#' Plot posterior allocation
-#'
-#' Produces plot of posterior allocation from output of MCMC.
-#'
-#' @param mcmc stored output obtained by running geoMCMC().
-#' @param colors vector of colours for each allocation. If NULL then use default colour scheme.
-#' @param barBorderCol colour of borders around each bar. Set as NA to omit this border (useful when there are a large number of observations).
-#' @param barBorderWidth line width of borders around each bar.
-#' @param mainBorderCol colour of border around plot.
-#' @param mainBorderWidth line width of border around plot.
-#' @param yTicks_on whether to include ticks on the y-axis.
-#' @param yTicks vector of y-axis tick positions.
-#' @param xTicks_on whether to include ticks on the x-axis.
-#' @param xTicks_size size of ticks on the x-axis.
-#' @param xlab x-axis label.
-#' @param ylab x-axis label.
-#' @param mainTitle main title over plot.
-#' @param names individual names of each observation, written horizontally below each bar.
-#' @param names_size size of names under each bar.
-#' @param orderBy whether to order segments within each bar by "group" or by "probability". If ordered by group, all segments of a particular group are laid down before moving to the next group. If ordered by probability the segments within each bar are ordered from large to small.
-#'
-#' @export
-#' @examples
-#' # London example data
-#' d <- geoData()
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotAllocation(m)
-#'
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' geoPlotAllocation(m, barBorderCol=NA)	# (should allocate all to a single source!)
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotAllocation(m)
-
-geoPlotAllocation <- function(mcmc, colours="default", barBorderCol="white", barBorderWidth=0.25, mainBorderCol="black", mainBorderWidth=2, yTicks_on=TRUE, yTicks=seq(0,1,0.2), xTicks_on=FALSE, xTicks_size=1, xlab="", ylab="posterior allocation", mainTitle="", names=NA, names_size=1, orderBy="group") {
-    
-    # check that orderBy is either 'group' or 'probability'
-    if (!(orderBy%in%c("group","probability")))
-        stop("orderBy must equal 'group' or 'probability'")
-    
-    # get allocation from mcmc object
-    allocation <- mcmc$allocation
-    
-    # check that allocation is a data frame
-    if (!is.data.frame(allocation))
-        stop("allocation must be a data frame, with observations in rows and groups in columns")
-    
-    n <- nrow(allocation)
-    k <- ncol(allocation)
-    
-    # replace colours if default
-    if (colours=="default") {
-        rawCols <- brewer.pal(n=11,name="RdYlBu")
-        myPal <- colorRampPalette(rawCols)
-        colours <- myPal(k)
-        colours <- colours[c(2*(1:ceiling(k/2))-1,2*(1:floor(k/2)))]
-    }
-    
-    # if ordered by group
-    if (orderBy=="group") {
-        
-        plot(0, type='n', xlim=c(0,n), ylim=c(0,1), xlab=xlab, ylab=ylab, xaxs="i", yaxs="i",axes=FALSE, main=mainTitle)
-        barplot(t(allocation), col=colours, space=0, border=NA, axes=FALSE, add=TRUE)
-        segments(0:n,c(0,0),0:n,c(1,1), col=barBorderCol, lwd=barBorderWidth)
-        box(col=mainBorderCol, lwd=mainBorderWidth)
-        axis(2, tick=yTicks_on, labels=yTicks_on, at=yTicks)
-        axis(1, at=1:n-0.5, tick=xTicks_on, lwd.ticks=xTicks_size, labels=names, las=2, cex.axis=names_size)
-    }
-    
-    # if ordered by probability
-    if (orderBy=="probability") {
-        
-        plot(0, type='n', xlim=c(0,n), ylim=c(0,1), xlab=xlab, ylab=ylab, xaxs="i", yaxs="i",axes=FALSE, main=mainTitle)
-        tM <- t(allocation)
-        for (i in 1:n) {
-            temp <- tM
-            temp[,-i] <- NA
-            temp_order <- order(temp[,i],decreasing=TRUE)
-            barplot(temp[temp_order,], col=colours[temp_order], space=0, border=NA, axes=FALSE, add=TRUE)
-        }
-        segments(0:n,c(0,0),0:n,c(1,1), col=barBorderCol, lwd=barBorderWidth)
-        box(col=mainBorderCol, lwd=mainBorderWidth)
-        axis(2, tick=yTicks_on, labels=yTicks_on, at=yTicks)
-        axis(1, at=1:n-0.5, tick=xTicks_on, lwd.ticks=xTicks_size, labels=names, las=2, cex.axis=names_size)
-    }
-    
-}
-
-#------------------------------------------------
-# get optimal zoom level given x and y values
-# (not exported)
-
-getZoom <- function(x,y) {
-	
-	# calculate midpoint of range in x and y
-	xmid <- min(x)+diff(range(x))/2
-	ymid <- min(y)+diff(range(y))/2
-	
-	# calculate delta (half of longitude range) for a range of zoom levels
-	z <- 20:2
-	delta <- 445/(2^z)
-	
-	# calculate left and right longitude limits at all zoom levels
-	long_angle_left <- xmid-delta
-	long_angle_right <- xmid+delta
-	
-	# calculate top and bottom latitude limits at all zoom levels
-	lat_angle <- ymid/360*2*pi
-	projection_mid <- log(tan(pi/4+lat_angle/2))
-	projection_top <- projection_mid + delta/360*2*pi
-	projection_bot <- projection_mid - delta/360*2*pi
-	lat_angle_top <- (2*atan(exp(projection_top))-pi/2)*360/(2*pi)
-	lat_angle_bot <- (2*atan(exp(projection_bot))-pi/2)*360/(2*pi)
-	
-	# find the most zoomed-in level that captures all points
-	zoomTest <- (min(x)>long_angle_left) & (max(x)<long_angle_right) & (min(y)>lat_angle_bot) & (max(y)<lat_angle_top)
-    if (!any(zoomTest))
-        stop("values are outside of plotting range of earth")
-	bestZoom <- z[which(zoomTest)[1]]
-    
-	return(bestZoom)
-}
-
-#------------------------------------------------
-#' Plot a map and overlay data and/or geoprofile
-#'
-#' Plots geoprofile on map, with various customisable options.
-#'
-#' @param params parameters list in the format defined by geoParams().
-#' @param data data object in the format defined by geoData().
-#' @param source potential sources object in the format defined by geoDataSource().
-#' @param surface a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().
-#' @param zoom zoom level of map. If NULL then choose optimal zoom from params.
-#' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
-#' @param mapType the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
-#' @param opacity value between 0 and 1 givin the opacity of surface colours.
-#' @param plotContours whether or not to add contours to the surface plot.
-#' @param breakPercent vector of values between 0 and 100 describing where in the surface contours appear.
-#' @param contourCols list of two or more colours from which to derive the contour colours.
-#' @param crimeCex relative size of symbols showing crimes.
-#' @param crimeCol colour of crime symbols.
-#' @param crimeBorderCol border colour of crime symbols.
-#' @param crimeBorderWidth width of border of crime symbols.
-#' @param sourceCex relative size of symbols showing suspect sites.
-#' @param sourceCol colour of suspect sites symbols.
-#' @param gpLegend whether or not to add legend to plot.
-#'
-#' @export
-#' @examples
-#' # London example data
-#' d <- geoData()
-#' s <- geoDataSource()
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' # produce simple map
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#'
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' # produce simple map
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' # change colour palette, map type, opacity and range of geoprofile and omit legend
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, opacity = 0.7, gpLegend = FALSE)
-
-geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, mapSource="google", mapType="hybrid", opacity=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCols= c("red","orange","yellow","white"), crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue', gpLegend=TRUE) {
   
-  # check that inputs make sense
-  geoParamsCheck(params)
-  if (!is.null(data)) { geoDataCheck(data) }
+  # check that surface is in correct format
+  stopifnot(is.matrix(surface))
   
-  # if zoom=="auto" then set zoom level based on params
-  if (is.null(zoom)) { zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax) }
+  # create geoprofile from surface
+  ret <- matrix(rank(surface, ties="first"), nrow=nrow(surface), byrow=FALSE)
+  ret[is.na(surface)] <- NA
+  ret <- 100 * (1 - (ret-1)/max(ret, na.rm=TRUE))
   
-  # make zoom level appropriate to map source
-  if (mapSource=="stamen") { zoom <- min(zoom,18) }
-  
-  # make map
-  loc <- c(mean(params$output$longitude_minMax), mean(params$output$latitude_minMax))
-  rawMap <- get_map(location=loc, zoom=zoom, source=mapSource, maptype=mapType)
-  
-  
-  return(rawMap)
-  
-  # add limits
-  myMap <- ggmap(rawMap) + coord_cartesian(xlim=params$output$longitude_minMax, ylim=params$output$latitude_minMax)
-  
-  
-  
-  # overlay geoprofile
-  if (!is.null(surface)) {
-    
-    # create colour palette
-    geoCols <- colorRampPalette(contourCols)
-    nbcol=length(breakPercent)-1
-    
-    # extract plotting ranges and determine midpoints of cells
-    longitude_minMax  <- params$output$longitude_minMax
-    latitude_minMax  <- params$output$latitude_minMax
-    longitude_cells  <- params$output$longitude_cells
-    latitude_cells  <- params$output$latitude_cells
-    longitude_cellSize <- diff(longitude_minMax)/longitude_cells
-    latitude_cellSize <- diff(latitude_minMax)/latitude_cells
-    longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + (1:longitude_cells)* longitude_cellSize
-    latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + (1:latitude_cells)* latitude_cellSize
-    
-    # create data frame of x,y,z values and labels for contour level
-    df <- expand.grid(x=longitude_midpoints, y=latitude_midpoints)
-    df$z <- as.vector(t(surface))
-    labs <- paste(round(breakPercent,1)[-length(breakPercent)],"-",round(breakPercent,1)[-1],"%",sep='')
-    df$cut <- cut(df$z, breakPercent/100*length(surface), labels=labs)
-    
-    # remove all entries outside of breakPercent range
-    df_noNA <- df[!is.na(df$cut),]
-    
-    # add surface and hitscore legend
-    myMap <- myMap + geom_tile(aes(x=x,y=y,fill=cut), alpha=opacity, data=df_noNA)
-    myMap <- myMap + scale_fill_manual(name="Hitscore\npercentage", values=rev(geoCols(nbcol)))
-    if (gpLegend==FALSE) { 
-      myMap <- myMap + theme(legend.position="none")
-    }
-    
-    # add contours
-    if (plotContours) {
-      myMap <- myMap + stat_contour(aes(x=x,y=y,z=z), colour="grey50", breaks=breakPercent/100*length(surface), size=0.3, alpha=opacity, data=df)
-    }
-  }
-  
-  # overlay data points
-  if (!is.null(data)) {
-    df_data <- data.frame(longitude=data$longitude, latitude=data$latitude)
-    myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=df_data, pch=21, stroke=crimeBorderWidth, cex=crimeCex, fill=crimeCol, col=crimeBorderCol)
-  }
-  
-  # overlay source points
-  if (!is.null(source)) {
-    df_source <- data.frame(longitude=source$source_longitude, latitude=source$source_latitude)
-    myMap <- myMap + geom_point(aes(x=longitude, y=latitude), data=df_source, pch=15, cex=sourceCex, col=sourceCol)
-  }
-  
-  # plot map
-  myMap
+  return(ret)
 }
 
 #------------------------------------------------
@@ -1049,356 +677,61 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, zoom=NULL, 
 #' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
 #' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
 #' 
-geoReportHitscores <- function(params, source_data, surface) {
-sources <- cbind(source_data$source_longitude,source_data$source_latitude)
-	ordermat = matrix(0,params$output$latitude_cells,params$output$longitude_cells)
-	profile_order = order(surface)
-	for (i in 1:(params$output$latitude_cells * params$output$longitude_cells)) {
-		ordermat[profile_order[i]] = i
-		}
-	hitscoremat <<- 1-ordermat/(params$output$latitude_cells * params$output$longitude_cells)
-	hitscoremat2 <- hitscoremat[nrow(hitscoremat):1,]
-
-	xvec=seq(params$output$longitude_minMax[1],params$output$longitude_minMax[2],length=params$output$longitude_cells)
-	yvec=seq(params$output$latitude_minMax[1],params$output$latitude_minMax[2],length=params$output$latitude_cells)
-xdiff = abs(outer(rep(1,nrow(sources)),xvec)-outer(sources[,1],rep(1,params$output$longitude_cells)))
-ydiff = abs(outer(rep(1,nrow(sources)),yvec)-outer(sources[,2],rep(1,params$output$latitude_cells)))
-
-msourcex = mapply(which.min,x=split(xdiff,row(xdiff)))
-msourcey = params$output$longitude_cells-(mapply(which.min,x=split(ydiff,row(ydiff))))+1
-
-	if (nrow(sources)>1) {
-		hitscores = diag(hitscoremat2[msourcey,msourcex])
-	} else {
-		hitscores = hitscoremat2[msourcey,msourcex]}
-hit_output <<- cbind(sources,hitscores)
-	colnames(hit_output) <- c("lon","lat","hs")
-	return(hit_output)
-}
-#------------------------------------------------
-#' Produce Lorenz Plot
-#'
-#' Produces a Lorenz plot showing the proportion of suspect sites or cimes identified as a function of area and calculates
-#' the corresponding Gini coefficient using trapezoid rule.
-#' Also allows an optional vector called crimeNumbers with numbers of crimes per suspect site; tthe length of this vector
-#' should equal the number of suspect sites. If this is present, the function calculates and returns the Gini coefficient 
-#' based on the number of crimes; otherwise, this is calculated based on the number of suspect sites.
-#'
-#' @param hit_scores object in the format defined by geoReportHitscores().
-#' @param crimeNumbers optional vector with numbers of crimes per suspect site.
-#'
-#' @export
-#' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#' hs <- geoReportHitscores(mcmc=m, source=s)
-#' # Lorenz plot
-#' geoPlotLorenz(hit_scores=hs)
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, opacity = 0.7)
-#' hs <- geoReportHitscores(mcmc=m, source=s)
-#' # Lorenz plot using number of incidents per source
-#' cr <- table(sim$group)
-#' geoPlotLorenz(hit_scores=hs,crimeNumbers=cr)
-
-geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", crimes_col="blue") {
-   		# define function using trapezoid rule
-   		tpzd <- function(x,y)
-			{
-				idx = 2:length(x)
-   				return (as.double( (x[idx] - x[idx-1]) %*% (y[idx] + y[idx-1])) / 2)
-   			}
-
-	if(is.null(crimeNumbers))
-    {
-        # sort hit scores
-        capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
-        
-        # cumulative crime sites
-        cum_suspect_sites <- seq(1,length(ordered_hs))/length(ordered_hs)
-        
-        # add initial 0 and terminal 1 to each so plots will begin at (0,0) and end at (1,1) (these are dropped later)
-        ordered_hs <- c(0,ordered_hs,1)
-        cum_suspect_sites <- c(0,cum_suspect_sites,1)
-        
-        # calculate gini coefficient
- 		auc <- (0.5-tpzd(cum_suspect_sites, ordered_hs))/0.5
- 		G <- round(auc,3)        
-
-        # plot
-        plot(ordered_hs, cum_suspect_sites,type="n",xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of sources")
-        points(ordered_hs, cum_suspect_sites,type="l",col=suspects_col)
-        abline(h=seq(0,1,0.2),col="lightgray",lwd=0.4)
-        abline(v=seq(0,1,0.2),col="lightgray",lwd=0.4)
-        abline(0,1,col="gray")
-        text(0.8,0.1,paste0("G (sources) = ",G),cex=0.8)
-        
-        # output
-        return(gini_coefficient=G)
-        
-    } else
-    
-    {
-        hit_scores <- cbind(hit_scores, crimeNumbers)
-        
-        # sort hit scores
-        capture.output(ordered_hs <- hit_scores[order(hit_scores[,3]),][,3])
-        
-        # cumulative crime sites
-        cum_suspect_sites <- seq(1,length(ordered_hs))/length(ordered_hs)
-        
-        # cumulative crime numbers
-        cum_crimes <- cumsum(hit_scores[,4])/sum(hit_scores[,4])
-        
-        # add initial 0 and terminal 1 to each so plots will begin at (0,0) and end at (1,1) (these are dropped later)
-        ordered_hs <- c(0,ordered_hs,1)
-        cum_crimes <- c(0,cum_crimes,1)
-        cum_suspect_sites <- c(0,cum_suspect_sites,1)
-        
-        # calculate gini coefficient
-		auc <- (0.5-tpzd(cum_crimes, ordered_hs))/0.5
- 		G <- round(auc,3)         
-
-# plot
-        plot(ordered_hs,cum_suspect_sites,type="n",xlim=c(0,1),ylim=c(0,1),xlab="hit score",ylab="proportion of sources and incidents")
-        abline(h=seq(0,1,0.2),col="lightgray",lwd=0.4)
-        abline(v=seq(0,1,0.2),col="lightgray",lwd=0.4)
-        points(ordered_hs, cum_suspect_sites,type="l",col= suspects_col)
-        points(ordered_hs, cum_crimes,type="l",col= crimes_col)
-
-        abline(0,1,col="darkgray")
-        text(0.85,0.3,paste0("G (crimes) = ",G),cex=0.8)
-		legend(0.7,0.2,c("sources","incidents"),col=c(suspects_col,crimes_col),lwd=1,cex=0.8)
-        
-        # output
-        return(gini_coefficient=G)
-
-    }
-    
+geoReportHitscores <- function(params, source, surface) {
+  
+  # get size of cells
+  delta_lat <- diff(params$output$latitude_minMax)/params$output$latitude_cells
+  delta_lon <- diff(params$output$longitude_minMax)/params$output$longitude_cells
+  
+  # get index of closest point to each source
+  index_lat <- round((source$latitude - params$output$latitude_minMax[1])/delta_lat + 0.5)
+  index_lon <- round((source$longitude - params$output$longitude_minMax[1])/delta_lon + 0.5)
+  
+  # return hitscore percentages in data frame
+  hs <- surface[cbind(index_lat, index_lon)]
+  ret <- data.frame(longitude=source$longitude, latitude=source$latitude, hitscorePercentage=hs)
+  
+  ret
 }
 
-
 #------------------------------------------------
-#' Calculate and plot probability of coallocation
-#'
-#' Calculates the probability that two crimes are from the same source.
-#' Also allows an optional plot showing the probabilities of allocation different
-#' sources for each of the two selected crimes, using myMCMC$allocation.
-#' The function returns the position of the two chosen crimes in the original
-#'list, their lon/lat and the probability that they come from the same source.
-#'
-#' @param crime1 numerical index of first crime.
-#' @param crime2 numerical index of second crime.
-#' @param coallocation_matrix matrix of coallocations between all observations, as produced the "allocation" output of the function geoMCMC().
-#' @param offset vertical offset of second line to ensure readability.
-#' @param plot.graph whether to plot the graph (if FALSE simply prints probability to console).
-#'
-#' @export
-#' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' prob_coallocation(crime1=1, crime2=3, coallocation_matrix=m$allocation)
+#' Extract latitude and longitude of points identified as sources by geoMCMC()
 #' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' prob_coallocation(crime1=1, crime2=25, coallocation_matrix=m$allocation)
-
-prob_coallocation <- function(crime1, crime2, coallocation_matrix, offset=0.005, plot.graph=TRUE)
-	{
-        # convert input to matrix and get dimension
-        cmat <- as.matrix(coallocation_matrix)
-        d <- ncol(cmat)
-
-        # calculate probability that two crimes come from the same source
-        # set to 1 if we are considering the probability that a source coallocates with itself!
-        ifelse(crime1==crime2,
-        prob_coall<-1,
-        prob_coall <- sum(cmat[crime1,]*cmat[crime2,]))
-
-		# plot graph if required
-		if(plot.graph)
-			{
-				# plot lines
-                mainTitle <- paste0("comparing crimes ",crime1," and ",crime2)
-				plot(cmat[crime1,], type="l", xlim=c(0,d), ylim=c(0,1), col="red", xlab="source", ylab="probability", main=mainTitle)
-				points(cmat[crime2,]+offset, type="l", col="darkgray")
-                
-                # add legend text etc.
-				text(d/1.5, 0.9, paste("probability of coallocation =", round(prob_coall,3)), cex=0.9)
-				legend(d/1.3,0.2, legend=c(crime1,crime2), lwd=1, col=c("red","darkgray"), cex=0.7)
-			}
-		
-        # return coallocation probability of these two crimes
-		return(list("crime.1"=crime1,"crime.2"=crime2,"p.coallocation"=prob_coall))
-	}
-
-#------------------------------------------------
-#' Calculate and plot hit scores based on a ring search
-#'
-#' Calculates hit scores for a ring-search strategy (ie searching in an expanding radius out from the crimes). Also plots the crimes and sources with merged polygons showing these (merged and clipped) rings
-#'
-#' @param params parameters list in the format defined by geoParams().
-#' @param data data object in the format defined by geoData().
-#' @param source potential sources object in the format defined by geoDataSource().
-#' @param buffer_radii vector of search radiuses to draw around incidents, in metres. Default is 1000m, 2000m and 5000.
-#'
+#' This function takes the output of geoMCMC() and, for each 'crime', extracts the group to which it is assigned with the highest probability. For each group, the model returns the mean lat/long of all crimes assigned to that group.
+#' 
+#' @param mcmc Model output in the format produced by geoMCMC().
+#' @param data Crime site data, in the format produced by geoData().
+#' 
 #' @export
 #' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#' geoReportHitscores(mcmc=m, source=s)
-#' ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
-#'
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
+#' 51.5235505, alpha=10, sigma=1, tau=3)
 #' d <- geoData(sim$longitude, sim $latitude)
 #' s <- geoDataSource(sim$source_lon, sim$source_lat)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"), crimeCol="black", crimeBorderCol="white", crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, opacity = 0.7)
-#' hs <- geoReportHitscores(mcmc=m, source=s)
-#' ringHS(params = p, data = d, source = s, buffer_radii=c(1000,2000,5000))
+#' # extract sources identified by the model
+#' ms <- modelSources(mcmc = m, data = d)
+#' # plot data showing the sources identified by the model (note: NOT the actual suspect sites)
+#' geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), 
+#' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",
+#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,
+#' opacity = 0.4)
 
-ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
-	{
-		
-		long2UTM <- function(long) {
-        	(floor((long + 180)/6)%%60) + 1
-		}
-		
-		my_UTM <- long2UTM(mean(data$longitude))
-		my_crs_long_lat <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-		my_crs_utm <- paste("+proj=utm +zone=", my_UTM, " ellps=WGS84", sep = "")
-		
-		crimes <- cbind(data$longitude, data$latitude)
-		crimes_lonlat <- SpatialPointsDataFrame(coords = as.matrix(crimes), data = as.data.frame(crimes), proj4string = CRS(my_crs_long_lat))
-		
-		sources <- cbind(source$source_longitude, source$source_latitude)
-		sources_lonlat <- SpatialPointsDataFrame(coords = as.matrix(sources), data = as.data.frame(sources), proj4string = CRS(my_crs_long_lat))
-		
-		lonMin <- params$output$longitude_minMax[1]
-		lonMax <- params$output$longitude_minMax[2]
-		latMin <- params$output$latitude_minMax[1]
-		latMax <- params$output$latitude_minMax[2]
-		
-		bounds = matrix(c(lonMin, latMin, lonMin, latMax, lonMax, latMax, lonMax, latMin, lonMin, latMin), ncol = 2, byrow = TRUE)
-		bounds_lonlat <- SpatialPointsDataFrame(coords = as.matrix(bounds), data = as.data.frame(bounds), proj4string = CRS(my_crs_long_lat))
-		bounds_UTM <- spTransform(bounds_lonlat, CRS(my_crs_utm))
-		p1 = Polygon(bounds_UTM)
-		bounds_polygon_utm = SpatialPolygons(list(Polygons(list(p1), ID = "a")), proj4string = CRS(my_crs_utm))
-		map_area_m_sq <- gArea(bounds_polygon_utm)
-		
-		crimes_UTM <- spTransform(crimes_lonlat, CRS(my_crs_utm))
-		sources_UTM <- spTransform(sources_lonlat, CRS(my_crs_utm))
-		
-		no_sources <- dim(sources_lonlat)[1]
-		min_dists <- rep(NA, no_sources)
-		for (i in 1:no_sources)
-			{
-				min_dists[i] <- min(spDistsN1(crimes_lonlat, sources_lonlat[i, 1], longlat = TRUE)) * 1000
-			}
-		stored_results <- matrix(rep(NA, no_sources * 4), ncol = 4)
-		stored_buffers <- list()
-		colnames(stored_results) <- c("ring_lon", "ring_lat", "merged_buffer_area_m2", "ring_hs")
-    
-		for (source_number_to_check in 1:no_sources)
-			{
-				ifelse(
-						min_dists[source_number_to_check]==0,
-       
-						{stored_results[source_number_to_check, ] <- c(sources[source_number_to_check, ], 0, 0)},
-       
-       					{	b <- gBuffer(crimes_UTM, byid = FALSE, width = min_dists[source_number_to_check])
-        					b2 <- gUnaryUnion(b)
-        					clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, drop_lower_td = TRUE)
-							merged_area <- gArea(clip)
-							ring_hs_for_this_source <- merged_area/map_area_m_sq
-							stored_results[source_number_to_check, ] <- c(sources[source_number_to_check, ], merged_area, ring_hs_for_this_source)
-        				}
-        				)
-    		}
-    
-		stored_contours <- list()
-			for (contour_number in 1:length(buffer_radii))
-			{
-				b <- gBuffer(crimes_UTM, byid = FALSE, width = buffer_radii[contour_number])
-				b2 <- gUnaryUnion(b)
-				clip <- gIntersection(b2, bounds_polygon_utm, byid = TRUE, drop_lower_td = TRUE)
-				clip_lonlat <- spTransform(clip, CRS(my_crs_long_lat))
-				stored_contours[contour_number] <- clip_lonlat
-    		}
-    
-		my_bounds  <- make_bbox(lon = bounds[,1], lat = bounds[,2], f = 1)
-		df_data <- data.frame(long=data$longitude, lat=data$latitude)
-		source_df_data <- data.frame(long=source$source_longitude, lat=source$source_latitude)
-		
-		MyMap <- get_map(location=my_bounds)
-		MyMap <-ggmap(MyMap)
-
-		gp.colors <- colorRampPalette(c("red","white"))
-    	ringCols <- gp.colors(length(stored_contours))
-    	ringColsTransp = AddAlpha(ringCols, 0.05)
-    
-    	for (cc in length(stored_contours):1)
-    		{
-				MyMap <- MyMap + geom_polygon(aes(x=long, y=lat, group=group), fill=ringColsTransp[cc], color='black', lwd=0.5,data= stored_contours[[cc]],alpha=0.2)
-			}
-		MyMap  <- MyMap + geom_point(aes(x=long, y=lat),data=df_data) 
-		MyMap  <- MyMap + geom_point(aes(x=long, y=lat),data=source_df_data,pch=15,col="blue")
-
-		box_to_plot <- spTransform(bounds_polygon_utm,CRS(my_crs_long_lat))
-
-		MyMap <- MyMap + geom_polygon(aes(x=long, y=lat, group=group),fill=NA, col="black",lwd=0.5,data= box_to_plot,alpha=0.2)
-
-		plot(MyMap)    
-      
-    ring_table <- data.frame(stored_results)
-    ring_hs <- ring_table[, 4]
-    ring_areas <- ring_table[, 3]
-    ring_output <- list(ring_table = ring_table, ring_areas = ring_areas, ring_hs = ring_hs, my_UTM = my_UTM, map_area_m_sq = map_area_m_sq)
-    return(ring_output)
+modelSources <- function (mcmc, data) {
+  
+  # get mean over data, split by best group
+  lon <- mapply(mean, split(data$longitude, mcmc$bestGrouping))
+  lat <- mapply(mean, split(data$latitude, mcmc$bestGrouping))
+  
+  return(list(longitude=lon, latitude=lat))
 }
 
 #------------------------------------------------
 #' Calculate and plot hit scores based on a ring search
 #'
-#' Second attempt at ring search without using other packages. TODO - complete help for this function!
+#' Second attempt at ring search without using other packages.
 #'
 #' @param params Parameters list in the format defined by geoParams().
 #' @param data Data object in the format defined by geoData().
@@ -1424,219 +757,30 @@ ringHS <- function(params, data, source, buffer_radii=c(1000,2000,5000))
 #' geoRingHitscores(params = p, data = d, source = s, mcmc = m, buffer_radii = c(0.1, 0.2, 0.5))
 #'
 
-geoRingHitscores <- function(params, data, source, mcmc, buffer_radii = NULL) {
-    
-    # Calculates the percentage of the grid that must be searched before reaching each source under a ring search strategy. This search strategy assumes that we start from a given crime and search outwards in a circle of increasing radius until we reach a source. As there are multiple crimes the strategy assumes a separate individual searching from each crime simultaneously at an equal rate.
-    # The basic logic of the approach here is that calculating the final search radius is easy - it is simply the minimum radius from any crime to this source. The difficulty is calculating the amount of grid that will have been explored by the time we reach this radius, as circles will often overlap and the intersection should not be double-counted (we assume searching moves on if the area has already been explored by someone else). This is done by brute force - a grid is created and cells are filled in solid if they have been explored. The total percentage of filled cells gives the hitscore percentage. The distance matrices used in this brute force step are needed repeatedly, and so they are computed once at the begninning to save time.
-    
-    # get number of crimes and sources
-    n <- length(data$latitude)
-    ns <- length(source$source_latitude)
-    
-    # create matrices giving lat/lon at all points in search grid
-    lonVec <- mcmc$midpoints_longitude
-    latVec <- mcmc$midpoints_latitude
-    lonMat <- matrix(rep(lonVec,each=length(latVec)), length(latVec))
-    latMat <- matrix(rep(latVec,length(lonVec)), length(latVec))
-    
-    # calculate great circle distance from every data point to every point in search grid. This list of distance matrices will be used multiple times so best to pre-compute here.
-    dlist <- list()
-    for (i in 1:n) {
-        dlist[[i]] <- latlon_to_bearing(data$latitude[i], data$longitude[i], latMat, lonMat)$gc_dist
-    }
-    
-    # calculate hitscore for each source in turn
-    hitScore <- rep(NA,ns)
-    for (i in 1:ns) {
-        
-        # get minimum distance (in km) from all crimes to this source. This is how far the ring search must go out before it reaches the source
-        minDist <- min(latlon_to_bearing(source$source_latitude[i], source$source_longitude[i], data$latitude, data$longitude)$gc_dist)
-        
-        # loop through all crimes, filling in a search matrix as we go if cells are within this minimum distance
-        searchMat <- matrix(0,length(latVec),length(lonVec))
-        for (j in 1:n) {
-            searchMat[dlist[[j]]<=minDist] <- 1
-        }
-        
-        # calculate hitscore percentage from proportion of filled cells
-        hitScore[i] <- mean(searchMat)
-        
-    }
-    # convert dlist to an array
-    darray <- array(as.vector(unlist(dlist)), dim = c(length(lonVec),length(latVec),n))
-    nearest_crime_dist <- t(apply(darray,c(1,2),min))
-    
-    # if buffer_radii is supplied, plot map showing this. If not, plot 'geoprofile' showing ring search
-ifelse(is.null(buffer_radii)==TRUE,
-   {print(geoPlotMap(data = data, source = source, params = p, breakPercent = seq(0, 100, 20), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(nearest_crime_dist)))},
-    {
-ringsMat <- matrix(rep(length(buffer_radii)+1,(params$output$longitude_cells*params$output$latitude_cells)),nrow=params$output$latitude_cells)
-buffer_radii <- buffer_radii[order(buffer_radii)]
-for(b in length(buffer_radii):1)
-{for(i in 1:params$output$longitude_cells)
-{
-	for(j in 1:params$output$latitude_cells)
-	{
-		if(nearest_crime_dist[i,j] <= buffer_radii[b]) ringsMat[i,j] <- b
-	
-	}
-}
-}
-# contour(ringsMat)
-print(geoPlotMap(data = d, source = s, params = p, breakPercent = seq(0, 100, 5), mapType = "roadmap", contourCols =c("red", "white"), crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = rank(ringsMat),gpLegend=FALSE))})
-    
-    ringHS <- hitScore
-    ringResults <- data.frame(cbind(source$source_longitude,source$source_latitude, ringHS))
-    colnames(ringResults) <- c("lon","lat","ringHS")    
-    return(ringResults)
-}
-
-#------------------------------------------------
-#' Perspective plot of geoprofile or raw probabilities
-#'
-#' Plots persp plot of geoprofile or posterior surface (coloured according to height), reducing matrix dimensions if necessary to avoid grid lines being too close together. NB Only works with square matrix
-#'
-#' @param surface surface to plot; either the geoprofile or posteriorSurface output by geoMCMC(). 
-#' @param aggregate_size the number of cells to aggregate to smooth the surface.
-#' @param surface_type type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.
-#' @param perspCol colour palette. Defaults to red/orange/yellow/white.
-#' @param phiGP value of phi to pass to persp().
-#' @param thetaGP value of theta to pass to persp().
-#'
-#' @export
-#' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' # raw probabilities
-#' perspGP(m$posteriorSurface, surface_type = "prob")
-#' # geoprofile
-#' perspGP(m$geoProfile, aggregate_size = 3, surface_type = "gp")
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' # raw probabilities
-#' perspGP(m$posteriorSurface, surface_type = "prob")
-#' # geoprofile
-#' perspGP(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")
-
-perspGP <- function(surface, aggregate_size = 3, surface_type = "gp", perspCol = c("red", "orange", "yellow", "white"), phiGP = 30, thetaGP = -30) {
-    
-			matrix_manipulation <- function(my_matrix,my_operation)
-				{
-					if(my_operation=="reflect_y") {return(my_matrix[,ncol(my_matrix):1])}
-					if(my_operation=="reflect_x") {return(my_matrix[nrow(my_matrix):1,])}
-					if(my_operation=="rotate_180") {return(my_matrix[nrow(my_matrix):1,ncol(my_matrix):1])}
-					if(my_operation=="reflect_diag") {return(t(my_matrix))}
-					if(my_operation=="rotate_90") {return(t(my_matrix)[,nrow(my_matrix):1])}
-					if(my_operation=="rotate_-90") {return(t(my_matrix)[ncol(my_matrix):1,])}
-				}
-
-			if(surface_type=="gp") scale <- -1
-			if(surface_type=="prob") scale <- 1
-			
-			
-			
-			to_plot <-  matrix_manipulation(scale*surface,"reflect_diag")
-			
-			# reduce matrix or not
-			matrix_size <- unique(dim(to_plot))[1]
-			breaks <- seq(1,(matrix_size-(aggregate_size-1)), aggregate_size)
-			output <- matrix(rep(NA,length(breaks)^2),ncol=length(breaks))
-			for(i in 1: length(breaks))
-				{
-					for(j in 1: length(breaks))
-						{
-							output[i,j] <- mean(as.vector(to_plot[breaks[i]:(breaks[i]+(aggregate_size-1)),breaks[j]:(breaks[j]+(aggregate_size-1))]))
-						}
-				}
-                
-			# select colours
-			gp.colors <- colorRampPalette(perspCol)
-            
-			# Generate the desired number of colors from this palette
-			nbcol <- 100
-			color <- gp.colors(nbcol)
-			ncz <- dim(output)[2]
-			nrz <- dim(output)[1]
-            
-			# Compute the z-value at the facet centres
-			zfacet <- output[-1, -1] + output[-1, -ncz] + output[-nrz, -1] + output[-nrz, -ncz]
-			facetcol <- cut(zfacet, nbcol)
-		
-			persp(output, col=color[facetcol], border="black", phi=phiGP, theta=thetaGP, lwd=0.2, box=FALSE)
-            
-	}
-
-
-#------------------------------------------------
-#' Interactive perspective plot of geoprofile or raw probabilities
-#'
-#' Produces interactive perspective plot of geoprofile or posterior surface (coloured according to height).
-#'
-#' @param surface surface to plot; either the geoprofile or posteriorSurface output by geoMCMC().
-#' @param surface_type type of surface; should be either "gp" for geoprofile or "prob" for posteriorSurface.
-#' @param perspCol colour palette. Defaults to red/orange/yellow/white.
-#' @param scale vertical scale of surface.
-#'
-#' @export
-#' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' # raw probabilities
-#' perspGP2(m$posteriorSurface, surface_type = "prob")
-#' # geoprofile
-#' perspGP2(m$geoProfile, surface_type = "gp")
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' # raw probabilities
-#' perspGP2(m$posteriorSurface, surface_type = "prob")
-#' # geoprofile
-#' perspGP2(surface = m$geoProfile, surface_type = "gp")
-
-perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "yellow", "white"), scale=1) {
-    
-    # check input formats
-    stopifnot(surface_type%in%c("gp","prob"))
-    
-    # produce x, y and z values
-    xvec <- seq(1,0,l=nrow(surface))
-    yvec <- seq(0,1,l=ncol(surface))
-    zmat <- (surface-min(surface))/(max(surface)-min(surface))
-    
-    # invert if using gp surface
-    if (surface_type=="gp") {
-        zmat <- 1-zmat
-    }
-    
-    # produce colors
-    ncols <- 1e2
-    colRamp <- colorRampPalette(perspCol)
-    colMat <- colRamp(ncols)[cut(zmat,ncols)]
-    
-    # plot surface
-    surface3d(x=xvec, y=yvec, z=scale*zmat, color=colMat)
-    
+geoRing <- function(params, data, source, mcmc) {
+  
+  # Calculates the percentage of the grid that must be searched before reaching each source under a ring search strategy. This search strategy assumes that we start from a given crime and search outwards in a circle of increasing radius until we reach a source. As there are multiple crimes the strategy assumes a separate individual searching from each crime simultaneously at an equal rate.
+  # The basic logic of the approach here is that calculating the final search radius needed to identify a source is easy - it is simply the minimum radius from any crime to this source. The difficulty is calculating the amount of grid that will have been explored by the time we reach this radius, as circles will often overlap and the intersection should not be double-counted (we assume searching moves on if the area has already been explored by someone else). This is done by brute force - a grid is created and cells are filled in solid if they have been explored. The total percentage of filled cells gives the hitscore percentage. The distance matrices used in this brute force step are needed repeatedly, and so they are computed once at the begninning to save time.
+  
+  # get number of crimes and sources
+  n <- length(data$latitude)
+  ns <- length(source$source_latitude)
+  
+  # create matrices giving lat/lon at all points in search grid
+  lonVec <- mcmc$midpoints_longitude
+  latVec <- mcmc$midpoints_latitude
+  lonMat <- matrix(rep(lonVec,each=length(latVec)), length(latVec))
+  latMat <- matrix(rep(latVec,length(lonVec)), length(latVec))
+  
+  # calculate great circle distance from every data point to every point in search grid. This list of distance matrices will be used multiple times so best to pre-compute here.
+  ret <- matrix(-Inf, nrow=nrow(lonMat), ncol=ncol(lonMat))
+  for (i in 1:n) {
+    neg_dist_i <- -latlon_to_bearing(data$latitude[i], data$longitude[i], latMat, lonMat)$gc_dist
+    ret[neg_dist_i>ret] <- neg_dist_i[neg_dist_i>ret]
+  }
+  
+  # return negative distance
+  return(ret)
 }
 
 #------------------------------------------------
@@ -1647,7 +791,6 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
 #' @param shapefile the spatial information to include. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer.
-#' @param masterProj the projection to use, eg "+proj=longlat +datum=WGS84".
 #' @param scaleValue different functions depending on value of "operation". For "inside' or "outside", the value by which probabilities should be multiplied inside or outside the shapefile; set to zero to exclude completely. For "near" and "far", the importance of proximity to, or distance from, the object described in the RasterLayer or SpatialPointsDataFrame. Not used for "continuous".
 #' @param operation thow to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile.
 #' @param maths one of "add", "subtract", multiply" or "divide. The mathematical operation used to combine the new spatial data with the geoprofile when operation = "continuous".
@@ -1656,412 +799,88 @@ perspGP2 <- function(surface, surface_type="gp", perspCol=c("red", "orange", "ye
 #' @examples
 #' # to come
 
-GPshapefile <- function (probSurface, params, shapefile, masterProj = "+proj=longlat +datum=WGS84", 
-    scaleValue = 1, operation = "inside", maths = "multiply") 
-{
-    stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame", 
-        "RasterLayer","SpatialLinesDataFrame"))
-    stopifnot(operation %in% c("inside", "outside", "near", "far", 
-        "continuous"))
-    stopifnot(maths %in% c("multiply", "divide", "add", "subtract", 
-        "continuous"))
-    if (class(shapefile) == "RasterLayer") {
-        rf <- shapefile
+geoMask <- function (probSurface, params, shapefile, scaleValue = 1, operation = "inside", maths = "multiply") {
+  
+  # check input formats
+  stopifnot(class(shapefile) %in% c("SpatialPolygonsDataFrame", "RasterLayer","SpatialLinesDataFrame"))
+  stopifnot(operation %in% c("inside", "outside", "near", "far", "continuous"))
+  stopifnot(maths %in% c("multiply", "divide", "add", "subtract", "continuous"))
+  
+  # convert shapefile to raster
+  if (class(shapefile) == "RasterLayer") { 
+    rf <- shapefile
+  } else if (class(shapefile) == "SpatialPolygonsDataFrame") {
+    tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
+    extent(tmp) <- extent(shapefile)
+    rf <- rasterize(shapefile, tmp)
+  } else if (class(shapefile) == "SpatialLinesDataFrame") {
+    tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
+    extent(tmp) <- extent(shapefile)
+    rf <- rasterize(shapefile, tmp)
+  }
+  
+  # convert probSurface to raster
+  raster_probSurface <- raster(probSurface, xmn = params$output$longitude_minMax[1], xmx = params$output$longitude_minMax[2], ymn = params$output$latitude_minMax[1], ymx = params$output$latitude_minMax[2], crs="+proj=longlat +datum=WGS84")
+  
+  # project mask onto same coordinate system as probSurface
+  rf <- projectRaster(rf, raster_probSurface, crs="+proj=longlat +datum=WGS84")
+  
+  # extract raster values to matrices
+  rf_mat <- matrix(rf@data@values, ncol = rf@ncols, byrow = TRUE)
+  rf_mat <- rf_mat[nrow(rf_mat):1,]
+  p_mat <- matrix(raster_probSurface@data@values, ncol = raster_probSurface@ncols, byrow = TRUE)
+  
+  #### OPERATIONS
+  
+  # initialise scale matrix
+  scale_mat <- NULL
+  
+  # keep cells inside mask, multiplied by scaleValue
+  if (operation == "inside") {
+    scale_mat <- scaleValue * ifelse(is.na(rf_mat), NA, 1)
+    p_mat <- p_mat * scale_mat
+  }
+  
+  # keep cells outside mask, multiplied by scaleValue
+  if (operation == "outside") {
+    scale_mat <- scaleValue * ifelse(is.na(rf_mat), 1, NA)
+    p_mat <- p_mat * scale_mat
+  }
+  
+  # perform operation at all cells
+  if (operation == "continuous") {
+    if (maths == "add") { 
+      p_mat <- p_mat + rf_mat
     }
-    if (class(shapefile) == "SpatialPolygonsDataFrame") {
-        r <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-        extent(r) <- extent(shapefile)
-        rf <- rasterize(shapefile, r)
+    if (maths == "subtract") {
+      p_mat <- p_mat - rf_mat
     }
-    if (class(shapefile) == "SpatialLinesDataFrame") {
-        r <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-        extent(r) <- extent(shapefile)
-        rf <- rasterize(shapefile, r)
+    if (maths == "multiply") {
+      p_mat <- p_mat * rf_mat
     }
-    probSurface <- probSurface[params$output$longitude_cells:1, 
-        ]
-    master_extent <- rbind(params$output$longitude_minMax, params$output$latitude_minMax)
-    masterproj <- masterProj
-    r <- raster(probSurface, crs = masterproj, xmn = params$output$longitude_minMax[1], 
-        xmx = params$output$longitude_minMax[2], ymn = params$output$latitude_minMax[1], 
-        ymx = params$output$latitude_minMax[2])
-    raster_probSurface <- r
-    new_spatial_data_to_include <- projectRaster(rf, raster_probSurface, 
-        crs = master_proj)
-    new_data_as_scaled_matrix <- matrix(new_spatial_data_to_include@data@values, 
-        ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
-    GP_as_scaled_matrix <- matrix(raster_probSurface@data@values, 
-        ncol = params$output$longitude_cells)[, params$output$latitude_cells:1]
-    combined_mat <- matrix(rep(NA, (params$output$longitude_cells * 
-        params$output$latitude_cells), nrows = params$output$longitude_cells), 
-        ncol = params$output$longitude_cells)
-    if (operation == "inside") {
-        for (i in 1:params$output$longitude_cells) {
-            for (j in 1:params$output$latitude_cells) {
-                new_value <- ifelse(is.na(new_data_as_scaled_matrix[i, 
-                  j]) == FALSE, GP_as_scaled_matrix[i, j], (scaleValue * 
-                  GP_as_scaled_matrix[i, j]))
-                combined_mat[i, j] <- new_value
-            }
-        }
-        scaleMatrix <- new_data_as_scaled_matrix
+    if (maths == "divide") {
+      p_mat <- p_mat / rf_mat
     }
-    if (operation == "outside") {
-        for (i in 1:params$output$longitude_cells) {
-            for (j in 1:params$output$latitude_cells) {
-                new_value <- ifelse(is.na(new_data_as_scaled_matrix[i, 
-                  j]) == TRUE, GP_as_scaled_matrix[i, j], (scaleValue * 
-                  GP_as_scaled_matrix[i, j]))
-                combined_mat[i, j] <- new_value
-            }
-        }
-        scaleMatrix <- new_data_as_scaled_matrix
-    }
-    if (operation == "continuous") {
-        if (maths == "add") {
-            combined_mat <- GP_as_scaled_matrix + new_data_as_scaled_matrix
-        }
-        if (maths == "subtract") {
-            combined_mat <- GP_as_scaled_matrix - new_data_as_scaled_matrix
-        }
-        if (maths == "multiply") {
-            combined_mat <- GP_as_scaled_matrix * new_data_as_scaled_matrix
-        }
-        if (maths == "divide") {
-            combined_mat <- GP_as_scaled_matrix/new_data_as_scaled_matrix
-        }
-        scaleMatrix <- new_data_as_scaled_matrix
-    }
-    if (operation == "near") {
-        distance_mat <- distance(new_spatial_data_to_include)
-        distance_mat <- matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, 
-            params$output$latitude_cells:1]
-        scaleMatrix <- 1/(distance_mat^scaleValue)
-        scaleMatrix[scaleMatrix == "Inf"] <- 1
-        combined_mat <- scaleMatrix * GP_as_scaled_matrix
-    }
-    if (operation == "far") {
-        distance_mat <- distance(new_spatial_data_to_include)
-        distance_mat <- matrix(distance_mat@data@values, ncol = params$output$longitude_cells)[, 
-            params$output$latitude_cells:1]
-        scaleMatrix <- distance_mat^scaleValue
-        scaleMatrix[scaleMatrix == "Inf"] <- 1
-        combined_mat <- scaleMatrix * GP_as_scaled_matrix
-    }
-    adjusted_surface <- combined_mat
-    rank_adjusted_surface <- rank(-adjusted_surface)
-    adjSurface <- list(rank = matrix(rank_adjusted_surface, ncol = params$output$longitude_cells, 
-        byrow = TRUE), prob = matrix(adjusted_surface, ncol = params$output$longitude_cells, 
-        byrow = TRUE)/sum(adjusted_surface[is.na(adjusted_surface) == 
-        FALSE]), scaleMatrix = scaleMatrix)
-    return(adjSurface)
+  }
+  
+  # decay with distance from non-NA cells
+  if (operation == "near") {
+    d <- distance(rf)
+    d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
+    scale_mat <- 1/(d_mat^scaleValue)
+    scale_mat[scale_mat == "Inf"] <- 1
+    p_mat <- p_mat * scale_mat
+  }
+  
+  # increase with distance from non-NA cells
+  if (operation == "far") {
+    d <- distance(rf)
+    d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
+    scale_mat <- d_mat^scaleValue
+    p_mat <- p_mat * scale_mat
+  }
+  
+  # return list
+  ret <- list(prob = p_mat, scaleMatrix = scale_mat)
+  return(ret)
 }
-#------------------------------------------------
-#' Extract latitude and longitude of points identified as sources by geoMCMC()
-#' 
-#' This function takes the output of geoMCMC() and, for each 'crime', extracts the group to which it is assigned with the highest probability. For each group, the model returns a list of these groups, and the mean lat/long of all crimes assigned to that group, returning these in a format matching the output of geoDataSource() for easy plotting with geoPLotMap().
-#' 
-#' @param mcmc Model output in the format produced by geoMCMC().
-#' @param data Crime site data, in the format produced by geoData().
-#' 
-#' @export
-#' @examples
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=10, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' # extract sources identified by the model
-#' ms <- modelSources(mcmc = m, data = d)
-#' # plot data showing the sources identified by the model (note: NOT the actual suspect sites)
-#' geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), 
-#' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,
-#' opacity = 0.4)
-
-modelSources <- function (mcmc, data) 
-{
-    groups <- apply(mcmc$allocation, 1, which.max)
-    group_IDs <- unique(groups)
-    max_groups <- max(group_IDs)
-    sources_found <- data.frame(matrix(rep(NA, 2 * max_groups), ncol = 2))
-    n_groups <- length(group_IDs)
-    for (i in 1:n_groups)
-    {
-        sources_found[group_IDs[i], ] <- c(mean(data$longitude[which(groups == group_IDs[i])]), mean(data$latitude[which(groups == group_IDs[i])]))
-    }
-    sources_found <- sources_found[complete.cases(sources_found),]
-    model_sources <- geoDataSource(sources_found[, 1],sources_found[,2])
-    return(list(model_sources = model_sources, groups = groups))
-}
-#------------------------------------------------
-#' Interactive map with zoom function
-#' 
-#' Like geoPlotMap(), this function takes the output of geoMCMC() and plots the resulting geoprofile, but this time in an active window allowing the user to click on two points that define an area on which to zoom. For simplicity, the original plot and the zoom plot returned by the function lack most of the options of geoPlotMap() (for example, it doesn't plot sources, or allow custom colours, contours etc). However, the function returns new params and surface objects ($paramsZoom and $surfaceZoom respectively) which can be used with geoPLotMap(). NOTE: The function gglocator() from ggmap is relatively slow to process the first click, so users should wait until the cross hairs reappear before clicking a second time.
-#' 
-#' @param my_data Crime site data, in the format produced by geoData().
-#' @param my_params A params object, in the format produced by geoParams().
-#' @param my_surface Surface to plot.
-#' 
-#' @export
-#' @examples
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=10, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' # extract sources identified by the model
-#' z <- geoPlotZoom(my_data = d, my_params = p, my_surface = m$geoProfile)
-#' # replot zoom, customising the output with geoPlotMap()
-#' geoPlotMap(data = d, source = s, params = z$paramsZoom, breakPercent = seq(0, 10, 1), 
-#' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), 
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2, 
-#' surface = z$surfaceZoom, gpLegend=TRUE)
-
-geoPlotZoom <- function(my_data, my_params, my_surface)
-{
-# plot original map
-print(geoPlotMap(data = my_data, params = my_params, surface = my_surface))
-
-# extract lat long limits for zoom
-print("Please click on the active map window to select two points defining the area you wish to magnify:",quote=FALSE)
-pos <- gglocator(2)
-
-# create new params object from original params
-p2<-p
-p2$output$longitude_minMax <- c(min(pos[,1]),max(pos[,1]))
-p2$output$latitude_minMax <- c(min(pos[,2]),max(pos[,2]))
-
-# calculate part of original geoprofile to extract
-lon_vec_orig <- seq(p$output$longitude_minMax[1],p$output$longitude_minMax[2],length=p$output$longitude_cells)
-lat_vec_orig <- seq(p$output$latitude_minMax[1],p$output$latitude_minMax[2],length=p$output$latitude_cells)
-mat_min_lon <- which(lon_vec_orig>p2$output$longitude_minMax[1])[1]
-mat_max_lon <- which(lon_vec_orig>p2$output$longitude_minMax[2])[1]
-mat_min_lat <- which(lat_vec_orig>p2$output$latitude_minMax[1])[1]
-mat_max_lat <- which(lat_vec_orig>p2$output$latitude_minMax[2])[1]
-sub_mat <- my_surface[mat_min_lat:mat_max_lat,mat_min_lon: mat_max_lon]
-
-# function to resize this sub-matrix to the original resolution
-expandMatrix <- function(mat,output_long,output_lat)
-{
-	# define function expanding vector
-	expandVector <- function(input_vec,output_length)
-		{
-			my_vec <- input_vec
-			desired_length <- output_length
-			new_vec <- rep(NA, desired_length)
-
-			vec_ID <- seq(1,length(my_vec),length=desired_length)
-
-			for(i in 1:length(new_vec))
-				{
-					ifelse(vec_ID[i] %% 1 == 0,
-		new_vec[i] <- my_vec[floor(vec_ID[i])],
-		new_vec[i] <- mean((1-vec_ID[i] %% 1) * my_vec[floor(vec_ID[i])] + (vec_ID[i] %% 1) * my_vec[ceiling(vec_ID[i])])
-	)
-				}
-return(new_vec)
-		}
-mat1 <- apply(mat,2, function(x) expandVector(x, output_long))
-mat2 <- apply(mat1,1, function(x) expandVector(x, output_lat))
-return(t(mat2))
-}
-
-# resize zoom area of geoprofile
-zoomed <- expandMatrix(sub_mat,p$output$longitude_cells,p$output$latitude_cells)
-
-# plot without sources
-print(geoPlotMap(data = d, params = p2, surface = zoomed))
-
-# return params and surface objects for further plotting if required
-return(list(paramsZoom=p2,surfaceZoom=zoomed))
-}
-#------------------------------------------------
-#' Unknown pleasures
-#' 
-#' A frivolous alternative to geoPlotMap(), this function takes the output of geoMCMC() and plots the resulting geoprofile in the style of the cover of Joy Division's 'Unknown pleasures' album.
-#' 
-#' @param input_matrix The surface to plot, usually the object $geoProfile produced by geoMCMC().
-#' @param nlines The number of lines (defaults to the correct number of 80).
-#' @param paper_ref A text string, for example a reference to a paper.
-#' @param bgcol Background colour
-#' @param fgcol Foreground colour
-#' @param wt line weight
-#' 
-#' @export
-#' @examples
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=10, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p)
-#' unknownPleasures(m$geoProfile, paper_ref = "Rgeoprofile v2.0.0")
-
-unknownPleasures <- function(input_matrix, paper_ref = NULL, nlines = 80, bgcol = "black", fgcol = "white", wt = 2)
-{
-	orig_prof <- input_matrix
-	citation <- paper_ref
-	# extract other params
-	ncols <- ncol(orig_prof)
-# functions
-expandMatrix <- function(mat,output_long,output_lat)
-{
-	# define function expanding vector
-	expandVector <- function(input_vec,output_length)
-		{
-			my_vec <- input_vec
-			desired_length <- output_length
-			new_vec <- rep(NA, desired_length)
-
-			vec_ID <- seq(1,length(my_vec),length=desired_length)
-
-			for(i in 1:length(new_vec))
-				{
-					ifelse(vec_ID[i] %% 1 == 0,
-		new_vec[i] <- my_vec[floor(vec_ID[i])],
-		new_vec[i] <- mean((1-vec_ID[i] %% 1) * my_vec[floor(vec_ID[i])] + (vec_ID[i] %% 1) * my_vec[ceiling(vec_ID[i])])
-	)
-				}
-return(new_vec)
-		}
-mat1 <- apply(mat,2, function(x) expandVector(x, output_long))
-mat2 <- apply(mat1,1, function(x) expandVector(x, output_lat))
-return(t(mat2))	
-}
-# reduce to manageable number of rows and columns!
-reduced_mat <- expandMatrix(orig_prof ,nlines, ncols)
-# scale so values fall between -0.5 and +0.5
-reduced_mat <- 1-reduced_mat/max(reduced_mat)-0.5
-# set y coordinates of lines
-yvals <- seq(0, 1,length = nlines)
-# plot
-par(bg = bgcol)
-plot(1:ncols,reduced_mat[nlines,]+yvals[nlines],type="l",ylim=c(-1,max(yvals)+0.5),axes=FALSE,xlab="",ylab="",col=fgcol)
-for(i in nlines:1)
-{
-	
-	polygon(c(min(reduced_mat[i,]),reduced_mat[i,]+yvals[i],min(reduced_mat[i,])),col=bgcol,border=bgcol)
-	points(1:ncol(reduced_mat),reduced_mat[i,]+yvals[i],type="l", col=fgcol,lwd=wt)
-}
-text(0,-0.6,citation,adj=0,col=fgcol)
-}
-#------------------------------------------------
-#' Plot a map and overlay data and/or geoprofile
-#'
-#' Plots geoprofile on map, with various customisable options.
-#'
-#' @param params parameters list in the format defined by geoParams().
-#' @param data data object in the format defined by geoData().
-#' @param source potential sources object in the format defined by geoDataSource().
-#' @param crimeNames text labels for crimes. If NULL, numbers will be used.
-#' @param sourceNames text labels for crimes. If NULL, numbers will be used.
-#' @param surface a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().
-#' @param zoom zoom level of map. If NULL then choose optimal zoom from params.
-#' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
-#' @param mapType the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
-#' @param opacity value between 0 and 1 givin the opacity of surface colours.
-#' @param plotContours whether or not to add contours to the surface plot.
-#' @param breakPercent vector of values between 0 and 100 describing where in the surface contours appear.
-#' @param contourCols list of two or more colours from which to derive the contour colours.
-#' @param crimeCex relative size of symbols showing crimes.
-#' @param crimeCol colour of crime symbols.
-#' @param crimeBorderCol border colour of crime symbols.
-#' @param crimeBorderWidth width of border of crime symbols.
-#' @param sourceCex relative size of symbols showing suspect sites.
-#' @param sourceCol colour of suspect sites symbols.
-#' @param gpLegend whether or not to add legend to plot.
-#'
-#' @export
-#' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' # produce simple map
-#' geoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames =
-#' letters[1:13], surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#' 
-
-geoPlotMapText <- function (params, data = NULL, source = NULL, crimeNames = NULL, sourceNames = NULL, surface = NULL, 
-    zoom = NULL, mapSource = "google", mapType = "hybrid", opacity = 0.6, 
-    plotContours = TRUE, breakPercent = seq(0, 100, l = 11), 
-    contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5, 
-    crimeCol = "red", crimeBorderCol = "white", crimeBorderWidth = 0.5, 
-    sourceCex = 1.5, sourceCol = "blue", gpLegend = TRUE) 
-    {
-    geoParamsCheck(params)
-    if (!is.null(data)) 
-        geoDataCheck(data)
-    if (is.null(zoom)) 
-        zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)
-    if (mapSource == "stamen") 
-        zoom <- min(zoom, 18)
-    rawMap <- get_map(location = c(mean(params$output$longitude_minMax), 
-        mean(params$output$latitude_minMax)), zoom = zoom, source = mapSource, 
-        maptype = mapType)
-    myMap <- ggmap(rawMap) + coord_cartesian(xlim = params$output$longitude_minMax, 
-        ylim = params$output$latitude_minMax)
-    if (!is.null(surface)) {
-        geoCols <- colorRampPalette(contourCols)
-        nbcol = length(breakPercent) - 1
-        longitude_minMax <- params$output$longitude_minMax
-        latitude_minMax <- params$output$latitude_minMax
-        longitude_cells <- params$output$longitude_cells
-        latitude_cells <- params$output$latitude_cells
-        longitude_cellSize <- diff(longitude_minMax)/longitude_cells
-        latitude_cellSize <- diff(latitude_minMax)/latitude_cells
-        longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + 
-            (1:longitude_cells) * longitude_cellSize
-        latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + 
-            (1:latitude_cells) * latitude_cellSize
-        df <- expand.grid(x = longitude_midpoints, y = latitude_midpoints)
-        df$z <- as.vector(t(surface))
-        labs <- paste(round(breakPercent, 1)[-length(breakPercent)], 
-            "-", round(breakPercent, 1)[-1], "%", sep = "")
-        df$cut <- cut(df$z, breakPercent/100 * length(surface), 
-            labels = labs)
-        df_noNA <- df[!is.na(df$cut), ]
-        myMap <- myMap + geom_tile(aes(x = x, y = y, fill = cut), 
-            alpha = opacity, data = df_noNA)
-        myMap <- myMap + scale_fill_manual(name = "Hitscore\npercentage", 
-            values = rev(geoCols(nbcol)))
-        if (gpLegend == FALSE) {
-            myMap <- myMap + theme(legend.position = "none")
-        }
-        if (plotContours) {
-            myMap <- myMap + stat_contour(aes(x = x, y = y, z = z), 
-                colour = "grey50", breaks = breakPercent/100 * 
-                  length(surface), size = 0.3, alpha = opacity, 
-                data = df)
-        }
-    }
-    	if (is.null(crimeNames)) {crimeNames = 1:length(data$longitude)}
-    if (!is.null(data)) {
-        df_data <- data.frame(longitude = data$longitude, latitude = data$latitude,ptno=crimeNames)
-        df_data$ptno <- crimeNames
-        myMap <- myMap + geom_text(aes(x = longitude, y = latitude, label = ptno), 
-            data = df_data, cex = crimeCex,col=crimeCol)
-    }
-    	if (is.null(sourceNames)) {sourceNames = 1:length(source$source_longitude)}
-      if (!is.null(source)) {
-        df_source <- data.frame(longitude = source$source_longitude, 
-            latitude = source$source_latitude,sourceNames)
-        df_source$sptno <- sourceNames
-        myMap <- myMap + geom_text(aes(x = longitude, y = latitude, label = sptno), 
-            data = df_source, cex = sourceCex, col = sourceCol)  
-            
-    }
-    myMap
-}
-#------------------------------------------------
-

@@ -265,6 +265,9 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     
     // create objects for dealing with label switching
     vector< vector<int> > groupMat(n, vector<int>(1));
+    //vector< vector<int> > muMat_x(n, vector<int>(1));
+    //vector< vector<int> > muMat_y(n, vector<int>(1));
+    vector< vector<int> > coAllocation(n, vector<int>(n));
     vector<int> bestPerm;
     vector<int> bestPermOrder(1);
     vector<int> group_reorder(n);
@@ -280,6 +283,7 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     
     vector<double> mu_postDraw_x_store;
     vector<double> mu_postDraw_y_store;
+    vector<int> mu_iteration_store;
     
     // MCMC: sampling
     print("Initiating sampling phase");
@@ -343,12 +347,16 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
                 
                 mu_postDraw_x_store.push_back(mu_postDraw_x[j]);
                 mu_postDraw_y_store.push_back(mu_postDraw_y[j]);
-                
-                /*
-                if (mu_postDraw_x[j]>=x_min && mu_postDraw_x[j]<=x_max && mu_postDraw_y[j]>=y_min && mu_postDraw_y[j]<=y_max) {
-                    geoSurface[floor((mu_postDraw_y[j]-y_min)/double(y_cellSize))][floor((mu_postDraw_x[j]-x_min)/double(x_cellSize))] += freqs[j]/(n+alpha);
+                mu_iteration_store.push_back(rep);
+            }
+        }
+        
+        // store co-allocation
+        for (int i1=0; i1<(n-1); i1++) {
+            for (int i2=(i1+1); i2<n; i2++) {
+                if (group[i1]==group[i2]) {
+                    coAllocation[i1][i2] ++;
                 }
-                */
             }
         }
         
@@ -371,8 +379,10 @@ Rcpp::List C_geoMCMC(Rcpp::List data, Rcpp::List params) {
     return Rcpp::List::create(Rcpp::Named("alpha")=alpha_store,
                               Rcpp::Named("sigma")=sigma_store,
                               Rcpp::Named("allocation")=groupMat,
+                              Rcpp::Named("coAllocation")=coAllocation,
                               Rcpp::Named("mu_x")=mu_postDraw_x_store,
-                              Rcpp::Named("mu_y")=mu_postDraw_y_store);
+                              Rcpp::Named("mu_y")=mu_postDraw_y_store,
+                              Rcpp::Named("mu_iteration")=mu_iteration_store);
 }
 
 //------------------------------------------------
@@ -454,8 +464,9 @@ void updateGroup(int &i, int &n, vector<double> &data_x, vector<double> &data_y,
         uniqueGroups ++;
         nextGroup = 1;
         for (int j=0; j<int(freqs.size()); j++) {
-            if (freqs[j]==0)
+            if (freqs[j]==0) {
                 break;
+            }
             nextGroup++;
         }
     }
@@ -470,6 +481,8 @@ void solveLabelSwitching(int &n, vector<int> &group, vector< vector<int> > &grou
     while ((freqs.size()-1)>bestPermOrder.size()) {
         for (int j=0; j<n; j++) {
             groupMat[j].push_back(0);
+            //muMat_x.push_back(0);
+            //muMat_y.push_back(0);
         }
         bestPermOrder.push_back(0);
         freqs_reorder.push_back(0);
@@ -511,7 +524,8 @@ void solveLabelSwitching(int &n, vector<int> &group, vector< vector<int> > &grou
     sum_y = sum_y_reorder;
     sumSquared_x = sumSquared_x_reorder;
     sumSquared_y = sumSquared_y_reorder;
-    if (nextGroup<int(freqs.size()))
-        nextGroup = bestPerm[nextGroup-1]+1;
+    if (nextGroup<int(freqs.size())) {
+        nextGroup = bestPerm[nextGroup-1] + 1;
+    }
     
 }
