@@ -18,7 +18,6 @@ Plot prior distribution of sigma as defined by current parameter values. Can opt
 }
 \examples{
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
 p <- geoParams(data = d, sigma_mean = 0.2, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)

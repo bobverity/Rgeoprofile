@@ -16,7 +16,6 @@ Check that all parameters for use in Rgeoprofile MCMC are in the correct format.
 }
 \examples{
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 geoParamsCheck(p)

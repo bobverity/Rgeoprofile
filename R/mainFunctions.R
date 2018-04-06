@@ -19,18 +19,18 @@
 #' @import ggmap
 #' @import RColorBrewer
 #' @import rgdal
-#' @importFrom raster raster
+#' @importFrom raster raster extent extent<- rasterize projectRaster distance
 #' @import viridis
 #' @importFrom grDevices colorRampPalette
-#' @importFrom graphics abline axis box legend par points polygon segments
-#' @importFrom stats dnorm optim rnorm
-#' @importFrom utils data flush.console
+#' @import graphics
+#' @import stats
+#' @import utils
 NULL
 
 #------------------------------------------------
 #' Create Rgeoprofile data object
 #'
-#' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
+#' Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format.
 #'
 #' @param longitude the locations of the observed data in degrees longitude.
 #' @param latitude the locations of the observed data in degrees latitude.
@@ -38,7 +38,6 @@ NULL
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' geoData(Cholera$longitude, Cholera$latitude)
 #' 
 #' # simulated data
@@ -47,21 +46,15 @@ NULL
 #' geoData(sim$longitude, sim $latitude)
 
 geoData <- function(longitude=NULL, latitude=NULL) {
-	
-	# use example data if none read in
-	if (is.null(longitude) & is.null(latitude)) {
-    #data(LondonExample_crimes)
-    longitude <- LondonExample_crimes$longitude
-    latitude <- LondonExample_crimes$latitude
-	} else {
-		if (is.null(longitude) | is.null(latitude)) {
-			stop("Both longitude and latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
-		}
-	}
-	
-	# combine and return
-	ret <- list(longitude=longitude, latitude=latitude)
-	return(ret)
+  
+  # check input format
+  stopifnot(!is.null(longitude))
+  stopifnot(!is.null(latitude))
+  stopifnot(length(longitude)==length(latitude))
+  
+  # combine and return
+  ret <- list(longitude=longitude, latitude=latitude)
+  return(ret)
 }
 
 #------------------------------------------------
@@ -75,7 +68,6 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(WaterPumps)
 #' geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 #' 
 #' # simulated data
@@ -84,16 +76,11 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' geoDataSource(sim$source_longitude, sim$source_latitude)
 
 geoDataSource <- function(longitude=NULL, latitude=NULL) {
-    
-  # generate dummy data if none read in
-  if (is.null(longitude) & is.null(latitude)) {
-		#data(LondonExample_sources)
-  	longitude <- LondonExample_sources$longitude
-		latitude <- LondonExample_sources$latitude
-  } else {
-  	if (is.null(longitude) | is.null(latitude))
-  		stop("Both longitude and latitude arguments must be used, or alternatively both arguments must be set to NULL to use default values")
-  }
+  
+  # check input format
+  stopifnot(!is.null(longitude))
+  stopifnot(!is.null(latitude))
+  stopifnot(length(longitude)==length(latitude))
   
   # combine and return
   ret <- list(longitude=longitude, latitude=latitude)
@@ -129,7 +116,6 @@ geoDataSource <- function(longitude=NULL, latitude=NULL) {
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' # define parameters such that the model fits sigma from the data
 #' geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, 
@@ -278,7 +264,7 @@ geoShapefile <- function(fileName=NULL) {
   }
   
   # load shapefile
-  ret <- rgdal::readOGR(fileName, verbose=FALSE)
+  ret <- readOGR(fileName, verbose=FALSE)
   
   return(ret)
 }
@@ -294,7 +280,6 @@ geoShapefile <- function(fileName=NULL) {
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' geoDataCheck(d)
 #' 
@@ -338,7 +323,6 @@ geoDataCheck <- function(data, silent=FALSE) {
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' geoParamsCheck(p)
@@ -402,18 +386,18 @@ geoParamsCheck <- function(params, silent=FALSE) {
   
   # the only time that sigma_squared_shape and sigma_squared_rate are allowed to be NULL is under the fixed sigma model
   if (is.null(params$model$sigma_squared_shape) | is.null(params$model$sigma_squared_rate)) {
-	if (params$model$sigma_var!=0) {
-		stop('params$model$sigma_squared_shape and params$model$sigma_squared_rate can only be NULL under the fixed sigma model, i.e. when params$model$sigma_var==0. ')
-	}
+    if (params$model$sigma_var!=0) {
+      stop('params$model$sigma_squared_shape and params$model$sigma_squared_rate can only be NULL under the fixed sigma model, i.e. when params$model$sigma_var==0. ')
+    }
   }
-
+  
   if (!is.null(params$model$sigma_squared_shape)) {
-  	if (!is.numeric(params$model$sigma_squared_shape) | !is.finite(params$model$sigma_squared_shape))
-    	stop("params$model$sigma_squared_shape must be numeric and finite")
+    if (!is.numeric(params$model$sigma_squared_shape) | !is.finite(params$model$sigma_squared_shape))
+      stop("params$model$sigma_squared_shape must be numeric and finite")
   }
   if (!is.null(params$model$sigma_squared_rate)) {
-  	if (!is.numeric(params$model$sigma_squared_rate) | !is.finite(params$model$sigma_squared_rate))
-    	stop("params$model$sigma_squared_rate must be numeric and finite")
+    if (!is.numeric(params$model$sigma_squared_rate) | !is.finite(params$model$sigma_squared_rate))
+      stop("params$model$sigma_squared_rate must be numeric and finite")
   }
   if (!is.numeric(params$model$priorMean_longitude) | !is.finite(params$model$priorMean_longitude))
     stop("params$model$priorMean_longitude must be numeric and finite")
@@ -500,7 +484,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
@@ -513,89 +496,89 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #' m <- geoMCMC(data = d, params = p)
 
 geoMCMC <- function(data, params, lambda=NULL) {
-    
-    # check that data and parameters in correct format
-    geoDataCheck(data)
-    geoParamsCheck(params)
-    cat("\n")
-    
-    # extract ranges etc. from params object
-    min_lon <- params$output$longitude_minMax[1]
-    max_lon <- params$output$longitude_minMax[2]
-    min_lat <- params$output$latitude_minMax[1]
-    max_lat <- params$output$latitude_minMax[2]
-    cells_lon <- params$output$longitude_cells
-    cells_lat <- params$output$latitude_cells
-    cellSize_lon <- (max_lon-min_lon)/cells_lon
-    cellSize_lat <- (max_lat-min_lat)/cells_lat
-    breaks_lon <- seq(min_lon, max_lon, l=cells_lon+1)
-    breaks_lat <- seq(min_lat, max_lat, l=cells_lat+1)
-    mids_lon <- breaks_lon[-1] - cellSize_lon/2
-    mids_lat <- breaks_lat[-1] - cellSize_lat/2
-    mids_lon_mat <- outer(rep(1,length(mids_lat)), mids_lon)
-    mids_lat_mat <- outer(mids_lat, rep(1,length(mids_lon)))
-    
-    # transform data to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior). Add transformed coordinates to data object before feeding into C++ function
-    data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
-    data$x <- data_cartesian$x
-    data$y <- data_cartesian$y
-    
-    # if using fixed sigma model then change alpha and beta from NULL to -1. This value will be ignored, but needs to be numeric before feeding into the C++ function.
-    if (params$model$sigma_var==0) {
-        params$model$sigma_squared_shape <- -1
-        params$model$sigma_squared_rate <- -1
-    }
-    
-    # carry out MCMC using efficient C++ function
-    rawOutput <- C_geoMCMC(data, params)
-    
-    # extract mu draws and convert from cartesian to lat/lon coordinates
-    mu_draws <- cartesian_to_latlon(params$model$priorMean_latitude, params$model$priorMean_longitude, rawOutput$mu_x, rawOutput$mu_y)
-    
-    # produce smoothed surface
-    mu_smooth <- geoSmooth(mu_draws$longitude, mu_draws$latitude, breaks_lon, breaks_lat, lambda)
-    
-    # calculate coordinates of lat/lon matrix in original cartesian coordinates
-    cart <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, mids_lat_mat, mids_lon_mat)
-    
-    # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. However, as the matrix is limited to the region specified by the limits, in reality this matrix will usually sum to less than 1.
-    priorMat <- dnorm(cart$x, sd=params$model$tau) * dnorm(cart$y, sd=params$model$tau) * (cellSize_lon*cellSize_lat)
-    
-    # combine prior surface with stored posterior surface (the prior never fully goes away under the DPM model)
-    n <- length(data$longitude)
-    alpha <- rawOutput$alpha
-    posteriorMat <-  mu_smooth + priorMat*mean(alpha/(alpha+n))
-    
-    # produce geoprofile
-    gp <- geoProfile(posteriorMat)
-    
-    # calculate posterior allocation
-    allocation <- matrix(unlist(rawOutput$allocation), n, byrow=T)
-    allocation <- data.frame(allocation/params$MCMC$samples)
-    names(allocation) <- paste("group", 1:ncol(allocation), sep="")
-    
-    # get single best posterior grouping
-    bestGrouping <- apply(allocation, 1, which.max)
-    
-    # calculate posterior co-allocation
-    coAllocation <- matrix(unlist(rawOutput$coAllocation), n, byrow=T)/params$MCMC$samples
-    diag(coAllocation) <- 1
-    coAllocation[row(coAllocation)>col(coAllocation)] <- NA
-    
-    # finalise output format
-    output <- list()
-    output$priorSurface <-  priorMat
-    output$posteriorSurface <-  posteriorMat
-    output$geoProfile <-  gp
-    output$midpoints_longitude <- mids_lon
-    output$midpoints_latitude <- mids_lat
-    output$sigma <- rawOutput$sigma
-    output$alpha <- alpha
-    output$allocation <- allocation
-    output$bestGrouping <- bestGrouping
-    output$coAllocation <- coAllocation
-    
-    return(output)
+  
+  # check that data and parameters in correct format
+  geoDataCheck(data)
+  geoParamsCheck(params)
+  cat("\n")
+  
+  # extract ranges etc. from params object
+  min_lon <- params$output$longitude_minMax[1]
+  max_lon <- params$output$longitude_minMax[2]
+  min_lat <- params$output$latitude_minMax[1]
+  max_lat <- params$output$latitude_minMax[2]
+  cells_lon <- params$output$longitude_cells
+  cells_lat <- params$output$latitude_cells
+  cellSize_lon <- (max_lon-min_lon)/cells_lon
+  cellSize_lat <- (max_lat-min_lat)/cells_lat
+  breaks_lon <- seq(min_lon, max_lon, l=cells_lon+1)
+  breaks_lat <- seq(min_lat, max_lat, l=cells_lat+1)
+  mids_lon <- breaks_lon[-1] - cellSize_lon/2
+  mids_lat <- breaks_lat[-1] - cellSize_lat/2
+  mids_lon_mat <- outer(rep(1,length(mids_lat)), mids_lon)
+  mids_lat_mat <- outer(mids_lat, rep(1,length(mids_lon)))
+  
+  # transform data to cartesian coordinates relative to centre of prior. After transformation data are defined relative to point 0,0 (i.e. the origin represents the centre of the prior). Add transformed coordinates to data object before feeding into C++ function
+  data_cartesian <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, data$latitude, data$longitude)
+  data$x <- data_cartesian$x
+  data$y <- data_cartesian$y
+  
+  # if using fixed sigma model then change alpha and beta from NULL to -1. This value will be ignored, but needs to be numeric before feeding into the C++ function.
+  if (params$model$sigma_var==0) {
+      params$model$sigma_squared_shape <- -1
+      params$model$sigma_squared_rate <- -1
+  }
+  
+  # carry out MCMC using efficient C++ function
+  rawOutput <- C_geoMCMC(data, params)
+  
+  # extract mu draws and convert from cartesian to lat/lon coordinates
+  mu_draws <- cartesian_to_latlon(params$model$priorMean_latitude, params$model$priorMean_longitude, rawOutput$mu_x, rawOutput$mu_y)
+  
+  # produce smoothed surface
+  mu_smooth <- geoSmooth(mu_draws$longitude, mu_draws$latitude, breaks_lon, breaks_lat, lambda)
+  
+  # calculate coordinates of lat/lon matrix in original cartesian coordinates
+  cart <-latlon_to_cartesian(params$model$priorMean_latitude, params$model$priorMean_longitude, mids_lat_mat, mids_lon_mat)
+  
+  # produce prior matrix. Note that each cell of this matrix contains the probability density at that point multiplied by the size of that cell, meaning the total sum of the matrix from -infinity to +infinity would equal 1. However, as the matrix is limited to the region specified by the limits, in reality this matrix will usually sum to less than 1.
+  priorMat <- dnorm(cart$x, sd=params$model$tau) * dnorm(cart$y, sd=params$model$tau) * (cellSize_lon*cellSize_lat)
+  
+  # combine prior surface with stored posterior surface (the prior never fully goes away under the DPM model)
+  n <- length(data$longitude)
+  alpha <- rawOutput$alpha
+  posteriorMat <-  mu_smooth + priorMat*mean(alpha/(alpha+n))
+  
+  # produce geoprofile
+  gp <- geoProfile(posteriorMat)
+  
+  # calculate posterior allocation
+  allocation <- matrix(unlist(rawOutput$allocation), n, byrow=T)
+  allocation <- data.frame(allocation/params$MCMC$samples)
+  names(allocation) <- paste("group", 1:ncol(allocation), sep="")
+  
+  # get single best posterior grouping
+  bestGrouping <- apply(allocation, 1, which.max)
+  
+  # calculate posterior co-allocation
+  coAllocation <- matrix(unlist(rawOutput$coAllocation), n, byrow=T)/params$MCMC$samples
+  diag(coAllocation) <- 1
+  coAllocation[row(coAllocation)>col(coAllocation)] <- NA
+  
+  # finalise output format
+  output <- list()
+  output$priorSurface <-  priorMat
+  output$posteriorSurface <-  posteriorMat
+  output$geoProfile <-  gp
+  output$midpoints_longitude <- mids_lon
+  output$midpoints_latitude <- mids_lat
+  output$sigma <- rawOutput$sigma
+  output$alpha <- alpha
+  output$allocation <- allocation
+  output$bestGrouping <- bestGrouping
+  output$coAllocation <- coAllocation
+  
+  return(output)
 }
 
 #------------------------------------------------
@@ -608,7 +591,6 @@ geoMCMC <- function(data, params, lambda=NULL) {
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
@@ -766,9 +748,9 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   if (class(mask) == "RasterLayer") { 
     rf <- mask
   } else if (class(mask) == "SpatialPolygonsDataFrame") {
-    tmp <- raster::raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-    raster::extent(tmp) <- raster::extent(mask)
-    rf <- raster::rasterize(mask, tmp)
+    tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
+    extent(tmp) <- extent(mask)
+    rf <- rasterize(mask, tmp)
   } else if (class(mask) == "SpatialLinesDataFrame") {
     tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
     extent(tmp) <- extent(mask)
@@ -779,7 +761,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   raster_probSurface <- raster(probSurface, xmn = params$output$longitude_minMax[1], xmx = params$output$longitude_minMax[2], ymn = params$output$latitude_minMax[1], ymx = params$output$latitude_minMax[2], crs="+proj=longlat +datum=WGS84")
   
   # project mask onto same coordinate system as probSurface
-  rf <- raster::projectRaster(rf, raster_probSurface, crs="+proj=longlat +datum=WGS84")
+  rf <- projectRaster(rf, raster_probSurface, crs="+proj=longlat +datum=WGS84")
   
   # extract raster values to matrices
   rf_mat <- matrix(rf@data@values, ncol = rf@ncols, byrow = TRUE)
@@ -821,7 +803,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   
   # decay with distance from non-NA cells
   if (operation == "near") {
-    d <- raster::distance(rf)
+    d <- distance(rf)
     d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
     scale_mat <- 1/(d_mat^scaleValue)
     scale_mat[scale_mat == "Inf"] <- 1
@@ -830,7 +812,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   
   # increase with distance from non-NA cells
   if (operation == "far") {
-    d <- raster::distance(rf)
+    d <- distance(rf)
     d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
     scale_mat <- d_mat^scaleValue
     p_mat <- p_mat * scale_mat

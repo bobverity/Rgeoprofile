@@ -1,2 +1,4 @@
 ^ignore$
 R/.Rd*
+^.*\.Rproj$
+^\.Rproj\.user$

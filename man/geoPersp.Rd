@@ -26,9 +26,7 @@ Plots persp plot of geoprofile or posterior surface (coloured according to heigh
 }
 \examples{
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
-data(WaterPumps)
 s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p, lambda=0.05)

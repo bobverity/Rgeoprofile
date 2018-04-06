@@ -72,9 +72,7 @@ geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,
                 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
-data(WaterPumps)
 s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p, lambda=0.05)

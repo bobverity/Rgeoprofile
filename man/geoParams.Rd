@@ -58,7 +58,6 @@ This function can be used to generate parameters in the format required by other
 }
 \examples{
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
 # define parameters such that the model fits sigma from the data
 geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, 

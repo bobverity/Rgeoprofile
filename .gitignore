@@ -15,5 +15,5 @@ ignore/
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .Rproj.user
-pkgname.Rproj
+RgeoProfile.Rproj
 R/.Rd*

@@ -16,7 +16,6 @@ Check that all data for use in Rgeoprofile MCMC is in the correct format.
 }
 \examples{
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
 geoDataCheck(d)
 

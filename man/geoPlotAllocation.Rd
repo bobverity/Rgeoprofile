@@ -54,7 +54,6 @@ m <- geoMCMC(data = d, params = p)
 geoPlotAllocation(m)
 
 # John Snow cholera data
-data(Cholera)
 d <- geoData(Cholera$longitude, Cholera$latitude)
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p, lambda=0.05)

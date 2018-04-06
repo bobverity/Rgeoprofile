@@ -16,7 +16,6 @@ Simple function that ensures that sources are in the correct format required by 
 }
 \examples{
 # John Snow cholera data
-data(WaterPumps)
 geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 
 # simulated data

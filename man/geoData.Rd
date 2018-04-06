@@ -12,11 +12,10 @@ geoData(longitude = NULL, latitude = NULL)
 \item{latitude}{the locations of the observed data in degrees latitude.}
 }
 \description{
-Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format. If no values are input then default values are used.
+Simple function that ensures that input data is in the correct format required by Rgeoprofile. Takes longitude and latitude as input vectors and returns these same values in list format.
 }
 \examples{
 # John Snow cholera data
-data(Cholera)
 geoData(Cholera$longitude, Cholera$latitude)
 
 # simulated data

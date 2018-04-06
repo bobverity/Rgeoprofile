@@ -93,7 +93,6 @@ theme_nothing <- function(font_size = 14, font_family = ""){
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 0.2, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
@@ -192,7 +191,6 @@ geoPlotSigma <- function(params, mcmc=NULL, plotMax=NULL) {
 #' geoPlotAllocation(m)
 #'
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
@@ -340,9 +338,7 @@ getZoom <- function(x,y) {
 #'                 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 #'
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
-#' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
@@ -497,9 +493,7 @@ geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, surfaceCols
 #' @export
 #' @examples
 #' # John Snow cholera data
-#' data(Cholera)
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
-#' data(WaterPumps)
 #' s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
