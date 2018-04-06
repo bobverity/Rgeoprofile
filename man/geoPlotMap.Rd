@@ -62,8 +62,8 @@ Plots geoprofile on map, with various customisable options.
 }
 \examples{
 # London example data
-d <- geoData()
-s <- geoDataSource()
+d <- LondonExample_crimes
+s <- LondonExample_sources
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
 # produce simple map
@@ -72,8 +72,8 @@ geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,
                 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 
 # John Snow cholera data
-d <- geoData(Cholera$longitude, Cholera$latitude)
-s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
+d <- Cholera
+s <- WaterPumps
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p, lambda=0.05)
 # produce simple map
@@ -91,7 +91,7 @@ m <- geoMCMC(data = d, params = p)
 # change colour palette, map type, opacity and range of geoprofile and omit legend
 geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,
                 breakPercent = seq(0, 30, 5), mapType = "terrain", 
-                surfaceCols=c("blue","white"),crimeCol="black", 
-                crimeBorderCol="white",crimeCex=2, sourceCol = "red", sourceCex = 2,
+                surfaceCols = c("blue","white"), crimeCol = "black", 
+                crimeBorderCol = "white",crimeCex = 2, sourceCol = "red", sourceCex = 2,
                 opacity = 0.7, gpLegend = FALSE)
 }

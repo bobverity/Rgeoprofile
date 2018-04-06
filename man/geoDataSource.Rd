@@ -21,5 +21,5 @@ geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=1, sigma=1, tau=3)
-geoDataSource(sim$source_longitude, sim$source_latitude)
+geoDataSource(sim$longitude, sim$latitude)
 }
