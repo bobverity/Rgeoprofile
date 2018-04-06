@@ -161,7 +161,7 @@ dts <- function(x, df, scale=1, log=FALSE) {
 #' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
 #' alpha=1, sigma=1, tau=3) 
 #' # same, but increasing alpha to generate more clusters
-#' #' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
+#' rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505, 
 #' alpha=5, sigma=1, tau=3)
 
 rDPM <- function(n, sigma=1, tau=10, priorMean_longitude=-0.1277, priorMean_latitude=51.5074, alpha=1) {

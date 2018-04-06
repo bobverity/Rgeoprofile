@@ -1,10 +1,4 @@
 
-# TO DO
-# - the function ringHS() uses a lot of packages and seems quite complicated! At the moment all we did was change the unput variable names, but not the names in the function, meaning it won't currently work. If you could have a go at overhauling this function with the minimum dependencies that would be great. For example, if we can get away with adding our own circles rather than using spatialDataFrame objects that would be ideal.
-# - expand help text and examples where needed. Remember that you need to run the function document() to actually create the help files once you've updated the text here. (NB, document() is part of devtools).
-# - in functions geoReportHitscores() and geoPlotLorenz(), add comments and check program flow. Give input arguments defaults where possible (e.g. NULL), and do some formatting checks on inputs in case of bad input (e.g. using stopifnot())
-# - separate functions that print results and those that return results, or just get rid of printing from existing functions. Make sure returned values are e.g. data frames with correctly labelled columns (particularly hitscores function)
-
 #------------------------------------------------
 # The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package.
 
@@ -16,8 +10,7 @@
 # rgdal         - required to load shapefiles
 # raster        - required when using masks
 # viridis       - colour palettes
-
-# TODO - check that packages rgeos and RgoogleMaps are in fact needed. These used to be included in the ringHS function, so might be needed there.
+# ...           - other importFrom declarations recommended by devtools::check
 
 #' @useDynLib RgeoProfile
 #' @importFrom Rcpp evalCpp
@@ -26,8 +19,12 @@
 #' @import ggmap
 #' @import RColorBrewer
 #' @import rgdal
-#' @import raster
+#' @importFrom raster raster
 #' @import viridis
+#' @importFrom grDevices colorRampPalette
+#' @importFrom graphics abline axis box legend par points polygon segments
+#' @importFrom stats dnorm optim rnorm
+#' @importFrom utils data flush.console
 NULL
 
 #------------------------------------------------
@@ -42,7 +39,7 @@ NULL
 #' @examples
 #' # John Snow cholera data
 #' data(Cholera)
-#' geoData(Cholera[,1],Cholera[,2])
+#' geoData(Cholera$longitude, Cholera$latitude)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
@@ -53,7 +50,7 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 	
 	# use example data if none read in
 	if (is.null(longitude) & is.null(latitude)) {
-    data(LondonExample_crimes)
+    #data(LondonExample_crimes)
     longitude <- LondonExample_crimes$longitude
     latitude <- LondonExample_crimes$latitude
 	} else {
@@ -79,7 +76,7 @@ geoData <- function(longitude=NULL, latitude=NULL) {
 #' @examples
 #' # John Snow cholera data
 #' data(WaterPumps)
-#' geoDataSource(WaterPumps[,1], WaterPumps[,2])
+#' geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
@@ -90,7 +87,7 @@ geoDataSource <- function(longitude=NULL, latitude=NULL) {
     
   # generate dummy data if none read in
   if (is.null(longitude) & is.null(latitude)) {
-		data(LondonExample_sources)
+		#data(LondonExample_sources)
   	longitude <- LondonExample_sources$longitude
 		latitude <- LondonExample_sources$latitude
   } else {
@@ -133,7 +130,7 @@ geoDataSource <- function(longitude=NULL, latitude=NULL) {
 #' @examples
 #' # John Snow cholera data
 #' data(Cholera)
-#' d <- geoData(Cholera[,1], Cholera[,2])
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' # define parameters such that the model fits sigma from the data
 #' geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, 
 #' chains = 10, burnin = 1000, samples = 10000, guardRail = 0.1)
@@ -267,7 +264,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
 #'
 #' TODO
 #'
-#' @param x TODO
+#' @param fileName TODO
 #'
 #' @export
 #' @examples
@@ -298,7 +295,7 @@ geoShapefile <- function(fileName=NULL) {
 #' @examples
 #' # John Snow cholera data
 #' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' geoDataCheck(d)
 #' 
 #' # simulated data
@@ -342,14 +339,14 @@ geoDataCheck <- function(data, silent=FALSE) {
 #' @examples
 #' # John Snow cholera data
 #' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' geoParamsCheck(p)
 #' 
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(Cholera[,1], Cholera[,2])
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_var=0)
 #' geoParamsCheck(p)
 
@@ -504,7 +501,7 @@ geoParamsCheck <- function(params, silent=FALSE) {
 #' @examples
 #' # John Snow cholera data
 #' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
 #' 
@@ -612,7 +609,7 @@ geoMCMC <- function(data, params, lambda=NULL) {
 #' @examples
 #' # John Snow cholera data
 #' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p, lambda=0.05)
 #' gp <- geoProfile(m$posteriorSurface)
@@ -631,7 +628,7 @@ geoProfile <- function(surface) {
   stopifnot(is.matrix(surface))
   
   # create geoprofile from surface
-  ret <- matrix(rank(surface, ties="first"), nrow=nrow(surface), byrow=FALSE)
+  ret <- matrix(rank(surface, ties.method="first"), nrow=nrow(surface), byrow=FALSE)
   ret[is.na(surface)] <- NA
   ret <- 100 * (1 - (ret-1)/max(ret, na.rm=TRUE))
   
@@ -643,39 +640,13 @@ geoProfile <- function(surface) {
 #'
 #' Calculate hitscores of the potential sources for a given surface (usually the geoprofile).
 #'
-#' @param mcmc stored output obtained by running geoMCMC().
+#' @param params TODO
 #' @param source longitude and latitude of one or more source locations in the format defined by geoDataSource().
+#' @param surface TODO
 #'
 #' @export
 #' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' m <- geoMCMC(data = d, params = p)
-#' gp <- m$geoProfile
-#' geoPlotMap(params = p, data = d, source = s, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' contourCols = c("red", "orange", "yellow", "white"), crimeCol = "black", crimeBorderCol = "white", 
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = gp)
-#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
-#' 
-#' # simulated data
-#' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
-#' 51.5235505, alpha=1, sigma=1, tau=3)
-#' d <- geoData(sim$longitude, sim $latitude)
-#' s <- geoDataSource(sim$source_lon, sim$source_lat)
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2, samples = 20000, 
-#' chains = 10, burnin = 1000, priorMean_longitude = mean(d$longitude), 
-#' priorMean_latitude = mean(d$latitude), guardRail = 0.1)
-#' gp <- m$geoProfile
-#' geoPlotMap(params = p, data = d, source = s,breakPercent = seq(0, 30, 5), mapType = "terrain", 
-#' contourCols=c("blue","white"),crimeCol="black", crimeBorderCol="white",crimeCex=2,
-#' sourceCol = "red", sourceCex = 2, surface = gp, transparency = 0.7)
-#' hs <- geoReportHitscores(params=p,source_data=s,surface=m$surface)
+#' # TODO
 #' 
 geoReportHitscores <- function(params, source, surface) {
   
@@ -691,7 +662,7 @@ geoReportHitscores <- function(params, source, surface) {
   hs <- surface[cbind(index_lat, index_lon)]
   ret <- data.frame(longitude=source$longitude, latitude=source$latitude, hitscorePercentage=hs)
   
-  ret
+  return(ret)
 }
 
 #------------------------------------------------
@@ -712,12 +683,12 @@ geoReportHitscores <- function(params, source, surface) {
 #' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 #' m <- geoMCMC(data = d, params = p)
 #' # extract sources identified by the model
-#' ms <- modelSources(mcmc = m, data = d)
+#' ms <- geoModelSources(mcmc = m, data = d)
 #' # plot data showing the sources identified by the model (note: NOT the actual suspect sites)
 #' geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), 
-#' mapType = "roadmap", contourCols =c("red", "orange","yellow","white"), crimeCol = "black",
-#' crimeCex = 2, sourceCol = "red", sourceCex = 2, surface = m$geoProfile, gpLegend=TRUE,
-#' opacity = 0.4)
+#'                   mapType = "roadmap", surfaceCols =c("red", "orange","yellow","white"),
+#'                   crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2,
+#'                   surface = m$geoProfile, gpLegend=TRUE, opacity = 0.4)
 
 geoModelSources <- function (mcmc, data) {
   
@@ -737,25 +708,10 @@ geoModelSources <- function (mcmc, data) {
 #' @param data Data object in the format defined by geoData().
 #' @param source Potential sources object in the format defined by geoDataSource().
 #' @param mcmc mcmc object of the form produced by geoMCMC(). 
-#' @param buffer_radii Optional vector giving diameter of rings (in km) to show around each crime, suitable merged and clipped. If NULL, full contour map of ring hitscores is plotted instead. 
 #'
 #' @export
 #' @examples
-#' # John Snow cholera data
-#' data(Cholera)
-#' d <- geoData(Cholera[,1],Cholera[,2])
-#' data(WaterPumps)
-#' s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])
-#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-#' m <- geoMCMC(data = d, params = p, lambda=0.05)
-#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0, 50, 5), mapType = "hybrid",
-#' crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-#' geoReportHitscores(mcmc=m, source=s)
-#' # plot full contour plot of ring search
-#' geoRingHitscores(params = p, data = d, source = s, mcmc = m)
-#' # plot rings of 100m, 200m and 500m around points
-#' geoRingHitscores(params = p, data = d, source = s, mcmc = m, buffer_radii = c(0.1, 0.2, 0.5))
-#'
+#' # TODO
 
 geoRing <- function(params, data, source, mcmc) {
   
@@ -790,7 +746,7 @@ geoRing <- function(params, data, source, mcmc) {
 #' 
 #' @param probSurface the original geoprofile, usually the object $posteriorSurface produced by geoMCMC().
 #' @param params an object produced by geoParams().
-#' @param shapefile the spatial information to include. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer.
+#' @param mask the spatial information to include. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer.
 #' @param scaleValue different functions depending on value of "operation". For "inside' or "outside", the value by which probabilities should be multiplied inside or outside the shapefile; set to zero to exclude completely. For "near" and "far", the importance of proximity to, or distance from, the object described in the RasterLayer or SpatialPointsDataFrame. Not used for "continuous".
 #' @param operation thow to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile.
 #' @param maths one of "add", "subtract", multiply" or "divide. The mathematical operation used to combine the new spatial data with the geoprofile when operation = "continuous".
@@ -810,9 +766,9 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   if (class(mask) == "RasterLayer") { 
     rf <- mask
   } else if (class(mask) == "SpatialPolygonsDataFrame") {
-    tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
-    extent(tmp) <- extent(mask)
-    rf <- rasterize(mask, tmp)
+    tmp <- raster::raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
+    raster::extent(tmp) <- raster::extent(mask)
+    rf <- raster::rasterize(mask, tmp)
   } else if (class(mask) == "SpatialLinesDataFrame") {
     tmp <- raster(ncol = params$output$longitude_cells, nrow = params$output$latitude_cells)
     extent(tmp) <- extent(mask)
@@ -823,7 +779,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   raster_probSurface <- raster(probSurface, xmn = params$output$longitude_minMax[1], xmx = params$output$longitude_minMax[2], ymn = params$output$latitude_minMax[1], ymx = params$output$latitude_minMax[2], crs="+proj=longlat +datum=WGS84")
   
   # project mask onto same coordinate system as probSurface
-  rf <- projectRaster(rf, raster_probSurface, crs="+proj=longlat +datum=WGS84")
+  rf <- raster::projectRaster(rf, raster_probSurface, crs="+proj=longlat +datum=WGS84")
   
   # extract raster values to matrices
   rf_mat <- matrix(rf@data@values, ncol = rf@ncols, byrow = TRUE)
@@ -865,7 +821,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   
   # decay with distance from non-NA cells
   if (operation == "near") {
-    d <- distance(rf)
+    d <- raster::distance(rf)
     d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
     scale_mat <- 1/(d_mat^scaleValue)
     scale_mat[scale_mat == "Inf"] <- 1
@@ -874,7 +830,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   
   # increase with distance from non-NA cells
   if (operation == "far") {
-    d <- distance(rf)
+    d <- raster::distance(rf)
     d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
     scale_mat <- d_mat^scaleValue
     p_mat <- p_mat * scale_mat

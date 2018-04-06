@@ -20,3 +20,5 @@ LinkingTo: Rcpp
 RoxygenNote: 6.0.1
 SystemRequirements:
     C++11
+LazyData: true
+
