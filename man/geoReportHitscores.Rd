@@ -7,16 +7,21 @@
 geoReportHitscores(params, source, surface)
 }
 \arguments{
-\item{params}{TODO}
+\item{params}{input parameters in the format defined by geoParams().}
 
 \item{source}{longitude and latitude of one or more source locations in the format defined by geoDataSource().}
 
-\item{surface}{TODO}
+\item{surface}{the surface from which to calculate hitscores. Usually an object produced by geoProfile().}
 }
 \description{
 Calculate hitscores of the potential sources for a given surface (usually the geoprofile).
 }
 \examples{
-# TODO
+# John Snow cholera data
+d <- geoData(Cholera$longitude, Cholera$latitude)
+s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p, lambda=0.05)
+geoReportHitscores(params = p, source = s, surface = m$geoProfile)
 
 }

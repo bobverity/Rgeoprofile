@@ -4,7 +4,7 @@
 \alias{geoParams}
 \title{Create Rgeoprofile parameters object}
 \usage{
-geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
+geoParams(data = NULL, sources = NULL, sigma_mean = 1, sigma_var = NULL,
   sigma_squared_shape = NULL, sigma_squared_rate = NULL,
   priorMean_longitude = NULL, priorMean_latitude = NULL, tau = NULL,
   alpha_shape = 0.1, alpha_rate = 0.1, chains = 10, burnin = 1000,
@@ -14,6 +14,8 @@ geoParams(data = NULL, sigma_mean = 1, sigma_var = NULL,
 }
 \arguments{
 \item{data}{observations in the format defined by geoData().}
+
+\item{sources}{observations in the format defined by geoDataSource().}
 
 \item{sigma_mean}{the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution).}
 

@@ -93,6 +93,7 @@ geoDataSource <- function(longitude=NULL, latitude=NULL) {
 #' This function can be used to generate parameters in the format required by other Rgeoprofile functions. Parameter values can be specified as input arguments to this function, or alternatively if data is input as an argument then some parameters can take default values directly from the data.
 #'
 #' @param data observations in the format defined by geoData().
+#' @param sources observations in the format defined by geoDataSource().
 #' @param sigma_mean the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution).
 #' @param sigma_var the variance of the prior on sigma.
 #' @param sigma_squared_shape as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. If so, this is the shape parameter of the inverse-gamma prior.
@@ -129,46 +130,71 @@ geoDataSource <- function(longitude=NULL, latitude=NULL) {
 #' geoParams(data = d, sigma_mean = 1.0, sigma_var = 0,
 #' chains=10, burnin=1000, samples = 10000, guardRail = 0.1)
 
-geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=1e3, samples=1e4, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
+geoParams <- function(data=NULL, sources=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_shape=NULL, sigma_squared_rate=NULL, priorMean_longitude=NULL, priorMean_latitude=NULL, tau=NULL, alpha_shape=0.1, alpha_rate=0.1, chains=10, burnin=1e3, samples=1e4, burnin_printConsole=100, samples_printConsole=1000, longitude_minMax=NULL, latitude_minMax=NULL, longitude_cells=500, latitude_cells=500, guardRail=0.05) {
   
-  # if data argument used then get prior mean and map limits from data
-  if (!is.null(data)) {
+  # if data or sources arguments used then get defaults from these values
+  if (!is.null(data) | !is.null(sources)) {
     
     # check correct format of data
     geoDataCheck(data, silent=TRUE)
     
-    # if prior mean not defined then set as midpoint of data
-    if (is.null(priorMean_longitude)) { priorMean_longitude <- sum(range(data$longitude))/2 }
-    if (is.null(priorMean_latitude)) { priorMean_latitude <- sum(range(data$latitude))/2 }
+    # if prior mean not defined then set as midpoint of data (if present), otherwise midpoint of sources
+    if (is.null(priorMean_longitude)) {
+      if (is.null(data)) {
+        priorMean_longitude <- sum(range(sources$longitude))/2
+      } else {
+        priorMean_longitude <- sum(range(data$longitude))/2
+      }
+    }
+    if (is.null(priorMean_latitude)) {
+      if (is.null(data)) {
+        priorMean_latitude <- sum(range(sources$latitude))/2
+      } else {
+        priorMean_latitude <- sum(range(data$latitude))/2
+      }
+    }
     
-    # convert data to bearing and great circle distance, and extract maximum great circle distance to any point
-    data_trans <- latlon_to_bearing(priorMean_latitude, priorMean_longitude, data$latitude, data$longitude)
-    dist_max <- max(data_trans$gc_dist)
+    # convert data to bearing and great circle distance, and extract maximum great circle distance to any point. Use maximum distance as default value of tau
+    if (!is.null(data) & is.null(tau)) {
+      data_trans <- latlon_to_bearing(priorMean_latitude, priorMean_longitude, data$latitude, data$longitude)
+      tau <- max(data_trans$gc_dist)
+    }
     
-    # use maximum distance as default value of tau
-    if (is.null(tau)) { tau <- dist_max }
+    # combine data and sources into single object for convenience
+    data_sources <- list(longitude = c(data$longitude, sources$longitude), latitude = c(data$latitude, sources$latitude))
     
+    # set map limits based on data, sources, or both
     if (is.null(longitude_minMax)) {
-      lon_range <- diff(range(data$longitude))
-      lon_min <- min(data$longitude) - guardRail*lon_range
-      lon_max <- max(data$longitude) + guardRail*lon_range
+      lon_range <- diff(range(data_sources$longitude))
+      lon_min <- min(data_sources$longitude) - guardRail*lon_range
+      lon_max <- max(data_sources$longitude) + guardRail*lon_range
       longitude_minMax <- c(lon_min, lon_max)
     }
     if (is.null(latitude_minMax)) {
-      lat_range <- diff(range(data$latitude))
-      lat_min <- min(data$latitude) - guardRail*lat_range
-      lat_max <- max(data$latitude) + guardRail*lat_range
+      lat_range <- diff(range(data_sources$latitude))
+      lat_min <- min(data_sources$latitude) - guardRail*lat_range
+      lat_max <- max(data_sources$latitude) + guardRail*lat_range
       latitude_minMax <- c(lat_min, lat_max)
     }
   }
   
-  # if data argument not used then set prior values from input arguments, or use defaults if NULL
-  if (is.null(data)) {
-    if (is.null(priorMean_longitude)) { priorMean_longitude <- -0.1277 }
-    if (is.null(priorMean_latitude)) { priorMean_latitude <- 51.5074 }
-    if (is.null(longitude_minMax)) { longitude_minMax <- priorMean_longitude + c(-0.01,0.01) }
-    if (is.null(latitude_minMax)) { latitude_minMax <- priorMean_latitude + c(-0.01,0.01) }
-    if (is.null(tau)) { tau <- 10 }
+  # if data and sources arguments not used then set defaults manually
+  if (is.null(data) & is.null(sources)) {
+    if (is.null(priorMean_longitude)) {
+      priorMean_longitude <- -0.1277
+    }
+    if (is.null(priorMean_latitude)) {
+      priorMean_latitude <- 51.5074
+    }
+    if (is.null(longitude_minMax)) {
+      longitude_minMax <- priorMean_longitude + c(-0.01,0.01)
+    }
+    if (is.null(latitude_minMax)) {
+      latitude_minMax <- priorMean_latitude + c(-0.01,0.01)
+    }
+    if (is.null(tau)) {
+      tau <- 10
+    }
   }
   
   # initialise shape and rate parameters for prior on sigma^2
@@ -193,7 +219,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
       beta <- ab$beta
     }
     
-  #-------- option 2
+    #-------- option 2
   } else if (!is.null(sigma_mean) & is.null(sigma_var)) {
     
     if (!is.null(sigma_squared_shape)) {
@@ -205,7 +231,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
       sigma_var <- beta/(alpha-1)-epsilon^2
     }
     
-  #-------- option 3
+    #-------- option 3
   } else if (is.null(sigma_mean) & is.null(sigma_var)) {
     
     if (!is.null(sigma_squared_shape) & !is.null(sigma_squared_rate)) {
@@ -244,7 +270,6 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
   ret <- list(model=model, MCMC=MCMC, output=output)
   return(ret)
 }
-
 #------------------------------------------------
 #' Import shapefile
 #'
@@ -255,7 +280,7 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
 #' @export
 #' @examples
 #' # load London boroughs by default
-#' geoShapefile
+#' geoShapefile()
 
 geoShapefile <- function(fileName=NULL) {
   
@@ -623,15 +648,23 @@ geoProfile <- function(surface) {
 #'
 #' Calculate hitscores of the potential sources for a given surface (usually the geoprofile).
 #'
-#' @param params TODO
+#' @param params input parameters in the format defined by geoParams().
 #' @param source longitude and latitude of one or more source locations in the format defined by geoDataSource().
-#' @param surface TODO
+#' @param surface the surface from which to calculate hitscores. Usually an object produced by geoProfile().
 #'
 #' @export
 #' @examples
-#' # TODO
+#' # John Snow cholera data
+#' d <- geoData(Cholera$longitude, Cholera$latitude)
+#' s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p, lambda=0.05)
+#' geoReportHitscores(params = p, source = s, surface = m$geoProfile)
 #' 
 geoReportHitscores <- function(params, source, surface) {
+  
+  # check parameters
+  geoParamsCheck(params, silent = TRUE)
   
   # get size of cells
   delta_lat <- diff(params$output$latitude_minMax)/params$output$latitude_cells
@@ -641,10 +674,20 @@ geoReportHitscores <- function(params, source, surface) {
   index_lat <- round((source$latitude - params$output$latitude_minMax[1])/delta_lat + 0.5)
   index_lon <- round((source$longitude - params$output$longitude_minMax[1])/delta_lon + 0.5)
   
-  # return hitscore percentages in data frame
-  hs <- surface[cbind(index_lat, index_lon)]
-  ret <- data.frame(longitude=source$longitude, latitude=source$latitude, hitscorePercentage=hs)
+  # combine coordinates and indices in data frame
+  df <- data.frame(latitude = source$latitude, longitude = source$longitude, index_lat = index_lat, index_lon = index_lon)
   
+  # drop rows if index outside range, with warning
+  df <- subset(df, index_lat>0 & index_lat<nrow(surface) & index_lon>0 & index_lon<ncol(surface))
+  if (nrow(df) < length(source$longitude)) {
+    warning("some sources outside range of surface")
+  }
+  
+  # append hitscore percentages
+  df$hs <- surface[as.matrix(df[,c("index_lat", "index_lon")])]
+  
+  # return subset of data frame
+  ret <- subset(df, select=c("latitude", "longitude", "hs"))
   return(ret)
 }
 
