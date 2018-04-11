@@ -2,7 +2,7 @@
 % Please edit documentation in R/mainFunctions.R
 \name{geoRing}
 \alias{geoRing}
-\title{Calculate and plot hit scores based on a ring search}
+\title{Produces a surface based on an alternative ring-search strategy}
 \usage{
 geoRing(params, data, source, mcmc)
 }
@@ -16,8 +16,16 @@ geoRing(params, data, source, mcmc)
 \item{mcmc}{mcmc object of the form produced by geoMCMC().}
 }
 \description{
-Second attempt at ring search without using other packages.
+Produces a surface based on an alternative ring-search strategy (ie searching in an expanding radius out from the 'crimes'). The output from this function can be used with geoProfile() and geoReportHitscores to produce a map and hitscores based on this strategy.
 }
 \examples{
-# TODO
+# John Snow cholera data
+d <- geoData(Cholera$longitude, Cholera$latitude)
+s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p)
+surface_ring <- geoRing(params = p, data = d, source = s, mcmc = m)
+gp_ring <- geoProfile(surface = surface_ring)
+map <- geoPlotMap(params = p, data = d, source = s, surface = gp_ring, opacity = 1, breakPercent = seq(0,50,l=21))
+map
 }
