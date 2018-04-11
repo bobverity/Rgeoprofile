@@ -248,13 +248,14 @@ geoParams <- function(data=NULL, sigma_mean=1, sigma_var=NULL, sigma_squared_sha
 #------------------------------------------------
 #' Import shapefile
 #'
-#' TODO
+#' This function imports spatial information in the form of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer for use with geoMask().
 #'
-#' @param fileName TODO
+#' @param fileName The object to be imported. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer if it is to be used with geoMask().
 #'
 #' @export
 #' @examples
-#' # TODO
+#' # load London boroughs by default
+#' geoShapefile
 
 geoShapefile <- function(fileName=NULL) {
   

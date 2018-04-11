@@ -7,11 +7,12 @@
 geoShapefile(fileName = NULL)
 }
 \arguments{
-\item{fileName}{TODO}
+\item{fileName}{The object to be imported. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer if it is to be used with geoMask().}
 }
 \description{
-TODO
+This function imports spatial information in the form of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer for use with geoMask().
 }
 \examples{
-# TODO
+# load London boroughs by default
+geoShapefile()
 }
