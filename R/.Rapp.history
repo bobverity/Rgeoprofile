@@ -196,7 +196,6 @@ points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15
 plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
 points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue")
 plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
-plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
 points(WaterPumps$latitude, WaterPumps$longitude, xlab = "lon", ylab = "lat")
 points(WaterPumps$latitude, WaterPumps$longitude,  pch = 15, col = "blue")
 document()
@@ -267,8 +266,6 @@ map2 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, map
 map2
 ?geoPlotLorenz
 ?geoPlotMap
-?geoPlotMap
-?geoPlotMap
 # London example data#
 d <- LondonExample_crimes#
 s <- LondonExample_sources#
@@ -283,7 +280,6 @@ names(geoPlotCoallocation(m))
 names(m)
 m$coAllocation
 names(m)
-document()
 document()
 ?geoPlotCoallocation
 d <- LondonExample_crimes
@@ -317,6 +313,16 @@ document()
 ?RgeoProfile
 document()
 ?RgeoProfile
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+library(devtools)
+document()
+?RgeoProfile
+document()
+library(devtools)
 document()
 ?RgeoProfile
 document()
