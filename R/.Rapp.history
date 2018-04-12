@@ -165,3 +165,159 @@ names(m)
 m$coAllocation
 library(devtools)
 document()
+library(devtools)
+document()
+?geoMask
+# load London example data and set params#
+d <- LondonExample_crimes#
+s <- LondonExample_sources#
+p = geoParams(data = d, sigma_mean = 1, sigma_squared_shape = 2)#
+# run model#
+m = geoMCMC(data = d, params = p)#
+# plot original map#
+map1 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile)#
+map1#
+# read in north London shapefile as mask and adjust surface#
+north_london_mask <- geoShapefile()#
+plot(north_london_mask)#
+prob_masked <- geoMask(probSurface = m$posteriorSurface, params = p, mask = north_london_mask, operation = "inside", scaleValue = 1)#
+gp_masked <- geoProfile(prob_masked$prob)#
+# plot new surface#
+map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)#
+map2
+library(devtools)
+document()
+?LondonExample_crimes
+?mtcars
+plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
+points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue)
+plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
+points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue)
+plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
+points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue")
+plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
+plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
+points(WaterPumps$latitude, WaterPumps$longitude, xlab = "lon", ylab = "lat")
+points(WaterPumps$latitude, WaterPumps$longitude,  pch = 15, col = "blue")
+document()
+# running rgeoprofile 2.1.0#
+library(devtools)#
+#
+# install from github or from local copy of package#
+# install stable copy of version 2.0.0 from github#
+# install_github("bobverity/Rgeoprofile",ref="version2.0.0",force=TRUE)#
+# install_github("bobverity/Rgeoprofile",ref="master",force=TRUE)#
+# install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)#
+#
+# install from local github repository#
+# install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)#
+#
+# install from downloaded copy on desktop (NB check name and path)#
+# install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")#
+#
+# load packages#
+library(RgeoProfile)#
+#
+# check package#
+# setwd("~/GitHub/Rgeoprofile")#
+# devtools::check()#
+#
+# ------------------------------------------------------------------#
+# IMPORT DATA AND SET PARAMETERS#
+# ------------------------------------------------------------------#
+# choose data and sources from options above#
+# d <- LondonExample_crimes#
+# s <- LondonExample_sources#
+#
+# load real data#
+crime_data <- read.table("~/Dropbox/9 Shared/SLC shared/2 Cases/Cairo/Cairo 2014/MalariaCases139.txt", header = FALSE)#
+source_data <- read.table("~/Dropbox/9 Shared/SLC shared/2 Cases/Cairo/Cairo 2014/allvectors.txt", header = FALSE)#
+#
+d <- geoData(crime_data[,1], crime_data[,2])#
+s <- geoDataSource(source_data[,1], source_data[,2])#
+# set model and MCMC parameters#
+p = geoParams(data = d, sigma_mean = 1.8, sigma_var = 0, sigma_squared_shape = NULL, chains = 5, burnin = 1e3, samples = 1e4, longitude_cells = 200, latitude_cells = 200)#
+#
+# initial map of data#
+# Note that geoPlotMap may occasionally fail to download map. In this case simply run again until it passes#
+# Note also that plotting the map may take quite a long time#
+# map1 <- geoPlotMap(params = p, data = d, source = s)#
+# map1#
+#
+# plot prior on sigma#
+# geoPlotSigma(params = p)#
+#
+# ------------------------------------------------------------------#
+# RUN MCMC#
+# ------------------------------------------------------------------#
+# run MCMC#
+m = geoMCMC(data = d, params = p)#
+#
+# ------------------------------------------------------------------#
+# MAIN DPM OUTPUT#
+# ------------------------------------------------------------------#
+# plot prior and posterior of sigma#
+geoPlotSigma(params = p, mcmc = m)#
+abline(v = sigma, col = 2)#
+#
+# plot profile on map#
+map2 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, mapSource = "google", mapType = "roadmap", breakPercent = seq(0,50,l=11), opacity=0.8, plotContours = TRUE, smoothScale = TRUE, sourceCex = 3, crimeCex = 3)#
+map2
+map2 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, mapSource = "google", mapType = "roadmap", breakPercent = seq(0,50,l=11), opacity=0.8, plotContours = TRUE, smoothScale = TRUE, sourceCex = 3, crimeCex = 3)#
+map2
+?geoPlotLorenz
+?geoPlotMap
+?geoPlotMap
+?geoPlotMap
+# London example data#
+d <- LondonExample_crimes#
+s <- LondonExample_sources#
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
+m <- geoMCMC(data = d, params = p)#
+# produce simple map#
+geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,#
+                breakPercent = seq(0, 50, 5), mapType = "hybrid",#
+                crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+geoPlotCoallocation(m)
+names(geoPlotCoallocation(m))
+names(m)
+m$coAllocation
+names(m)
+document()
+document()
+?geoPlotCoallocation
+d <- LondonExample_crimes
+s <- LondonExample_sources
+p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+m <- geoMCMC(data = d, params = p)
+hs <- georeportHitscores(params = p, source = s, surface = m$geoProfile)
+hs <- geoReportHitscores(params = p, source = s, surface = m$geoProfile)
+hs
+geoPlotLorenz(hs)
+m$allocation
+names(m)
+m$bestGrouping
+hs
+table(m$bestGrouping)
+cn <- table(m$bestGrouping)
+cn
+geoPlotLorenz(hs, crimeNumbers = cn)
+cn[,1]
+as.vector(cn)
+cn <- as.vector(table(m$bestGrouping))
+cn
+geoPlotLorenz(hs, crimeNumbers = cn)
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+?RgeoProfile

@@ -3,16 +3,17 @@
 \docType{data}
 \name{LondonExample_sources}
 \alias{LondonExample_sources}
-\title{TODO}
+\title{Example London sources}
 \format{an object of class \code{list}.}
 \usage{
 data(LondonExample_sources)
 }
 \description{
-TODO
+Dummy sources associated with the crimes in LondonExample_crimes.
 }
 \examples{
-# TODO
+plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
+points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue")
 
 }
 \keyword{datasets}

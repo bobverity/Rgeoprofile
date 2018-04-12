@@ -1,8 +1,8 @@
 
 #------------------------------------------------
-#' TODO
+#' Example London crimes
 #'
-#' TODO
+#' Dummy crime sites simulated using rDPM() and centred on Queen Mary University of London.
 #'
 #' @docType data
 #'
@@ -11,14 +11,14 @@
 #' @usage data(LondonExample_crimes)
 #'
 #' @examples
-#' # TODO
+#' # plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
 #' 
 "LondonExample_crimes"
 
 #------------------------------------------------
-#' TODO
+#' Example London sources
 #'
-#' TODO
+#' Dummy sources associated with the crimes in LondonExample_crimes.
 #'
 #' @docType data
 #'
@@ -27,14 +27,15 @@
 #' @usage data(LondonExample_sources)
 #' 
 #' @examples
-#' # TODO
+#' plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
+#' points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue")
 #' 
 "LondonExample_sources"
 
 #------------------------------------------------
-#' TODO
+#' Cholera data
 #'
-#' TODO
+#' Locations of cases of cholera from the 1854 cholera outbreak made famous by John Snow.
 #'
 #' @docType data
 #' 
@@ -43,15 +44,15 @@
 #' @usage data(Cholera)
 #' 
 #' @examples
-#' # TODO
+#' plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
 #' 
 "Cholera"
 
 #------------------------------------------------
 
-#' TODO
+#' Cholera sources
 #'
-#' TODO
+#' Locations of the neighbourhood water pumps near the site of the 1854 cholera outbreak. The Broad Street pump was the source of the outbreak.
 #'
 #' @docType data
 #'
@@ -60,7 +61,8 @@
 #' @usage data(WaterPumps)
 #' 
 #' @examples
-#' # TODO
+#' plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
+#' points(WaterPumps$latitude, WaterPumps$longitude,  pch = 15, col = "blue")
 #' 
 "WaterPumps"
 

@@ -3,16 +3,16 @@
 \docType{data}
 \name{LondonExample_crimes}
 \alias{LondonExample_crimes}
-\title{TODO}
+\title{Example London crimes}
 \format{an object of class \code{list}.}
 \usage{
 data(LondonExample_crimes)
 }
 \description{
-TODO
+Dummy crime sites simulated using rDPM() and centred on Queen Mary University of London.
 }
 \examples{
-# TODO
+# plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
 
 }
 \keyword{datasets}

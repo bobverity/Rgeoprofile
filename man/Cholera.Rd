@@ -3,16 +3,16 @@
 \docType{data}
 \name{Cholera}
 \alias{Cholera}
-\title{TODO}
+\title{Cholera data}
 \format{an object of class \code{list}.}
 \usage{
 data(Cholera)
 }
 \description{
-TODO
+Locations of cases of cholera from the 1854 cholera outbreak made famous by John Snow.
 }
 \examples{
-# TODO
+plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
 
 }
 \keyword{datasets}

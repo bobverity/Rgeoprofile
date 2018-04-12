@@ -556,12 +556,24 @@ geoPersp <- function(surface, aggregate_size=3, surface_type="gp", perspCol=c("r
 #'
 #' @param hit_scores object in the format defined by geoReportHitscores().
 #' @param crimeNumbers optional vector with numbers of crimes per suspect site.
-#' @param suspects_col TODO
-#' @param crimes_col TODO
+#' @param suspects_col colour to plot curve for sources.
+#' @param crimes_col colour to plot curve for crimes if crimeNumbers is supplied.
 #'
 #' @export
 #' @examples
-#' # TODO
+#' # London example data
+#' d <- LondonExample_crimes
+#' s <- LondonExample_sources
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' hs <- geoReportHitscores(params = p, source = s, surface = m$geoProfile)
+#' hs 
+#' # Lorenz plot on sources
+#' geoPlotLorenz(hs)
+#' # Lorenz plot on sources and crimes
+#' # extract numbers of crimes allocated per source as a proxy
+#' cn <- as.vector(table(m$bestGrouping))
+#' geoPlotLorenz(hs, crimeNumbers = cn)
 
 geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", crimes_col="blue") {
   
@@ -641,14 +653,24 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #------------------------------------------------
 #' Calculate and plot probability of coallocation
 #'
-#' TODO
+#' For all pairs of crimes, calculates the probability that both originate from the same source and plots a coloured half matrix representing these data. The data underlying these calculations can be accessed as the object $coAllocation produced by geoMCMC().
 #'
-#' @param mcmc TODO
-#' @param cols TODO
+#' @param mcmc object of the type output by geoMCMC().
+#' @param cols colour palette to use. Defaults to viridis palette.
 #'
 #' @export
 #' @examples
-#' # TODO
+#' # London example data
+#' d <- LondonExample_crimes
+#' s <- LondonExample_sources
+#' p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
+#' m <- geoMCMC(data = d, params = p)
+#' # produce simple map
+#' geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,
+#'                 breakPercent = seq(0, 50, 5), mapType = "hybrid",
+#'                 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+#' # calculate coallocation matrix and plot
+#' geoPlotCoallocation(m)
 
 geoPlotCoallocation <- function(mcmc, cols=NULL) {
   
