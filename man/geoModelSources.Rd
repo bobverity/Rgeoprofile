@@ -25,7 +25,7 @@ m <- geoMCMC(data = d, params = p)
 # extract sources identified by the model
 ms <- geoModelSources(mcmc = m, data = d)
 # plot data showing the sources identified by the model (note: NOT the actual suspect sites)
-geoPlotMap(data = d, source = ms$model_sources, params = p, breakPercent = seq(0, 10, 1), 
+geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), 
                   mapType = "roadmap", surfaceCols =c("red", "orange","yellow","white"),
                   crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2,
                   surface = m$geoProfile, gpLegend=TRUE, opacity = 0.4)

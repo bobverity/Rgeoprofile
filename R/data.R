@@ -11,7 +11,7 @@
 #' @usage data(LondonExample_crimes)
 #'
 #' @examples
-#' # plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
+#' plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
 #' 
 "LondonExample_crimes"
 

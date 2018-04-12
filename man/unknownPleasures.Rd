@@ -31,5 +31,5 @@ d <- geoData(sim$longitude, sim $latitude)
 s <- geoDataSource(sim$source_lon, sim$source_lat)
 p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
 m <- geoMCMC(data = d, params = p)
-unknownPleasures(m$geoProfile, paper_ref = "Rgeoprofile v2.0.0")
+unknownPleasures(m$geoProfile, paper_ref = "Rgeoprofile v2.1.0")
 }
