@@ -306,17 +306,17 @@ getZoom <- function(x,y) {
 #' @param data data object in the format defined by geoData().
 #' @param source potential sources object in the format defined by geoDataSource().
 #' @param surface a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().
-#' @param surfaceCols TODO.
+#' @param surfaceCols vector of two or more colours to plot surface. Defaults to viridis palette.
 #' @param zoom zoom level of map. If NULL then choose optimal zoom from params.
-#' @param latLimits TODO
-#' @param lonLimits TODO
+#' @param latLimits optional vector setting min and max latitude for zoom view.
+#' @param lonLimits optional vector setting min and max longitude for zoom view.
 #' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
 #' @param mapType the specific type of map to plot. Options available are "terrain", "satellite", "roadmap" and "hybrid" (google maps), "terrain-background", "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
 #' @param opacity value between 0 and 1 givin the opacity of surface colours.
 #' @param plotContours whether or not to add contours to the surface plot.
 #' @param breakPercent vector of values between 0 and 100 describing where in the surface contours appear.
-#' @param contourCol TODO
-#' @param smoothScale TODO
+#' @param contourCol single colour to plot contour lines showing boundaries on surface.
+#' @param smoothScale should plot legend show continuous (TRUE) or discrete (FALSE) colours.
 #' @param crimeCex relative size of symbols showing crimes.
 #' @param crimeCol colour of crime symbols.
 #' @param crimeBorderCol border colour of crime symbols.

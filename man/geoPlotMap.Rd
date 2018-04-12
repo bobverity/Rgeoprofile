@@ -21,13 +21,13 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 
 \item{surface}{a surface to overlay onto the map, typically a geoprofile obtained from the output of geoMCMC().}
 
-\item{surfaceCols}{TODO.}
+\item{surfaceCols}{vector of two or more colours to plot surface. Defaults to viridis palette.}
 
 \item{zoom}{zoom level of map. If NULL then choose optimal zoom from params.}
 
-\item{latLimits}{TODO}
+\item{latLimits}{optional vector setting min and max latitude for zoom view.}
 
-\item{lonLimits}{TODO}
+\item{lonLimits}{optional vector setting min and max longitude for zoom view.}
 
 \item{mapSource}{which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").}
 
@@ -39,9 +39,9 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 
 \item{breakPercent}{vector of values between 0 and 100 describing where in the surface contours appear.}
 
-\item{contourCol}{TODO}
+\item{contourCol}{single colour to plot contour lines showing boundaries on surface.}
 
-\item{smoothScale}{TODO}
+\item{smoothScale}{should plot legend show continuous (TRUE) or discrete (FALSE) colours.}
 
 \item{crimeCex}{relative size of symbols showing crimes.}
 
