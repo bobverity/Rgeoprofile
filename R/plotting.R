@@ -311,7 +311,7 @@ getZoom <- function(x,y) {
 #' @param latLimits TODO
 #' @param lonLimits TODO
 #' @param mapSource which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").
-#' @param mapType the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
+#' @param mapType the specific type of map to plot. Options available are "terrain", "satellite", "roadmap" and "hybrid" (google maps), "terrain-background", "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).
 #' @param opacity value between 0 and 1 givin the opacity of surface colours.
 #' @param plotContours whether or not to add contours to the surface plot.
 #' @param breakPercent vector of values between 0 and 100 describing where in the surface contours appear.

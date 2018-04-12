@@ -24,5 +24,21 @@ geoMask(probSurface, params, mask, scaleValue = 1, operation = "inside",
 This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The spatial object used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster.
 }
 \examples{
-# to come
+# load London example data and set params
+d <- LondonExample_crimes
+s <- LondonExample_sources
+p = geoParams(data = d, sigma_mean = 1, sigma_squared_shape = 2)
+# run model
+m = geoMCMC(data = d, params = p)
+# plot original map
+map1 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile)
+map1
+# read in north London shapefile as mask and adjust surface
+north_london_mask <- geoShapefile()
+plot(north_london_mask)
+prob_masked <- geoMask(probSurface = m$posteriorSurface, params = p, mask = north_london_mask, operation = "inside", scaleValue = 1)
+gp_masked <- geoProfile(prob_masked$prob)
+# plot new surface
+map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)
+map2
 }

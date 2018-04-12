@@ -163,3 +163,5 @@ map2
 geoPlotCoallocation
 names(m)
 m$coAllocation
+library(devtools)
+document()

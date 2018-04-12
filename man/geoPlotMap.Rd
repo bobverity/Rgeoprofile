@@ -31,7 +31,7 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 
 \item{mapSource}{which online source to use when downloading the map. Options include Google Maps ("google"), OpenStreetMap ("osm"), Stamen Maps ("stamen") and CloudMade maps ("cloudmade").}
 
-\item{mapType}{the specific type of map to plot. Options available are "terrain", "terrain-background", "satellite", "roadmap" and "hybrid" (google maps), "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).}
+\item{mapType}{the specific type of map to plot. Options available are "terrain", "satellite", "roadmap" and "hybrid" (google maps), "terrain-background", "terrain", "watercolor" and "toner" (stamen maps) or a positive integer for cloudmade maps (see ?get_cloudmademap from the package ggmap for details).}
 
 \item{opacity}{value between 0 and 1 givin the opacity of surface colours.}
 
