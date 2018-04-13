@@ -845,13 +845,13 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   
   # keep cells inside mask, multiplied by scaleValue
   if (operation == "inside") {
-    scale_mat <- scaleValue * ifelse(is.na(rf_mat), NA, 1)
+    scale_mat <- scaleValue * ifelse(is.na(rf_mat), 1, scaleValue)
     p_mat <- p_mat * scale_mat
   }
   
   # keep cells outside mask, multiplied by scaleValue
   if (operation == "outside") {
-    scale_mat <- scaleValue * ifelse(is.na(rf_mat), 1, NA)
+    scale_mat <- scaleValue * ifelse(is.na(rf_mat), scaleValue, 1)
     p_mat <- p_mat * scale_mat
   }
   
@@ -875,6 +875,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   if (operation == "near") {
     d <- distance(rf)
     d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
+    d_mat <- d_mat[nrow(d_mat):1,]
     scale_mat <- 1/(d_mat^scaleValue)
     scale_mat[scale_mat == "Inf"] <- 1
     p_mat <- p_mat * scale_mat
@@ -884,6 +885,7 @@ geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "ins
   if (operation == "far") {
     d <- distance(rf)
     d_mat <- matrix(d@data@values, ncol = d@ncols, byrow = TRUE)
+    d_mat <- d_mat[nrow(d_mat):1,]
     scale_mat <- d_mat^scaleValue
     p_mat <- p_mat * scale_mat
   }
