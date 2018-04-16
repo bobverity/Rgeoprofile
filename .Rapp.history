@@ -1,878 +1,551 @@
-my_pts
-seq(my_pts[1]:my_pts[2])
-my_pts[1]
-my_pts[2]
-rev(seq(1,my_pts[1]))
-seq(my_pts[1],my_pts[2])
-seq(my_pts[1]+1,my_pts[2])
-seq(my_pts[2],length(my_route))
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-seq(1,my_pts[1])#
+range(fake_hs)
+# generate x y coords with fake hitscores and some structure#
+xval <- runif(500,0,5)#
+yval <- runif(500,0,5)#
+fake_hs <- xval-yval#
+range(fake_hs)
+# number_of_colours#
+coln <- 20#
 #
-rev(seq(my_pts[1]+1,my_pts[2]))#
+gp.colors <- colorRampPalette(c("red", "yellow"))#
+ringCols <- gp.colors(coln)#
 #
-seq(my_pts[2],length(my_route))
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-seq(1,my_pts[1])#
+# convert fake hs to integer from colour list#
+fake_hs  <- fake_hs + abs(min(fake_hs))#
+fake_hs  <- round(coln*(fake_hs / max(fake_hs)))#
+range(fake_hs)
+# basic with three colour palette#
 #
-rev(seq(my_pts[1]+1,my_pts[2]))#
+library(RgoogleMaps)#
+gp.colors <- colorRampPalette(c("lightgrey", "black"))#
+ringCols <- gp.colors(10)#
+plot(1:10, pch=16, col = ringCols)#
+# generate x y coords with fake hitscores and some structure#
+xval <- runif(500,0,5)#
+yval <- runif(500,0,5)#
+fake_hs <- xval+yval#
+range(fake_hs)#
 #
-seq(my_pts[2]+1,length(my_route))
-y_pts[2]
-my_pts[2]
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-seq(1,my_pts[1])#
+# number_of_colours#
+coln <- 20#
 #
-rev(seq(my_pts[1]+1,my_pts[2]))#
+gp.colors <- colorRampPalette(c("red", "yellow"))#
+ringCols <- gp.colors(coln)#
 #
-seq(my_pts[2]+1,length(my_route))
-c(seq(1,my_pts[1]),rev(seq(my_pts[1]+1,my_pts[2]))#
-,seq(my_pts[2]+1,length(my_route))#
-)
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-seq(1,my_pts[1])#
+# convert fake hs to integer from colour list#
+fake_hs  <- fake_hs + abs(min(fake_hs))#
+fake_hs  <- round(coln*(fake_hs / max(fake_hs)))#
+range(fake_hs)#
+plot(xval,yval,col= ringCols[fake_hs],pch=16)
+data=read.table("~/Dropbox/2 Teaching/1 QM/Undergraduate/2017-18/BMD113 Human anatomy/Minitests/Minitest 4/anatomy 2017 mcq 4 results to import.txt",header=F)#
+data=data[,1]#
+class(data)#
+hist(data)#
+range(data)#
+hist(data,breaks=c(0,40,45,50,60,70,100),labels=c("F","E","D","C","B","A"),xlab="mark",ylab="frequency",main="marks and grades for mcq 3",col=c("red","white","white","white","white","white"),freq=TRUE,ylim=c(0,80))#
 #
-rev(seq(my_pts[1]+1,my_pts[2]))#
+summary(data)#
+length(data)#
+sd(data)#
+# sort(data)#
 #
-seq(my_pts[2]+1,length(my_route))#
+#plot(sort(data))#
+length(which(data>=70))#
+length(which(data>=60 & data<70))#
+length(which(data>=50 & data<60))#
+length(which(data>=45 & data<50))#
+length(which(data>=40 & data<45))#
+length(which(data<40))
+data=read.table("~/Dropbox/2 Teaching/1 QM/Undergraduate/2017-18/BMD113 Human anatomy/Minitests/Minitest 4/anatomy 2017 mcq 4 results to import.txt",header=F)#
+data=data[,1]#
+class(data)#
+hist(data)#
+range(data)#
+hist(data,breaks=c(0,40,45,50,60,70,100),labels=c("F","E","D","C","B","A"),xlab="mark",ylab="frequency",main="marks and grades for mcq 4",col=c("red","white","white","white","white","white"),freq=TRUE,ylim=c(0,80))#
 #
-c(seq(1,my_pts[1]),rev(seq(my_pts[1]+1,my_pts[2]))#
-,seq(my_pts[2]+1,length(my_route))#
-)
-my_pts
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-seq(1,my_pts[1])#
+summary(data)#
+length(data)#
+sd(data)#
+# sort(data)#
 #
-rev(seq(my_pts[1]+1,my_pts[2]))#
+#plot(sort(data))#
+length(which(data>=70))#
+length(which(data>=60 & data<70))#
+length(which(data>=50 & data<60))#
+length(which(data>=45 & data<50))#
+length(which(data>=40 & data<45))#
+length(which(data<40))
+8(8-2)
+(1/(8*(8-2)))#
+((8*49)-(49^2))#
+((8*294)-(115-17))^2#
+(8*1923)-115^2
+(1/(8*(8-2)))*((8*49)-(49^2))
+(((8*294)-(115-17))^2)/((8*1923)-115^2)
+(1/(8*(8-2)))*((8*49)-(49^2))#
+(((8*294)-(115-17))^2)/((8*1923)-115^2)
+-41-85417-2353.18
+((8*49)-(49^2))-((((8*294)-(115-17))^2)/((8*1923)-115^2))
+(1/(8*(8-2)))#
+((8*49)-(49^2))-((((8*294)-(115-17))^2)/((8*1923)-115^2))
+(1/(8*(8-2)))*((8*49)-(49^2))-((((8*294)-(115-17))^2)/((8*1923)-115^2))
+sum(cigs)^2
+sum(cigs)#
+sum(cigs)^2#
+sum(cigs^2)#
 #
-seq(my_pts[2]+1,length(my_route))#
+sum(sick)#
+sum(sick)^2#
+sum(sick^2)
+# q1#
+xval <- c(2,7,3,7,5,3)#
+yval <- c(4,12,7,14,11,5)#
+mod1 <- lm(yval ~ xval)#
+summary(mod1)#
+plot(xval,yval)#
+abline(mod1)#
+cor(xval,yval)#
 #
-c(seq(1,my_pts[1]),rev(seq(my_pts[1]+1,my_pts[2]))#
-,seq(my_pts[2]+1,length(my_route))#
-)
-my_pts
-my_route[my_pts[1]:my_pts[2]]
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-my_route[my_pts[1]:my_pts[2]] <- rev(seq(my_pts[1],my_pts[2]))#
-my_route
-new_route <- my_route
-mutate_route <- function(my_route)#
-{#
-	my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route  <- new_route[my_pts[1]:my_pts[2]] <- new_route[my_pts[2]:my_pts[1]]#
-return(new_route)#
-}
-mutate_route(12:15)
-test_route <- sample(10,0,100,replace=FALSE)
-test_route <- sample(10:0,100,replace=FALSE)
-test_route <- sample(10:0,100,replace=TRUE)
-test_route
-test_route <- sample(0:100,10,replace=TRUE)
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-test_route
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route  <- new_route[my_pts[1]:my_pts[2]] <- seq(new_route[my_pts[2]:my_pts[1]])#
-return(new_route)#
-}#
+1.808/(3.72/1.98)#
+# q2#
+cigs <- c(11,10,26,15,9,16,20,8)#
+sick <- c(1,1,5,3,2,2,2,1)#
+mod2 <- lm(sick ~ cigs)#
+summary(mod2)#
+sum(cigs)#
+sum(cigs)^2#
+sum(cigs^2)#
 #
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route[my_pts[1]:my_pts[2]] <- seq(new_route[my_pts[2]:my_pts[1]])#
-return(new_route)#
-}#
+sum(sick)#
+sum(sick)^2#
+sum(sick^2)
+sum(cigs*sick)
+sum(cigs)^2
+(8*sum(cigs)^2)
+(8*sum(cigs)^2)-sum(cigs)^2
+(sum(cigs)*sum(sick))^2
+((sum(cigs)*sum(sick))^2)/(8*sum(sick^2)-sum(sick)^2)
+(1/48)*((8*sum(cigs)^2)-sum(cigs)^2)  -   (8*sum(cigs*sick))  -  ((sum(cigs)*sum(sick))^2)/(8*sum(sick^2)-sum(sick)^2)
+# q2#
+cigs <- c(11,10,26,15,9,16,20,8)#
+sick <- c(1,1,5,3,2,2,2,1)#
+mod2 <- lm(sick ~ cigs)#
+summary(mod2)
+1-0.7087^2
+0.7087^2
+sqrt(1-0.7087^2)
+sd(cigs)
+sqrt(1-0.7087^2)*sd(cigs)
+sqrt(1-0.7087^2)*sd(sick)
+sd(sick)
+sd(cigs)*sqrt(1-0.7087^2)
+sqrt(1-0.7087^2)
+cigs
+(1/48)
+(1/48)*abs((8*sum(cigs)^2)-sum(cigs)^2)  -   (8*sum(cigs*sick))  -  ((sum(cigs)*sum(sick))^2)/(8*sum(sick^2)-sum(sick)^2)
+abs(((8*sum(cigs)^2)-sum(cigs)^2)  -   (8*sum(cigs*sick))  -  ((sum(cigs)*sum(sick))^2)/(8*sum(sick^2)-sum(sick)^2))
+(1/48)*abs(((8*sum(cigs)^2)-sum(cigs)^2)  -   (8*sum(cigs*sick))  -  ((sum(cigs)*sum(sick))^2)/(8*sum(sick^2)-sum(sick)^2))
+sqrt((1/48)*abs(((8*sum(cigs)^2)-sum(cigs)^2)  -   (8*sum(cigs*sick))  -  ((sum(cigs)*sum(sick))^2)/(8*sum(sick^2)-sum(sick)^2)))
+sick-mean(sick)
+(sick-mean(sick))^2
+sqrt((sick-mean(sick))^2)
+sqrt((sick-mean(sick))^2) /  6 / sqrt((cigs-mean(cigs))^2)
+sqrt((sick-mean(sick))^2) /  (6 / sqrt((cigs-mean(cigs))^2))
+sqrt(sum(sick-mean(sick))^2) /  (6 / sqrt((cigs-mean(cigs))^2))
+sqrt((sum(sick-mean(sick))^2) /  (6 / sqrt((cigs-mean(cigs))^2))
+sick-mean(sick)
+sum(sick-mean(sick))
+(sick-mean(sick))^2
+sum((sick-mean(sick))^2)
+sum((sick-mean(sick))^2) /  6 / sqrt((cigs-mean(cigs))^2))
+sqrt(sum((sick-mean(sick))^2)) /  6 / sqrt((cigs-mean(cigs))^2))
+sqrt(sum((sick-mean(sick))^2)/6)
+sqrt((cigs-mean(cigs))^2))
+(cigs-mean(cigs))^2)
+cigs-mean(cigs)
+sum(cigs-mean(cigs)^2)
+sqrt(sum(cigs-mean(cigs)^2))
+(cigs-mean(cigs)^2)
+sum(cigs-mean(cigs)^2)
+cigs-mean(cigs)
+(cigs-mean(cigs))^2)
+sqrt(sum((cigs-mean(cigs))^2)
+sqrt(sum(cigs-mean(cigs))^2)
+sqrt(sum((cigs-mean(cigs))^2))
+sqrt(sum((sick-mean(sick))^2)/6)
+sqrt(sum((sick-mean(sick))^2)/6) /  sqrt(sum((cigs-mean(cigs))^2))
+sqrt(sum((cigs-mean(cigs))^2))
+sqrt((1/48)
+sqrt(1/48)
+8*sum(cigs)^2)-sum(cigs)^2
+8*sum(cigs^2)
+8*sum(cigs^2) - sum(cigs)^2
+(sum(cigs*sick)^2)
+cigs*sick
+(sum(cigs*sick)
+sum(cigs*sick)
+8*(sum(cigs*sick)^2)
+1/48
+8*sum(cigs^2) - sum(cigs)^2
+8*(sum(cigs*sick))
+sum(cigs*sick)
+8*(sum(cigs*sick))
+sum(cigs)*sum(sick)
+(8*sum(sick^2)
+8*sum(sick^2)
+sum(sick)^2
+2352-1955
+397^2
+(8*sum(sick^2)-sum(sick)^2)))
+8*sum(sick^2)-sum(sick)^2)))
+8*sum(sick^2)-sum(sick)^2)
+8*sum(sick^2)
+sum(sick)^2
+392-289
+15609/103
+2159-(15609/103)
+2007.456*0.0208
+sqrt(2007.456*0.0208)
+summary(mod2)
+a <- 1/48
+sum(cigs^2)
+8*sum(cigs^2)
+sum(cigs)^2
+b <- 8*sum(cigs^2) - sum(cigs)^2
+b
+a
+sum(cigs*sick)
+sum(cigs)*sum(sick)
+top <- (8*(sum(cigs*sick)) - sum(cigs)*sum(sick))^2
+top
+8*sum(sick^2)-sum(sick)^2)
+(8*sum(sick^2))
+sum(sick)^2
+bottom <- (8*sum(sick^2))-sum(sick)^2
+bottom
+b - (top/bottom)
+a*(b - (top/bottom))
+sqrt((a*(b - (top/bottom))))
+614-35
+1694-150
+apple1 <- rnorm(10000,-5,1)#
+apple2 <- rnorm(10000,-5,5)#
+cs1 <- rnorm(10000,-2,1)#
+cs2 <- rnorm(10000,2,1)#
+hist(c(apple1,cs1,cs2),breaks = seq(-30,30,0.1))#
+quartz()#
+hist(c(apple2,cs1,cs2),breaks = seq(-30,30,0.1))#
+curve(x^2,-10,10)#
 #
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route[my_pts[1]:my_pts[2]] <- new_route[my_pts[2:1]]#
-return(new_route)#
-}#
+curve(dnorm,-10,10)#
+curve(function(x) dnorm,-10,10)#
+par(mfrow=c(2,1))#
+curve(dnorm(x, -2, 1), col="gray", from=-30,to=30,ylim=c(0,0.5),xlab="location",ylab="p",n=600)#
+curve(dnorm(x, 2, 1), col="gray", n=600,add=TRUE)#
+curve(dnorm(x, -5, 1), col="blue", n=600,add=TRUE)#
+curve(1500000*dnorm(x, -2, 1)*dnorm(x, 2, 1)*dnorm(x, -5, 1), col="red", n=600,add=TRUE)#
+text(-5,0.03,"a")#
+text(-2,0.03,"cs")#
+text(2,0.03,"cs")#
 #
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route[my_pts[1]:my_pts[2]] <- new_route[my_pts[2]:my_pts[1]]]#
-return(new_route)#
-}#
+curve(dnorm(x, -2, 1), col="gray", from=-30,to=30,ylim=c(0,0.5),xlab="location",ylab="p",n=600)#
+curve(dnorm(x, 2, 1), col="gray", n=600,add=TRUE)#
+curve(dnorm(x, -5, 5), col="blue", n=600,add=TRUE)#
+curve(3000 * dnorm(x, -2, 1)*dnorm(x, 2, 1)*dnorm(x, -5, 5), col="red", n=600,add=TRUE)#
+text(-5,0.03,"a")#
+text(-2,0.03,"cs")#
+text(2,0.03,"cs")
+library(rmeta)#
+data(cochrane)#
 #
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-my_pts[1]
-my_pts[1:2]
-seq(my_pts[1],my_pts[2])
-new_route[seq(my_pts[1],my_pts[2])]
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route[seq(my_pts[1],my_pts[2])] <- new_route[seq(my_pts[2],my_pts[1])]#
-return(new_route)#
-}#
+model.FE <- meta.MH(n.trt,n.ctrl,ev.trt,ev.ctrl, names=name,data=cochrane)#
+model.RE <- meta.DSL(n.trt,n.ctrl,ev.trt,ev.ctrl, names=name,data=cochrane)#
 #
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-my_pts
-my_route#
+summary(model.RE)#
+plot(model.RE)
+funnel.plot(model.RE)
+funnelplot(model.RE)
+summary(model.RE)
+plot(model.RE)
+(54.1/27.8)*100
+(54/27.8)*100
+(132/34.1)*100
+#______________________________________#
+# MMR EFFECTIVENESS AGAINST MEASLES#
+#______________________________________#
 #
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route[seq(my_pts[1],my_pts[2])] <- new_route[seq(my_pts[2],my_pts[1])]#
-return(new_route)#
-}#
-#
-test_route <- sample(0:100,10,replace=TRUE)#
-test_route#
-mutate_route(test_route)
-my_route
-test_route <- sample(0:100,10,replace=FALSE)#
-test_route#
-mutate_route(test_route)
-# This version calculate a cost of over- or under-allocation to staff automatically#
-# This takes the sum, for each academic, of the number of spare places and raises#
-# it to the fourth power. Thus, the penalties for going over increase geometrically.#
 rm(list=ls())#
-library(beepr)#
-# define function#
-#
-allocationScore <- function(student_df,staff_df, choice_penalties)#
-{#
-number_choices <- ncol(student_df) - 2#
-#
-# count number of students for each staff member#
-total_students <- rep(NA,length(staff_df$academic))#
-#
-for(i in 1:length(staff_df$academic))#
-{#
-	total_students[i] <- length(which(student_df$alloc==staff_df$academic[i]))#
-}#
-#total_students#
-#
-# calculate spare places#
-spare_places <- staff_df$max_students-total_students#
-#
-# calculate allocation score#
-alloc_score <- 0#
-for(i in 1:length(choice_penalties))#
-{#
-		alloc_score <- alloc_score + choice_penalties[i] * sum(student_df[,i+1]== student_df[,number_choices+2])#
-}#
-# alloc_score#
-#
-# over-subscribed score#
-over_score <- sum(as.integer(names(table(spare_places)))^6 * as.integer(table(spare_places)))#
-#
-# calculate allocation score#
-count_alloc <- rep(NA,length(choice_penalties))#
-for(i in 1:length(choice_penalties))#
-{#
-		count_alloc[i] <- sum(student_df[,i+1]== student_df[,length(choice_penalties)+2])#
-}#
-#
-total_score <- alloc_score + over_score#
-return(list(score=total_score, allocations = student_df$alloc, counts = table(student_df$alloc),spare=table(spare_places),choices= count_alloc))#
-}#
-#__________________________________________________#
-# IMPORT DATA#
-#__________________________________________________#
-# import data#
-students <- read.table("~/Dropbox/10 R code/project allocations/Input/student_input.txt",header=TRUE)#
-attach(students)#
-head(students)#
-students$alloc <- as.character(students$alloc)#
-str(students)#
-students <- students[complete.cases(students),]#
-#
-staff <- read.table("~/Dropbox/10 R code/project allocations/Input/staff_input.txt",header=TRUE)#
-attach(staff)#
-head(staff)#
-staff$academic <- as.character(staff$academic)#
-str(staff)#
-#staff$max_students <- rep(5, nrow(staff))#
-number_students <- nrow(students)#
-number_staff <- nrow(staff)#
-number_choices <- 5#
-#
-# start with random allocation or with everyone assigned to their first choice#
-random_choices <- sample(1:number_choices,length(students$alloc),replace=TRUE)#
-for(i in 1:length(random_choices))#
-{#
-	students$alloc[i] <- as.character(students[i, (random_choices[i]+1)])#
-}#
-dim(students)#
-students[,number_choices+2] <- as.character(students[,2])#
-allocationScore(students,staff,c(0,1,5,10,100))#
-#__________________________________________________#
-# OPTIMISE#
-#__________________________________________________#
-# settings#
-choice_penalties <- c(0,1,10,50,100)#
-threshold_p_range <- c(0.005,0.1)#
-generations <- 500#
-mutants <- 100#
-current_alloc <- students#
-#
-all_gen_scores <- rep(NA,generations+1)#
-all_gen_scores[1] <- allocationScore(current_alloc,staff,choice_penalties)$score#
-#
-for(gen in 1:generations)#
-{#
-all_allocation_scores <- rep(NA,mutants+1)#
-all_allocation_scores[1] <- allocationScore(current_alloc,staff,choice_penalties)$score#
-#
-allocation_list <- list(0)#
-allocation_list[[1]] <- data.frame(current_alloc)#
-# str(allocation_list)#
-#
-for(m in 1:mutants)#
-{mutant_alloc <- current_alloc#
-for(i in 1:nrow(mutant_alloc))#
-{#
-threshold_p <- runif(1, threshold_p_range[[1]],threshold_p_range[[2]])#
-#
-random_no <- runif(1,0,1)#
-if(random_no<threshold_p)#
-{new_choice <- sample(1:number_choices,1)#
-mutant_alloc[i,(number_choices+2)] <- as.character(current_alloc[i,(new_choice+1)])}#
-}#
-all_allocation_scores[m+1] <- allocationScore(mutant_alloc,staff,choice_penalties)$score#
-allocation_list[[m+1]] <- data.frame(mutant_alloc)#
-#str(all_allocation_scores)#
-#str(allocation_list)#
-}#
-#
-# choose best current allocation#
-best_alloc <- which(all_allocation_scores == min(all_allocation_scores))[1]#
-#
-current_alloc <- allocation_list[[best_alloc]]#
-colnames(current_alloc) <- c("student_ID",as.character(seq(1: number_choices)),"alloc")#
-#
-all_gen_scores[gen+1] <- allocationScore(current_alloc,staff,choice_penalties)$score#
-if (gen %% 10 ==0) {#
-	print(c(gen,min(all_allocation_scores)))#
-	par(mfrow=c(1,3))#
-# score evolution#
-#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y")#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare)#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices))#
-}#
-}#
-#__________________________________________________#
-# OUTPUT#
-#__________________________________________________#
-write.table(current_alloc,"current_alloc.txt")#
-#
-# plot results#
-par(mfrow=c(2,2))#
-curve(x^6,-10,10,n=21,type="h",log="y",main="over allocation penalties",col="red",xlab="spare places")#
-#
-# score evolution#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y",main="scores",col="blue")#
-#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare,ylab="freq",main="staff load",xlab="students per academic")#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices),ylab="freq",main="student prefs",xlab="student preferences")#
-allocationScore(students,staff,choice_penalties)#
-allocationScore(current_alloc,staff,choice_penalties)#
-beep(5)#
-#
-subset(current_alloc,current_alloc$alloc=="SLEC")#
-#
-prop_1_to_3 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[1:3])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_1_to_3
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)
-prop_5
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[4:5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-#__________________________________________________#
-# OUTPUT#
-#__________________________________________________#
-write.table(current_alloc,"current_alloc.txt")#
-#
-# plot results#
-par(mfrow=c(2,2))#
-curve(x^6,-10,10,n=21,type="h",log="y",main="over allocation penalties",col="red",xlab="spare places")#
-#
-# score evolution#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y",main="scores",col="blue")#
-#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare,ylab="freq",main="staff load",xlab="students per academic")#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices),ylab="freq",main="student prefs",xlab="student preferences")#
-allocationScore(students,staff,choice_penalties)#
-allocationScore(current_alloc,staff,choice_penalties)#
-beep(5)#
-#
-subset(current_alloc,current_alloc$alloc=="SLEC")#
-#
-prop_1_to_3 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[1:3])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_1_to_3#
-#
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-current_alloc
-# plot results#
-par(mfrow=c(2,2))#
-curve(x^6,-10,10,n=21,type="h",log="y",main="over allocation penalties",col="red",xlab="spare places")#
-#
-# score evolution#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y",main="scores",col="blue")#
-#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare,ylab="freq",main="staff load",xlab="students per academic")#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices),ylab="freq",main="student prefs",xlab="student preferences")#
-allocationScore(students,staff,choice_penalties)#
-allocationScore(current_alloc,staff,choice_penalties)#
-beep(5)#
-#
-subset(current_alloc,current_alloc$alloc=="SLEC")#
-#
-prop_1_to_3 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[1:3])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_1_to_3#
-#
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-subset(current_alloc,current_alloc$alloc=="RCUT")
-subset(current_alloc,current_alloc$alloc=="SLEC")
-subset(current_alloc,current_alloc$alloc=="RCUT")
-current_alloc
-allocationScore(students,staff,choice_penalties)#
-allocationScore(current_alloc,staff,choice_penalties)#
-beep(5)#
-#
-subset(current_alloc,current_alloc$alloc=="RCUT")#
-subset(current_alloc,current_alloc$alloc=="SLEC")#
-#
-prop_1_to_3 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[1:3])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_1_to_3#
-#
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-students
-staff
-current_alloc
-# plot results#
-par(mfrow=c(2,2))#
-curve(x^6,-10,10,n=21,type="h",log="y",main="over allocation penalties",col="red",xlab="spare places")#
-#
-# score evolution#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y",main="scores",col="blue")#
-#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare,ylab="freq",main="staff load",xlab="students per academic")#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices),ylab="freq",main="student prefs",xlab="student preferences")#
-allocationScore(students,staff,choice_penalties)#
-allocationScore(current_alloc,staff,choice_penalties)#
-beep(5)#
-#
-subset(current_alloc,current_alloc$alloc=="RCUT")#
-subset(current_alloc,current_alloc$alloc=="SLEC")#
-#
-prop_1_to_3 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[1:3])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_1_to_3#
-#
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-subset(current_alloc,current_alloc$alloc=="BCUR")
-subset(current_alloc,current_alloc$alloc=="SLEC")
-subset(current_alloc,current_alloc$alloc=="RCUT")
-#__________________________________________________#
-# IMPORT DATA#
-#__________________________________________________#
-# import data#
-students <- read.table("~/Dropbox/10 R code/project allocations/Input/student_input.txt",header=TRUE)#
-attach(students)#
-head(students)#
-students$alloc <- as.character(students$alloc)#
-str(students)#
-students <- students[complete.cases(students),]#
-#
-staff <- read.table("~/Dropbox/10 R code/project allocations/Input/staff_input.txt",header=TRUE)#
-attach(staff)#
-head(staff)#
-staff$academic <- as.character(staff$academic)#
-str(staff)#
-#staff$max_students <- rep(5, nrow(staff))#
-number_students <- nrow(students)#
-number_staff <- nrow(staff)#
-number_choices <- 5#
-#
-# start with random allocation or with everyone assigned to their first choice#
-random_choices <- sample(1:number_choices,length(students$alloc),replace=TRUE)#
-for(i in 1:length(random_choices))#
-{#
-	students$alloc[i] <- as.character(students[i, (random_choices[i]+1)])#
-}#
-dim(students)#
-students[,number_choices+2] <- as.character(students[,2])#
-allocationScore(students,staff,c(0,1,5,10,100))#
-#__________________________________________________#
-# OPTIMISE#
-#__________________________________________________#
-# settings#
-choice_penalties <- c(0,1,10,50,100)#
-threshold_p_range <- c(0.005,0.1)#
-generations <- 500#
-mutants <- 100#
-current_alloc <- students#
-#
-all_gen_scores <- rep(NA,generations+1)#
-all_gen_scores[1] <- allocationScore(current_alloc,staff,choice_penalties)$score#
-#
-for(gen in 1:generations)#
-{#
-all_allocation_scores <- rep(NA,mutants+1)#
-all_allocation_scores[1] <- allocationScore(current_alloc,staff,choice_penalties)$score#
-#
-allocation_list <- list(0)#
-allocation_list[[1]] <- data.frame(current_alloc)#
-# str(allocation_list)#
-#
-for(m in 1:mutants)#
-{mutant_alloc <- current_alloc#
-for(i in 1:nrow(mutant_alloc))#
-{#
-threshold_p <- runif(1, threshold_p_range[[1]],threshold_p_range[[2]])#
-#
-random_no <- runif(1,0,1)#
-if(random_no<threshold_p)#
-{new_choice <- sample(1:number_choices,1)#
-mutant_alloc[i,(number_choices+2)] <- as.character(current_alloc[i,(new_choice+1)])}#
-}#
-all_allocation_scores[m+1] <- allocationScore(mutant_alloc,staff,choice_penalties)$score#
-allocation_list[[m+1]] <- data.frame(mutant_alloc)#
-#str(all_allocation_scores)#
-#str(allocation_list)#
-}#
-#
-# choose best current allocation#
-best_alloc <- which(all_allocation_scores == min(all_allocation_scores))[1]#
-#
-current_alloc <- allocation_list[[best_alloc]]#
-colnames(current_alloc) <- c("student_ID",as.character(seq(1: number_choices)),"alloc")#
-#
-all_gen_scores[gen+1] <- allocationScore(current_alloc,staff,choice_penalties)$score#
-if (gen %% 10 ==0) {#
-	print(c(gen,min(all_allocation_scores)))#
-	par(mfrow=c(1,3))#
-# score evolution#
-#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y")#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare)#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices))#
-}#
-}
-# plot results#
-par(mfrow=c(2,2))#
-curve(x^6,-10,10,n=21,type="h",log="y",main="over allocation penalties",col="red",xlab="spare places")#
-#
-# score evolution#
-plot(all_gen_scores,type="l",xlab="gen",ylab="score",log="y",main="scores",col="blue")#
-#
-# distribution of spare places#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$spare,ylab="freq",main="staff load",xlab="students per academic")#
-#
-# choice distribution#
-barplot(allocationScore(current_alloc,staff,choice_penalties)$choices,names.arg=1:length(allocationScore(current_alloc,staff,choice_penalties)$choices),ylab="freq",main="student prefs",xlab="student preferences")#
-allocationScore(students,staff,choice_penalties)#
-allocationScore(current_alloc,staff,choice_penalties)#
-beep(5)#
-#
-subset(current_alloc,current_alloc$alloc=="RCUT")#
-subset(current_alloc,current_alloc$alloc=="SLEC")#
-#
-prop_1_to_3 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[1:3])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_1_to_3#
-#
-prop_5 <- sum(allocationScore(current_alloc,staff,choice_penalties)$choices[5])/sum(allocationScore(current_alloc,staff,choice_penalties)$choices)#
-prop_5
-mutate_route(test_route)
-number_of_cities <- 10#
-cityID <- seq(1,number_of_cities)#
-city_lon <- rnorm(number_of_cities,0,1)#
-city_lat <- rnorm(number_of_cities,0,1)#
-city_df <- data.frame(cbind(cityID,city_lon, city_lat))#
-city_df#
-#___________________________________#
-my_route <- city_df$cityID#
-my_route#
-random_route <- sample(1:length(my_route),length(my_route),replace=FALSE)#
-#___________________________________#
-#
-draw_route_loop <- function(city_df,my_route)#
-	{#
-		cities_coord <- city_df[my_route,2:3] #
-		n_cities <- nrow(cities_coord)#
-		plot(cities_coord,xlab="x",ylab="y",pch=16,col="red")#
-		path_coord <- rbind(cities_coord, cities_coord[1,])#
-		for(i in 1:(n_cities))#
-			{#
-				points(path_coord[i:(i+1),1], path_coord[i:(i+1),2],type="l")#
-			}#
-#
-	}#
-#___________________________________#
-draw_route_loop(city_df,my_route)#
-#
-draw_route_loop(city_df, random_route)#
-#
-#___________________________________#
-test_coords <- city_df[,2:3]#
-#
-coordinate_distance <- function(pt1,pt2)#
-{#
-	my_dist <- sqrt(abs(pt1[1]-pt2[1])^2 + abs(pt1[2]-pt2[2])^2)#
-	return(my_dist)#
-}#
-#
-coordinate_distance(c(1,1),c(2,2))#
-coordinate_distance(test_coords[2,],test_coords[3,])#
-#
-# check if each element in test_seq is less than each element in ref_seq#
-# mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)#
-#___________________________________#
-#
-circular_route_distance <- function(city_df,my_route)#
-	{#
-		cities_coord <- city_df[my_route,2:3] #
-		path_coord <- rbind(cities_coord, cities_coord[1,])#
-		n_cities <- nrow(path_coord)-1#
-		all_distances <- rep(NA,n_cities-1)#
-#
-		for(i in 1:(n_cities-1))#
-			{#
-				all_distances[i] <- coordinate_distance(path_coord[i,], path_coord[i+1,])#
-			}#
-		return(sum(all_distances))#
-	}#
-#
-circular_route_distance(city_df,my_route)#
-circular_route_distance(city_df,random_route)#
-#___________________________________#
-#
-my_route#
-#
-mutate_route <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-new_route[seq(my_pts[1],my_pts[2])] <- new_route[seq(my_pts[2],my_pts[1])]#
-return(new_route)#
-}#
-#
-test_route <- sample(0:100,10,replace=FALSE)#
-test_route#
-mutate_route(test_route)
-route_mutate <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-first <- new_route[my_pts[1]]#
-second <- new_route[my_pts[2]]#
-#
-new_route <- my_route#
-new_route[my_pts[1]] <- second#
-new_route[my_pts[2]] <- first#
-return(new_route)#
-}#
-test_route #
-route_mutate(test_route)
-route_mutate <- function(my_route)#
-{#
-my_pts <- sort(sample(1:length(my_route),2,replace=FALSE))#
-new_route <- my_route#
-first <- new_route[my_pts[1]]#
-second <- new_route[my_pts[2]]#
-new_route[my_pts[1]] <- second#
-new_route[my_pts[2]] <- first#
-return(new_route)#
-}#
-test_route #
-route_mutate(test_route)
-route_mutate(test_route)
-test_route #
-route_mutate(test_route)
-# apply one vector to another apply function#
-test_seq <- 1:3#
-ref_seq <- 1:5#
-test_seq#
-ref_seq#
-mapply(function(x,y) x < y, x=test_seq, y=ref_seq)#
-sapply(test_seq, function(x) x < 5)#
-#
-test_seq#
-ref_seq#
-#
-# check if each element in test_seq is less than each element in ref_seq#
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-geoReportHitscores
-system.time(mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-# apply one vector to another apply function#
-test_seq <- 1:3#
-ref_seq <- 1:5#
-test_seq#
-ref_seq#
-mapply(function(x,y) x < y, x=test_seq, y=ref_seq)#
-sapply(test_seq, function(x) x < 5)#
-#
-test_seq#
-ref_seq#
-#
-# check if each element in test_seq is less than each element in ref_seq#
-system.time(mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-test_seq
-system.time(mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-system.time(mapply(function(x,y), sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-system.time(mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-system.time(mapply(function(x,y) sapply(test_seq, function(x,y) x > y), x=test_seq, y=ref_seq))
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x > y)
-system.time(mapply(function(x,y) apply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-system.time(mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-y <- seq(1,100)
-sapply(test_seq, function(x) x > y)
-y
-sapply(test_seq, function(x) x < 5)
-sapply(test_seq, function(x) x > ref_seq)
-ref_seq
-test_seq
-sapply(test_seq, function(x) x > y)
-mapply(function(x,y) x < y, x=test_seq, y=ref_seq)
-# define matrix#
-my_mat <- matrix(c(1:30),nrow=3,byrow=TRUE)#
-my_mat#
-#
-# take mean of rows#
-apply(my_mat,1,mean)#
-# take mean of columns#
-apply(my_mat,2,mean)#
-# define vector#
-my_x <- sample(0:100,100,replace=TRUE)#
-my_x#
-my_y <- sapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))#
-plot(my_x,my_y,pch=16,xlab="x",ylab="y")#
-#
-# return a list#
-# lapply(my_vec, function(x) c(x,sx+rnorm(0,1)))#
-# code matrix quickly#
-mat1 <- matrix(sample(0:9,25,replace=TRUE),nrow=5)#
-mat1#
-matrix(sapply(mat1,function(x) x+1),nrow=5)#
-scale_value <- 0.001#
-matrix(sapply(mat1,function(x) ifelse(is.na(x)==FALSE,0,scale_value)),nrow=5)#
-mat3 <- matrix(sample(0:16,replace=TRUE),nrow=4)#
-mat4 <- matrix(sample(0:16,replace=TRUE),nrow=4)#
-mat3#
-mat4#
-mat3*mat4#
-# apply one vector to another apply function#
-test_seq <- 1:3#
-ref_seq <- 1:5#
-test_seq#
-ref_seq#
-mapply(function(x,y) x < y, x=test_seq, y=ref_seq)#
-sapply(test_seq, function(x) x < 5)#
-#
-test_seq#
-ref_seq#
-#
-# check if each element in test_seq is less than each element in ref_seq#
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-system.time(mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-?mclapply
-library(parallel)
-mclapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq))
-mclapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) x < y, x=test_seq, y=ref_seq)
-mapply(function(x,y) x < y, x=test_seq y=ref_seq)
-apply(function(x,y) x < y, x=test_seq, y=ref_seq)
-sapply(function(x,y) x < y, x=test_seq, y=ref_seq)
-lapply(function(x,y) x < y, x=test_seq, y=ref_seq)
-mapply(function(x,y) x < y, x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-apply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-lapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x > y)
-test_seq <- 1:3#
-ref_seq <- 1:5#
-test_seq#
-ref_seq
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-mclapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x < 5)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-test_seq
-ref_seq
-test_seq > ref_seq
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x < 5)
-sapply(test_seq, function(x) x < c(2,3,4))
-sapply(test_seq, function(x) x < c(2,3,4,5))
-test_seq
-mapply(function(x,y) sapply(test_seq, function(y) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x < c(2,3,4,5))
-test_seq
-sapply(test_seq, function(x) x < ref_seq)
-test_seq
-ref_seq
-mapply(function(x,y) sapply(test_seq, function(x) x < ref_seq)), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x < ref_seq), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x < ref_seq)
-sapply(test_seq, function(x) x > ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > ref_seq), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(y) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-test_seq#
-ref_seq
-mapply(function(x,y) sapply(test_seq, function(x) x > y), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x > ref_seq)
-test_seq
-sapply(test_seq, function(x) x > ref_seq)
-mapply(test_seq, function(x) x > ref_seq)
-test_seq
-ref_seq
-mapply(function(x,y) sapply(test_seq, function(x) x > 3), x=test_seq, y=ref_seq)
-sapply(test_seq, function(x) x > c(1,2,3))
-test_seq
-sapply(test_seq, function(x) x < c(1,2,3))
-test_seq
-mapply(function(x,y) sapply(function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(ref_seq,function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq,function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(ref_seq,function(x) x > y), x=test_seq, y=ref_seq)
-mapply(function(x,y) sapply(test_seq,function(x) x > y), x=test_seq, y=ref_seq)
-test_seq
-ref_seq
-?outer
-outer(test_seq,ref_seq, <)
-outer(test_seq,ref_seq, "<")
-?geoRingHitscores
-geoRingHitscores
-mclapply(function(x) sapply(test_seq, function(x) x > c(1:100)), x=test_seq)
-apply(function(x) sapply(test_seq, function(x) x > c(1:100)), x=test_seq)
-mclapply(function(x) sapply(test_seq, function(x) x > c(1:100)))
-mapply(function(x) sapply(test_seq, function(x) x > c(1:100)))
-lapply(my_vec, function(x) c(x,sx+rnorm(0,1)))
-my_x <- sample(0:100,100,replace=TRUE)#
-my_x#
-my_y <- sapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))
-my_y
-library(parallel)#
-my_x <- sample(0:100,100,replace=TRUE)#
-my_y <- sapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))
-plot(my_x,my_y,pch=16,xlab="x",ylab="y")
-my_y <- mclapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))
-library(parallel)#
-sample_size <- 10000#
-my_x <- sample(0:100, sample_size,replace=TRUE)#
-#
-my_y <- sapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))#
-plot(my_x,my_y,pch=16,xlab="x",ylab="y")#
-#
-my_y <- mclapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))#
-plot(my_x,my_y,pch=16,xlab="x",ylab="y")#
-#
-system.time(sapply(my_x, function(x) (1.2*x)+rnorm(1,0,20)))#
-system.time(mclapply(my_x, function(x) (1.2*x)+rnorm(1,0,20)))
-?parallel
-no_cores <- detectCores() - 1
-no_cores
-cl <- makeCluster(no_cores)
-my_y <- mclapply(my_x, function(x) (1.2*x)+rnorm(1,0,20))#
-plot(my_x,my_y,pch=16,xlab="x",ylab="y")#
-#
-system.time(sapply(my_x, function(x) (1.2*x)+rnorm(1,0,20)))#
-system.time(mclapply(my_x, function(x) (1.2*x)+rnorm(1,0,20)))
+library(rmeta)#
+measles <- read.table("~/Desktop/Dropbox/MMRvsMeasles.txt",header=TRUE)#
+attach(measles)#
+measles#
+model.RE <- meta.DSL(n.trt,n.ctrl,ev.trt,ev.ctrl, names=name,data=measles)#
+summary(model.RE)#
+plot(model.RE)
+rm(list=ls())#
+library(rmeta)
+measles <- read.table("~/Desktop/Dropbox/MMRvsMeasles.txt",header=TRUE)
+measles <- read.table("~/Desktop/MMRvsMeasles.txt",header=TRUE)
+attach(measles)#
+measles#
+model.RE <- meta.DSL(n.trt,n.ctrl,ev.trt,ev.ctrl, names=name,data=measles)#
+summary(model.RE)#
+plot(model.RE)
+2/12906
+(2/12906)/(114/22188)
+library(rmeta)#
+measles <- read.table("~/Desktop/MMRvsMeasles.txt",header=TRUE)#
+attach(measles)#
+measles#
+model.RE <- meta.DSL(n.trt,n.ctrl,ev.trt,ev.ctrl, names=name,data=measles)#
+summary(model.RE)#
+plot(model.RE)
+#______________________________________#
+# MMR EFFECTIVENESS AGAINST MEASLES#
+#______________________________________#
+rm(list=ls())#
+library(rmeta)#
+measles <- read.table("~/Desktop/MMRvsMeasles.txt",header=TRUE)#
+attach(measles)#
+measles#
+model.RE <- meta.DSL(n.trt,n.ctrl,ev.trt,ev.ctrl, names=name,data=measles)#
+summary(model.RE)#
+plot(model.RE)
+xval <- c(2,7,3,7,5,3)#
+yval <- c(4,12,7,14,11,5)
+1/(np(np-2))
+np <- length(xval)#
+1/(np(np-2))
+1/(np*(np-2))
+np*(sum(xval^2))
+sum(xval^2)
+sum(xval)^2
+xval*yval
+sum(xval*yval)
+sum(xval)
+sum(yval)
+sum(xval*yval)
+sum(yval)^2
+1/24
+np*(sum(xval^2))#
+sum(xval)^2
+sum(xval*yval)
+sum(xval)#
+sum(yval)
+sum(yval^2)
+sum(yval)^2
+((6*281)-(27*53))^2
+(6*551)-2809
+sqrt((1/24)*(141-(65025/497)))
+65025/497
+(141-(65025/497))
+sqrt(10.17)
+(1/24)*(141-(65025/497))
+sqrt((1/24)*(141-(65025/497)))
+6*145
+np*(sum(xval^2))
+sum(xval)^2
+np*sum(xval*yval)-sum(xval)*sum(yval)
+term3num <- (np*sum(xval*yval)-sum(xval)*sum(yval))^2
+sum(yval)
+sum(xval)^2
+sum(yval^2)
+term1 <- 1/(np*(np-2))#
+term2a <- np*(sum(xval^2))#
+term2b <- sum(xval)^2#
+term3num <- (np*sum(xval*yval)-sum(xval)*sum(yval))^2#
+term3denom <- np*sum(yval^2) - sum(yval)^2#
+complete <- sqrt(term1 - term 2 - (term3num/term3denom))
+term3num <- (np*sum(xval*yval)-sum(xval)*sum(yval))^2
+term3denom <- np*sum(yval^2) - sum(yval)^2
+term3num
+term3denom
+term3num/term3denom
+term1 - term 2 - (term3num/term3denom)
+complete <- sqrt(term1 - term2 - (term3num/term3denom))
+term1 *  (term2a - term2b - (term3num/term3denom))
+term1 <- 1/(np*(np-2))#
+term2a <- np*(sum(xval^2))#
+term2b <- sum(xval)^2#
+term3num <- (np*sum(xval*yval)-sum(xval)*sum(yval))^2#
+term3denom <- np*sum(yval^2) - sum(yval)^2#
+complete <- sqrt(term1 *  (term2a - term2b - (term3num/term3denom)))#
+complete
+34/72
+34/57
+data=read.table("~/Dropbox/2 Teaching/1 QM/Undergraduate/2017-18/BMD113 Human anatomy/Practicals/Practical 4/BMD113Practical4Import2017.txt",header=F)#
+data=data[,1]#
+class(data)#
+hist(data)#
+range(data)
+hist(data,breaks=c(0,40,45,50,60,70,100),labels=c("F","E","D","C","B","A"),xlab="mark",ylab="frequency",main="marks and grades for practical 4",col=c("red","white","white","white","white","white"),freq=TRUE,ylim=c(0,100))#
+#
+summary(data)#
+length(data)#
+sd(data)#
+# sort(data)#
+#
+#plot(sort(data))#
+length(which(data>=70))#
+length(which(data>=60 & data<70))#
+length(which(data>=50 & data<60))#
+length(which(data>=45 & data<50))#
+length(which(data>=40 & data<45))#
+length(which(data<40))
+hist(data,breaks=c(0,40,45,50,60,70,100),labels=c("F","E","D","C","B","A"),xlab="mark",ylab="frequency",main="marks and grades for practical 4",col=c("red","white","white","white","white","white"),freq=TRUE,ylim=c(0,80))
+data=read.table("~/Desktop/BMD113WeightedImport2017.txt",header=F)#
+data=data[,1]#
+class(data)#
+hist(data)#
+range(data)#
+hist(data,breaks=c(0,40,45,50,60,70,100),labels=c("F","E","D","C","B","A"),xlab="mark",ylab="frequency",main="marks and grades for practical 4",col=c("red","white","white","white","white","white"),freq=TRUE,ylim=c(0,80))#
+#
+summary(data)#
+length(data)#
+sd(data)#
+# sort(data)#
+#
+#plot(sort(data))#
+length(which(data>=70))#
+length(which(data>=60 & data<70))#
+length(which(data>=50 & data<60))#
+length(which(data>=45 & data<50))#
+length(which(data>=40 & data<45))#
+length(which(data<40))
+data=read.table("~/Desktop/BMD113WeightedImport2017.txt",header=F)#
+data=data[,1]#
+class(data)#
+hist(data)#
+range(data)#
+hist(data,breaks=c(0,40,45,50,60,70,100),labels=c("F","E","D","C","B","A"),xlab="mark",ylab="frequency",main="weighted coursework grades",col=c("red","white","white","white","white","white"),freq=TRUE,ylim=c(0,80))#
+#
+summary(data)#
+length(data)#
+sd(data)#
+# sort(data)#
+#
+#plot(sort(data))#
+length(which(data>=70))#
+length(which(data>=60 & data<70))#
+length(which(data>=50 & data<60))#
+length(which(data>=45 & data<50))#
+length(which(data>=40 & data<45))#
+length(which(data<40))
 library(devtools)
-install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)
-library(RgeoProfile)
+document()
+library(devtools)
+document()
+library(RgeoProfile)#
+path <- "~/GitHub/Rgeoprofile"#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+# John Snow cholera datadata(Cholera)d <- geoData(Cholera[,1],Cholera[,2])data(WaterPumps)s <- geoDataSource(WaterPumps[,1], WaterPumps[,2])p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)# produce simple mapgeoPlotMapText(params = p, data = d, source = s, crimeNames = NULL, sourceNames = letters[1:13], surface = m$geoProfile, crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
+geoPlotMapText <- function (params, data = NULL, source = NULL, crimeNames = NULL, sourceNames = NULL, surface = NULL, #
+    zoom = NULL, mapSource = "google", mapType = "hybrid", opacity = 0.6, #
+    plotContours = TRUE, breakPercent = seq(0, 100, l = 11), #
+    contourCols = c("red", "orange", "yellow", "white"), crimeCex = 1.5, #
+    crimeCol = "red", crimeBorderCol = "white", crimeBorderWidth = 0.5, #
+    sourceCex = 1.5, sourceCol = "blue", gpLegend = TRUE) #
+{#
+    geoParamsCheck(params)#
+    if (!is.null(data)) #
+        geoDataCheck(data)#
+    if (is.null(zoom)) #
+        zoom <- getZoom(params$output$longitude_minMax, params$output$latitude_minMax)#
+    if (mapSource == "stamen") #
+        zoom <- min(zoom, 18)#
+    rawMap <- get_map(location = c(mean(params$output$longitude_minMax), #
+        mean(params$output$latitude_minMax)), zoom = zoom, source = mapSource, #
+        maptype = mapType)#
+    myMap <- ggmap(rawMap) + coord_cartesian(xlim = params$output$longitude_minMax, #
+        ylim = params$output$latitude_minMax)#
+    if (!is.null(surface)) {#
+        geoCols <- colorRampPalette(contourCols)#
+        nbcol = length(breakPercent) - 1#
+        longitude_minMax <- params$output$longitude_minMax#
+        latitude_minMax <- params$output$latitude_minMax#
+        longitude_cells <- params$output$longitude_cells#
+        latitude_cells <- params$output$latitude_cells#
+        longitude_cellSize <- diff(longitude_minMax)/longitude_cells#
+        latitude_cellSize <- diff(latitude_minMax)/latitude_cells#
+        longitude_midpoints <- longitude_minMax[1] - longitude_cellSize/2 + #
+            (1:longitude_cells) * longitude_cellSize#
+        latitude_midpoints <- latitude_minMax[1] - latitude_cellSize/2 + #
+            (1:latitude_cells) * latitude_cellSize#
+        df <- expand.grid(x = longitude_midpoints, y = latitude_midpoints)#
+        df$z <- as.vector(t(surface))#
+        labs <- paste(round(breakPercent, 1)[-length(breakPercent)], #
+            "-", round(breakPercent, 1)[-1], "%", sep = "")#
+        df$cut <- cut(df$z, breakPercent/100 * length(surface), #
+            labels = labs)#
+        df_noNA <- df[!is.na(df$cut), ]#
+        myMap <- myMap + geom_tile(aes(x = x, y = y, fill = cut), #
+            alpha = opacity, data = df_noNA)#
+        myMap <- myMap + scale_fill_manual(name = "Hitscore\npercentage", #
+            values = rev(geoCols(nbcol)))#
+        if (gpLegend == FALSE) {#
+            myMap <- myMap + theme(legend.position = "none")#
+        }#
+        if (plotContours) {#
+            myMap <- myMap + stat_contour(aes(x = x, y = y, z = z), #
+                colour = "grey50", breaks = breakPercent/100 * #
+                  length(surface), size = 0.3, alpha = opacity, #
+                data = df)#
+        }#
+    }#
+    	if (is.null(crimeNames)) {crimeNames = 1:length(data$longitude)}#
+    if (!is.null(data)) {#
+        df_data <- data.frame(longitude = data$longitude, latitude = data$latitude,ptno=crimeNames)#
+        df_data$ptno <- crimeNames#
+        myMap <- myMap + geom_text(aes(x = longitude, y = latitude, label = ptno), #
+            data = df_data, cex = crimeCex,col=crimeCol)#
+    }#
+    	if (is.null(sourceNames)) {sourceNames = 1:length(source$source_longitude)}#
+      if (!is.null(source)) {#
+        df_source <- data.frame(longitude = source$source_longitude, #
+            latitude = source$source_latitude,sourceNames)#
+        df_source$sptno <- sourceNames#
+        myMap <- myMap + geom_text(aes(x = longitude, y = latitude, label = sptno), #
+            data = df_source, cex = sourceCex, col = sourceCol)  #
+    }#
+    myMap#
+}#
+#
+myNames <- read.table("~/Dropbox/10 R code/geoPlotMapText/testnames.txt",header=FALSE)#
+mySources <- LETTERS[1:8]#
+#
+mySources <- c("Morlich Gardens","Cedar Grove")#
+myNames <- c("Grove","Forthill","JLC","Fishermans","Royal Arch","Vissocchi's","Fiona","G&S1","G&S2","RSMcColl","VG")#
+geoPlotMapText(data = d, source = s, sourceNames = mySources,params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)#
+#
+geoPlotMapText(data = d, source = s, crimeNames = myNames, sourceNames = mySources, params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)#
+#
+geoPlotMapText(data = d, source = s, params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)
 geoPlotMapText
-install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)
+geoPlotMapText(data = d, source = s, params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)
+geoPlotMapText(data = d, source = s, sourceNames = mySources,params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)
+geoPlotMapText(data = d, source = s, crimeNames = myNames, sourceNames = mySources, params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)
+geoPlotMapText(data = d, source = s, params = p, breakPercent = seq(0, 100, 2), mapType = "roadmap", contourCols = masked_rainbow, crimeCol = "black", crimeCex = 4, sourceCol = "blue", sourceCex = 4, surface = m$geoProfile, gpLegend=FALSE)
 library(RgeoProfile)
+getZoom
 library(devtools)
-install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)
-library(RgeoProfile)
-geoPlotMap
-geoPlotMapText
+document()
+library(devtools)#
+document()
+document()
 library(devtools)
-install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)
-library(RgeoProfile)
-prob_coallocation
-install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")#
-#
-# load packages#
-library(RgeoProfile)
-install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")
+document()
+library(RgeoProfile)#
+path <- "~/GitHub/Rgeoprofile"#
+system(paste(shQuote(file.path(R.home("bin"), "R")),"CMD", "Rd2pdf", shQuote(path)))
+document()
+library(devtools)
+document()
 library(devtools)
 install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)
 library(RgeoProfile)
-GPshapefile
-geoPlotMapText
-# running rgeoprofile 2.1.0#
-library(devtools)#
-#
-# install from github or from local copy of package#
-# install stable copy of version 2.0.0 from github#
-# install_github("bobverity/Rgeoprofile",ref="version2.0.0",force=TRUE)#
-# install_github("bobverity/Rgeoprofile",ref="master",force=TRUE)#
-# install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)#
-#
-# install from local github repository#
-# install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)#
-#
-# install from downloaded copy on desktop (NB check name and path)#
-# install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")#
-#
-# load packages#
-library(RgeoProfile)#
-#
-# check package#
-# setwd("~/GitHub/Rgeoprofile")#
-# devtools::check()#
-#
+?geoPlotMap
+?geoSmooth
+?RgeoProfile
 # ------------------------------------------------------------------#
 # IMPORT DATA AND SET PARAMETERS#
 # ------------------------------------------------------------------#
@@ -914,13 +587,104 @@ abline(v = sigma, col = 2)#
 # plot profile on map#
 map2 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, mapSource = "google", mapType = "roadmap", breakPercent = seq(0,50,l=11), opacity=0.8, plotContours = TRUE, smoothScale = TRUE, sourceCex = 3, crimeCex = 3)#
 map2
-load("/Users/stevenlecombermacbookair11/GitHub/Rgeoprofile/data/Cholera.RData")
-data(LondonExample_crimes)
-LondonExample_crimes
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude)
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
-document()
+# add labels to all points, checking for overlaps#
+library(ggplot2)#
+my_labels <- 1:length(d$longitude)#
+labelled_map <- map2 + geom_text(aes(x = d$longitude, y = d$latitude, label = my_labels),nudge_x = 0, nudge_y = 0.007, check_overlap = T, size = 3)#
+labelled_map
+# add labels to particular points#
+my_labels <- rep(NA,length(d$longitude))#
+my_labels[112] <- "this one"#
+my_labels[139] <- "that one"#
+labelled_map2 <- map2 + geom_text(aes(x = d$longitude, y = d$latitude, label = my_labels),nudge_x = 0, nudge_y = 0.007, check_overlap = T, size = 3)#
+labelled_map2
+# zoom#
+map3 <- geoPlotMap(lonLimits = c(31.21, 31.35), latLimits = c(29.98, 30.05), params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0,50,l=11), opacity = 0.8)#
+map3
+# zoom#
+map3 <- geoPlotMap(lonLimits = c(31.21, 31.35), latLimits = c(29.98, 30.05), params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0,50,l=11), opacity = 0.8)#
+map3
+# set master zoom values if required#
+zoomLon = c(31.21, 31.35)#
+zoomLat = c(29.98, 30.05)
+# zoom#
+map3 <- geoPlotMap(lonLimits = zoomLon, latLimits = zoomLat, params = p, data = d, source = s, surface = m$geoProfile, breakPercent = seq(0,50,l=11), opacity = 0.8)#
+map3
+# get hitscores#
+hs <- geoReportHitscores(params = p, source = s, surface =m$geoProfile)#
+hs
+# produce Lorenz plot#
+Gini <- geoPlotLorenz(hit_scores = hs)#
+Gini
+# ------------------------------------------------------------------#
+# RING SEARCH#
+# ------------------------------------------------------------------#
+# compare to geoprofile based on ring search strategy#
+surface_ring <- geoRing(params = p, data = d, source = s, mcmc = m)#
+gp_ring <- geoProfile(surface = surface_ring)#
+#
+# map of ring search geoprofile#
+map4 <- geoPlotMap(params = p, data = d, source = s, surface = gp_ring, opacity = 1, breakPercent = seq(0,50,l=11))#
+map4
+# zoom map of ring search geoprofile#
+map4z <- geoPlotMap(lonLimits = zoomLon, latLimits = zoomLat, params = p, data = d, source = s, surface = gp_ring, opacity = 0.8, breakPercent = seq(0,50,l=11))#
+map4z#
+#
+# hitscores of ring search geoprofile#
+hs_ring <- geoReportHitscores(params = p, source = s, surface = gp_ring)#
+hs_ring
+Gini <- geoPlotLorenz(hit_scores = hs_ring)#
+Gini
+# ------------------------------------------------------------------#
+# OTHER OUTPUT#
+# ------------------------------------------------------------------#
+# plot allocation#
+geoPlotAllocation(mcmc = m)#
+#
+# plot co-allocation#
+geoPlotCoallocation(mcmc = m)#
+#
+# produce perspective plot#
+geoPersp(surface = m$geoProfile, aggregate_size = 1)#
+#
+# find centroids of data split by best grouping (placeholder for more thorough method)#
+geoModelSources(mcmc = m, data = d)#
+#
+# unknown pleasures#
+unknownPleasures(m$geoProfile, paper_ref = NULL, nlines = 80,#
+  bgcol = "black", fgcol = "white", wt = 2)
+unknownPleasures(m$geoProfile, paper_ref = "RgeoProfile 2.1.0", nlines = 80,
+unknownPleasures(m$geoProfile, paper_ref = "RgeoProfile 2.1.0", nlines = 80, bgcol = "black", fgcol = "white", wt = 2)
+# ------------------------------------------------------------------#
+# SHAPE FILE#
+# ------------------------------------------------------------------#
+# read in shapefile as mask#
+setwd("~/Dropbox/9 Shared/SLC shared/3 Shapefiles/cairo_egypt.imposm-shapefiles")#
+mask <- geoShapefile("cairo_egypt_osm_waterareas.shp")#
+#
+# mask posterior surface and geoprofile#
+prob_masked <- geoMask(m$posteriorSurface, params = p, mask = mask, operation = "near",  scaleValue = 0.5)#
+gp_masked <- geoProfile(prob_masked$prob)
+# plot masked map#
+map5 <- geoPlotMap(params = p, data = d, source= s, surface=gp_masked, opacity=0.6, breakPercent = seq(0, 100, l = 11))#
+map5
+# hs of masked surface#
+hs_mask <- geoReportHitscores(params = p, source = s, surface = gp_masked)#
+hs_mask#
+#
+# zoom masked map#
+map5z <- geoPlotMap(lonLimits = zoomLon, latLimits = zoomLat, params = p, data = d, source= s, surface=gp_masked, opacity=0.8)#
+map5z
+boxplot(hs[,3], hs_ring[,3], hs_mask[,3], names = c("DPM", "ring", "DPM mask"), ylab = "hs (%)")
+map5z
+labelled_map
+map3
 setwd("~/GitHub/Rgeoprofile")
 devtools::check()
-?RgeoProfile
-document()
+labelled_map
+# add labels to all points, checking for overlaps#
+#library(ggplot2)#
+my_labels <- 1:length(d$longitude)#
+labelled_map <- map2 + geom_text(aes(x = d$longitude, y = d$latitude, label = my_labels),nudge_x = 0, nudge_y = 0.007, check_overlap = T, size = 3)#
+labelled_map
+?geoPlotMap

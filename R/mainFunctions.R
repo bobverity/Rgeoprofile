@@ -801,7 +801,7 @@ geoRing <- function(params, data, source, mcmc) {
 #' # read in north London shapefile as mask and adjust surface
 #' north_london_mask <- geoShapefile()
 #' prob_masked <- geoMask(probSurface = m$posteriorSurface, params = p, mask = north_london_mask,
-#'                 operation = "inside", scaleValue = 1)
+#'                 operation = "inside", scaleValue = 0)
 #' gp_masked <- geoProfile(prob_masked$prob)
 #' # plot new surface
 #' map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)
