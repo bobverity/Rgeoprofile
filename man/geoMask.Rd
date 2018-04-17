@@ -14,9 +14,9 @@ geoMask(probSurface, params, mask, scaleValue = 1, operation = "inside",
 
 \item{mask}{the spatial information to include. Must be one of SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer.}
 
-\item{scaleValue}{different functions depending on value of "operation". For "inside' or "outside", the value by which probabilities should be multiplied inside or outside the shapefile; set to zero to exclude completely. For "near" and "far", the importance of proximity to, or distance from, the object described in the RasterLayer or SpatialPointsDataFrame. Not used for "continuous".}
+\item{scaleValue}{different functions depending on value of "operation". For "inside' or "outside", the value by which probabilities should be multiplied inside or outside the shapefile. However, note that using scaleValue = 0 can cause too many ties to plot contours properly; instead, use a very low value such as 1e-9. For "near" and "far", scaleValue is the importance of proximity to, or distance from, the object described in the SpatialPolygonsDataFrame, SpatialLinesDataFrame or RasterLayer. Thus, the default value of scaleValue = 1 can be increased to exaggerate the importance of proximity or distance. Not used for "continuous".}
 
-\item{operation}{how to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile.}
+\item{operation}{how to combine the surface and the new spatial information. Must be one of "inside", "outside", "near", "far" or "continuous". The first two multiply areas inside or outside the area described in the shapefile (or raster) by scaleValue. "near" or "far" weight the geoprofile by its closeness to (or distance from) the area described in the shapefile (or raster). Finally, "continuous" uses a set of numerical values (eg altitude) to weight the geoprofile. NOTE: 'near' and 'far' can take a few minutes to run.}
 
 \item{maths}{one of "add", "subtract", multiply" or "divide. The mathematical operation used to combine the new spatial data with the geoprofile when operation = "continuous".}
 }
@@ -30,15 +30,25 @@ s <- LondonExample_sources
 p = geoParams(data = d, sigma_mean = 1, sigma_squared_shape = 2)
 # run model
 m = geoMCMC(data = d, params = p)
+
 # plot original map
 map1 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile)
 map1
-# read in north London shapefile as mask and adjust surface
+
+# mask out North London and replot
 north_london_mask <- geoShapefile()
 prob_masked <- geoMask(probSurface = m$posteriorSurface, params = p, mask = north_london_mask,
-                operation = "inside", scaleValue = 0)
+                operation = "inside", scaleValue = 1e-9)
 gp_masked <- geoProfile(prob_masked$prob)
 # plot new surface
 map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)
 map2
+
+# repeat, restricting mask to Tower Hamlets and using 'near' instead of 'outside'
+TH_mask <- north_london_mask[which(north_london_mask$NAME == "Tower Hamlets"),]
+prob_masked2 <- geoMask(probSurface = m$posteriorSurface, params = p, mask = TH_mask, operation = "far", scaleValue = 1)
+gp_masked2 <- geoProfile(prob_masked2$prob)
+# plot new surface
+map3 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked2)
+map3
 }

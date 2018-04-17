@@ -17,9 +17,9 @@ geoParams(data = NULL, sources = NULL, sigma_mean = 1, sigma_var = NULL,
 
 \item{sources}{observations in the format defined by geoDataSource().}
 
-\item{sigma_mean}{the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution).}
+\item{sigma_mean}{the mean of the prior on sigma (sigma = standard deviation of the dispersal distribution) in km.}
 
-\item{sigma_var}{the variance of the prior on sigma.}
+\item{sigma_var}{the variance of the prior on sigma in km^2.}
 
 \item{sigma_squared_shape}{as an alternative to defining the prior mean and variance of sigma, it is possible to directly define the parameters of the inverse-gamma prior on sigma^2. If so, this is the shape parameter of the inverse-gamma prior.}
 
