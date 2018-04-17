@@ -352,7 +352,8 @@ geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), #
 # John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)# define parameters such that the model fits sigma from the datageoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2,chains = 10, burnin = 1000, samples = 10000, guardRail = 0.1)
 # simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)# use a fixed value of sigmageoParams(data = d, sigma_mean = 1.0, sigma_var = 0,chains=10, burnin=1000, samples = 10000, guardRail = 0.1)
 # John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)geoParamsCheck(p)# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(Cholera$longitude, Cholera$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_var=0)geoParamsCheck(p)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)# raw probabilitiesgeoPersp(m$posteriorSurface, surface_type = "prob")# geoprofilegeoPersp(m$geoProfile, aggregate_size = 3, surface_type = "gp")# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)# raw probabilitiesgeoPersp(m$posteriorSurface, surface_type = "prob")# geoprofilegeoPersp(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")geoPlotAllocation Plot posterior allocationDescriptionProduces plot of posterior allocation from output of MCMC.UsagegeoPlotAllocation(mcmc,
+# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)# raw probabilitiesgeoPersp(m$posteriorSurface, surface_type = "prob")# geoprofilegeoPersp(m$geoProfile, aggregate_size = 3, surface_type = "gp")# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)# raw probabilitiesgeoPersp(m$posteriorSurface, surface_type = "prob")# geoprofilegeoPersp(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")geoPlotAllocation Plot posterior allocationDescriptionProduces plot of posterior allocation from output of MCMC.UsagegeoPlotAllocation(
+mcmc,
 # London example datad <- LondonExample_crimesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)geoPlotAllocation(m)# John Snow cholera datad <- Cholerap <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)geoPlotAllocation(m, barBorderCol=NA) # (should allocate all to a single source!)# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)geoPlotAllocation(m)
 # London example datad <- LondonExample_crimess <- LondonExample_sourcesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)# produce simple mapgeoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,breakPercent = seq(0, 50, 5), mapType = "hybrid",crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)# calculate coallocation matrix and plotgeoPlotCoallocation(m)
 # London example datad <- LondonExample_crimess <- LondonExample_sourcesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)hs <- geoReportHitscores(params = p, source = s, surface = m$geoProfile)hs# Lorenz plot on sourcesgeoPlotLorenz(hs)# Lorenz plot on sources and crimes# extract numbers of crimes allocated per source as a proxycn <- as.vector(table(m$bestGrouping))geoPlotLorenz(hs, crimeNumbers = cn)
@@ -375,3 +376,20 @@ plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon"
 # simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=10, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)unknownPleasures(m$geoProfile, paper_ref = "Rgeoprofile v2.0.0")
 document()
 plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")points(WaterPumps$latitude, WaterPumps$longitude, pch = 15, col = "blue")
+library(devtools)
+document()
+document()
+install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)
+library(RgeoProfile)
+?geoMask
+library(devtools)
+document()
+document()
+?geoMask
+?geoParams
+?geoMask
+document()
+?geoMask
+document()
+?geoMask
+?geoPlotMap

@@ -44,7 +44,7 @@ gp_masked <- geoProfile(prob_masked$prob)
 map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)
 map2
 
-# repeat, restricting mask to Tower Hamlets and using 'near' instead of 'outside'
+# repeat, restricting mask to Tower Hamlets and using 'near' instead of 'inside'
 TH_mask <- north_london_mask[which(north_london_mask$NAME == "Tower Hamlets"),]
 prob_masked2 <- geoMask(probSurface = m$posteriorSurface, params = p, mask = TH_mask, operation = "far", scaleValue = 1)
 gp_masked2 <- geoProfile(prob_masked2$prob)
