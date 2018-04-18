@@ -378,12 +378,10 @@ document()
 plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")points(WaterPumps$latitude, WaterPumps$longitude, pch = 15, col = "blue")
 library(devtools)
 document()
-document()
 install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)
 library(RgeoProfile)
 ?geoMask
 library(devtools)
-document()
 document()
 ?geoMask
 ?geoParams
@@ -393,3 +391,19 @@ document()
 document()
 ?geoMask
 ?geoPlotMap
+library(devtools)
+document()
+?RgeoProfile
+document()
+?RgeoProfile
+document()
+document()
+document()
+?RgeoProfile
+?RgeoProfile
+install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")
+install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)
+devtools::check()
+document()
+document()
+devtools::check()

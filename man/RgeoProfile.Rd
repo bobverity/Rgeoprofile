@@ -33,7 +33,8 @@ d <- geoData(d$longitude, d$latitude)
 s <- geoDataSource(s$longitude, s$latitude)
 
 # set model and MCMC parameters
-p = geoParams(data = d, sigma_mean = 1, sigma_squared_shape = 2, chains = 5, burnin = 1e3, samples = 1e4)
+p = geoParams(data = d, sigma_mean = 1, sigma_squared_shape = 2, chains = 5, 
+                burnin = 1e3, samples = 1e4)
 
 #------------------------------------------------------------------
 # run model
@@ -62,7 +63,8 @@ Gini
 # zoom
 zoomLon = c(-0.1, -0.01)
 zoomLat = c(51.51, 51.54)
-mapZoom <- geoPlotMap(lonLimits = zoomLon, latLimits = zoomLat, params = p, data = d, source = s, surface = m$geoProfile)
+mapZoom <- geoPlotMap(lonLimits = zoomLon, latLimits = zoomLat, params = p, 
+                data = d, source = s, surface = m$geoProfile)
 mapZoom
 
 # plot allocation
@@ -96,7 +98,8 @@ unknownPleasures(m$geoProfile, paper_ref = "RgeoProfile 2.1.0")
 surface_ring <- geoRing(params = p, data = d, source = s, mcmc = m)
 gp_ring <- geoProfile(surface = surface_ring)
 # map of ring search geoprofile
-mapRing <- geoPlotMap(params = p, data = d, source = s, surface = gp_ring, surfaceCols <- c("red", "white"))
+mapRing <- geoPlotMap(params = p, data = d, source = s, surface = gp_ring, 
+                surfaceCols <- c("red", "white"))
 mapRing
 
 # hitscores of ring search geoprofile
@@ -116,7 +119,8 @@ prob_masked <- geoMask(probSurface = m$posteriorSurface, params = p, mask = TH_m
 gp_masked <- geoProfile(prob_masked$prob)
 
 # plot new surface
-mapMask <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked, breakPercent = seq(0,25,l = 11))
+mapMask <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked, 
+                breakPercent = seq(0,25,l = 11))
 mapMask
 
 # hs of masked surface
