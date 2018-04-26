@@ -1,409 +1,0 @@
-library(devtools)
-document()
-library(RgeoProfile)
-?geoShapefile
-geoShapefile()
-document()
-library(devtools)#
-document()#
-?geoShapefile
-# load London boroughs by default#
-geoShapefile()
-? geoDataCheck
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-geoDataCheck(d)
-sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
-51.5235505, alpha=1, sigma=1, tau=3)#
-d <- geoData(sim$longitude, sim $latitude)#
-geoDataCheck(d)
-? geoParamsCheck
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-geoParamsCheck(p)
-# simulated data#
-sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
-51.5235505, alpha=1, sigma=1, tau=3)#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_var=0)#
-geoParamsCheck(p)
-?geoMCMC
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)
-# simulated data#
-sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
-51.5235505, alpha=1, sigma=1, tau=3)#
-d <- geoData(sim$longitude, sim $latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p)
-? geoProfile
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-gp <- geoProfile(m$posteriorSurface)
-gp
-# simulated data#
-sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
-51.5235505, alpha=1, sigma=1, tau=3)#
-d <- geoData(sim$longitude, sim $latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p)#
-gp <- geoProfile(m$posteriorSurface)
-? geoReportHitscores
-document()
-?geoReportHitscores
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-gp <- geoProfile(m$posteriorSurface)#
-geoReportHitscores(params = p, source = s, surface = gp)
-document()
-?geoReportHitscores
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-gp <- geoProfile(m$posteriorSurface)#
-geoReportHitscores(params = p, source = s, surface = gp)
-s
-surface
-gp
-contour(gp)
-d
-s
-p
-names(m)
-geoReportHitscores
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-gp <- geoProfile(m$posteriorSurface)#
-geoReportHitscores(params = p, source = s, surface = gp)
-names(m)
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-gp <- geoProfile(m$posteriorSurface)#
-geoReportHitscores(params = p, source = s, surface = m$posteriorSurface)
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-gp <- geoProfile(m$geoProfile)#
-geoReportHitscores(params = p, source = s, surface = m$posteriorSurface)
-document()
-?geoReportHitscores
-# John Snow cholera data#
-d <- geoData(Cholera$longitude, Cholera$latitude)#
-s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p, lambda=0.05)#
-geoReportHitscores(params = p, source = s, surface = m$geoProfile)
-# Rgeoprofile_deploy.R#
-# Author: Bob Verity#
-# Date: 2017-05-26#
-# Purpose:#
-# Tests and demonstrates use of RgeoProfile package.#
-# ------------------------------------------------------------------#
-library(devtools)#
-setwd("~/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile")#
-devtools::load_all()#
-# ------------------------------------------------------------------#
-#set.seed(1)#
-# define parameters and draw some data#
-n <- 1e2#
-sigma_mean <- 1#
-sigma_var <- 1#
-sigma <- sigma_mean#
-tau <- 10#
-alpha <- 10#
-DPM_draws = rDPM(n, sigma=sigma, tau=tau, alpha=alpha, priorMean_longitude=-0.035, priorMean_latitude=51.52)#
-# some options for data#
-# Note that Cholera and LondonExample_crimes are already loaded by default#
-simData <- geoData(DPM_draws$longitude, DPM_draws$latitude)#
-# some options for sources#
-# Note that WaterPumps and LondonExample_sources are already loaded by default#
-simSource <- geoDataSource(DPM_draws$source_lon, DPM_draws$source_lat)#
-# choose data and sources from options above#
-data <- LondonExample_crimes#
-source <- LondonExample_sources#
-# set model and MCMC parameters#
-params = geoParams(data = data, sigma_mean = sigma_mean, sigma_var = NULL, sigma_squared_shape = 2, chains = 5, burnin = 1e3, samples = 1e4, longitude_cells = 200, latitude_cells = 200)#
-# initial map of data#
-# Note that geoPlotMap may occasionally fail to download map. In this case simply run again until it passes#
-# Note also that plotting the map may take quite a long time#
-map1 <- geoPlotMap(params = params, data = data, source = source)#
-map1#
-# plot prior on sigma#
-geoPlotSigma(params = params)#
-# ------------------------------------------------------------------#
-# run MCMC#
-m = geoMCMC(data = data, params = params)#
-# ------------------------------------------------------------------#
-# plot prior and posterior of sigma#
-geoPlotSigma(params = params, mcmc = m)#
-abline(v = sigma, col = 2)#
-# plot allocation#
-geoPlotAllocation(mcmc = m)#
-# plot co-allocation#
-geoPlotCoallocation(mcmc = m)#
-# plot profile on map#
-map2 <- geoPlotMap(params = params, data = data, source = source, surface = m$geoProfile, breakPercent = seq(0,50,l=21), opacity = 0.8)#
-map2
-geoPlotCoallocation
-names(m)
-m$coAllocation
-library(devtools)
-document()
-library(devtools)
-document()
-?geoMask
-# load London example data and set params#
-d <- LondonExample_crimes#
-s <- LondonExample_sources#
-p = geoParams(data = d, sigma_mean = 1, sigma_squared_shape = 2)#
-# run model#
-m = geoMCMC(data = d, params = p)#
-# plot original map#
-map1 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile)#
-map1#
-# read in north London shapefile as mask and adjust surface#
-north_london_mask <- geoShapefile()#
-plot(north_london_mask)#
-prob_masked <- geoMask(probSurface = m$posteriorSurface, params = p, mask = north_london_mask, operation = "inside", scaleValue = 1)#
-gp_masked <- geoProfile(prob_masked$prob)#
-# plot new surface#
-map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)#
-map2
-library(devtools)
-document()
-?LondonExample_crimes
-?mtcars
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
-points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue)
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
-points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue)
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
-points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue")
-plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")
-points(WaterPumps$latitude, WaterPumps$longitude, xlab = "lon", ylab = "lat")
-points(WaterPumps$latitude, WaterPumps$longitude,  pch = 15, col = "blue")
-document()
-# running rgeoprofile 2.1.0#
-library(devtools)#
-#
-# install from github or from local copy of package#
-# install stable copy of version 2.0.0 from github#
-# install_github("bobverity/Rgeoprofile",ref="version2.0.0",force=TRUE)#
-# install_github("bobverity/Rgeoprofile",ref="master",force=TRUE)#
-# install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)#
-#
-# install from local github repository#
-# install.packages("~/GitHub/Rgeoprofile", repos = NULL, type = "source",force=TRUE)#
-#
-# install from downloaded copy on desktop (NB check name and path)#
-# install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")#
-#
-# load packages#
-library(RgeoProfile)#
-#
-# check package#
-# setwd("~/GitHub/Rgeoprofile")#
-# devtools::check()#
-#
-# ------------------------------------------------------------------#
-# IMPORT DATA AND SET PARAMETERS#
-# ------------------------------------------------------------------#
-# choose data and sources from options above#
-# d <- LondonExample_crimes#
-# s <- LondonExample_sources#
-#
-# load real data#
-crime_data <- read.table("~/Dropbox/9 Shared/SLC shared/2 Cases/Cairo/Cairo 2014/MalariaCases139.txt", header = FALSE)#
-source_data <- read.table("~/Dropbox/9 Shared/SLC shared/2 Cases/Cairo/Cairo 2014/allvectors.txt", header = FALSE)#
-#
-d <- geoData(crime_data[,1], crime_data[,2])#
-s <- geoDataSource(source_data[,1], source_data[,2])#
-# set model and MCMC parameters#
-p = geoParams(data = d, sigma_mean = 1.8, sigma_var = 0, sigma_squared_shape = NULL, chains = 5, burnin = 1e3, samples = 1e4, longitude_cells = 200, latitude_cells = 200)#
-#
-# initial map of data#
-# Note that geoPlotMap may occasionally fail to download map. In this case simply run again until it passes#
-# Note also that plotting the map may take quite a long time#
-# map1 <- geoPlotMap(params = p, data = d, source = s)#
-# map1#
-#
-# plot prior on sigma#
-# geoPlotSigma(params = p)#
-#
-# ------------------------------------------------------------------#
-# RUN MCMC#
-# ------------------------------------------------------------------#
-# run MCMC#
-m = geoMCMC(data = d, params = p)#
-#
-# ------------------------------------------------------------------#
-# MAIN DPM OUTPUT#
-# ------------------------------------------------------------------#
-# plot prior and posterior of sigma#
-geoPlotSigma(params = p, mcmc = m)#
-abline(v = sigma, col = 2)#
-#
-# plot profile on map#
-map2 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, mapSource = "google", mapType = "roadmap", breakPercent = seq(0,50,l=11), opacity=0.8, plotContours = TRUE, smoothScale = TRUE, sourceCex = 3, crimeCex = 3)#
-map2
-map2 <- geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile, mapSource = "google", mapType = "roadmap", breakPercent = seq(0,50,l=11), opacity=0.8, plotContours = TRUE, smoothScale = TRUE, sourceCex = 3, crimeCex = 3)#
-map2
-?geoPlotLorenz
-?geoPlotMap
-# London example data#
-d <- LondonExample_crimes#
-s <- LondonExample_sources#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p)#
-# produce simple map#
-geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,#
-                breakPercent = seq(0, 50, 5), mapType = "hybrid",#
-                crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-geoPlotCoallocation(m)
-names(geoPlotCoallocation(m))
-names(m)
-m$coAllocation
-names(m)
-document()
-?geoPlotCoallocation
-d <- LondonExample_crimes
-s <- LondonExample_sources
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-m <- geoMCMC(data = d, params = p)
-hs <- georeportHitscores(params = p, source = s, surface = m$geoProfile)
-hs <- geoReportHitscores(params = p, source = s, surface = m$geoProfile)
-hs
-geoPlotLorenz(hs)
-m$allocation
-names(m)
-m$bestGrouping
-hs
-table(m$bestGrouping)
-cn <- table(m$bestGrouping)
-cn
-geoPlotLorenz(hs, crimeNumbers = cn)
-cn[,1]
-as.vector(cn)
-cn <- as.vector(table(m$bestGrouping))
-cn
-geoPlotLorenz(hs, crimeNumbers = cn)
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-library(devtools)
-document()
-?RgeoProfile
-document()
-library(devtools)
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-library()
-document()
-library(devtools)
-document()
-?RgeoProfile
-library(devtools)
-document()
-?geoModelSources
-# simulated data#
-sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = #
-51.5235505, alpha=10, sigma=1, tau=3)#
-d <- geoData(sim$longitude, sim $latitude)#
-s <- geoDataSource(sim$source_lon, sim$source_lat)#
-p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)#
-m <- geoMCMC(data = d, params = p)#
-# extract sources identified by the model#
-ms <- geoModelSources(mcmc = m, data = d)#
-# plot data showing the sources identified by the model (note: NOT the actual suspect sites)#
-geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1), #
-                  mapType = "roadmap", surfaceCols =c("red", "orange","yellow","white"),#
-                  crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2,#
-                  surface = m$geoProfile, gpLegend=TRUE, opacity = 0.4)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)# define parameters such that the model fits sigma from the datageoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2,chains = 10, burnin = 1000, samples = 10000, guardRail = 0.1)
-# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)# use a fixed value of sigmageoParams(data = d, sigma_mean = 1.0, sigma_var = 0,chains=10, burnin=1000, samples = 10000, guardRail = 0.1)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)geoParamsCheck(p)# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(Cholera$longitude, Cholera$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_var=0)geoParamsCheck(p)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)# raw probabilitiesgeoPersp(m$posteriorSurface, surface_type = "prob")# geoprofilegeoPersp(m$geoProfile, aggregate_size = 3, surface_type = "gp")# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)# raw probabilitiesgeoPersp(m$posteriorSurface, surface_type = "prob")# geoprofilegeoPersp(surface = m$geoProfile, aggregate_size = 3, surface_type = "gp")geoPlotAllocation Plot posterior allocationDescriptionProduces plot of posterior allocation from output of MCMC.UsagegeoPlotAllocation(
-mcmc,
-# London example datad <- LondonExample_crimesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)geoPlotAllocation(m)# John Snow cholera datad <- Cholerap <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)geoPlotAllocation(m, barBorderCol=NA) # (should allocate all to a single source!)# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)geoPlotAllocation(m)
-# London example datad <- LondonExample_crimess <- LondonExample_sourcesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)# produce simple mapgeoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,breakPercent = seq(0, 50, 5), mapType = "hybrid",crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)# calculate coallocation matrix and plotgeoPlotCoallocation(m)
-# London example datad <- LondonExample_crimess <- LondonExample_sourcesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)hs <- geoReportHitscores(params = p, source = s, surface = m$geoProfile)hs# Lorenz plot on sourcesgeoPlotLorenz(hs)# Lorenz plot on sources and crimes# extract numbers of crimes allocated per source as a proxycn <- as.vector(table(m$bestGrouping))geoPlotLorenz(hs, crimeNumbers = cn)
-geoPlotLorenz(hs)
-# London example datad <- LondonExample_crimess <- LondonExample_sourcesp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)# produce simple mapgeoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,breakPercent = seq(0, 50, 5), mapType = "hybrid",crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-# John Snow cholera datad <- Choleras <- WaterPumpsp <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)# produce simple mapgeoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,breakPercent = seq(0, 50, 5), mapType = "hybrid",crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
-# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)
-m <- geoMCMC(data = d, params = p)# change colour palette, map type, opacity and range of geoprofile and omit legendgeoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,breakPercent = seq(0, 30, 5), mapType = "terrain",surfaceCols = c("blue","white"), crimeCol = "black",crimeBorderCol = "white",crimeCex = 2, sourceCol = "red", sourceCex = 2,opacity = 0.7, gpLegend = FALSE)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)p <- geoParams(data = d, sigma_mean = 0.2, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)geoPlotSigma(params = p, mcmc = m)
-# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)geoPlotSigma(params = p, mcmc = m)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)gp <- geoProfile(m$posteriorSurface)
-gp
-# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=1, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)gp <- geoProfile(m$posteriorSurface)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p, lambda=0.05)geoReportHitscores(params = p, source = s, surface = m$geoProfile)
-# John Snow cholera datad <- geoData(Cholera$longitude, Cholera$latitude)s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)surface_ring <- geoRing(params = p, data = d, source = s, mcmc = m)gp_ring <- geoProfile(surface = surface_ring)map <- geoPlotMap(params = p, data = d, source = s, surface = gp_ring,opacity = 1, breakPercent = seq(0,50,l=21))map
-document()
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")
-plot(LondonExample_crimes$latitude, LondonExample_crimes$longitude, xlab = "lon", ylab = "lat")points(LondonExample_sources$latitude, LondonExample_sources$longitude, pch = 15, col = "blue")
-# produces clusters of points from sources centred on QMULrDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505,alpha=1, sigma=1, tau=3)# same, but increasing alpha to generate more clustersrDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 51.5235505,alpha=5, sigma=1, tau=3)
-# simulated datasim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude =51.5235505, alpha=10, sigma=1, tau=3)d <- geoData(sim$longitude, sim $latitude)s <- geoDataSource(sim$source_lon, sim$source_lat)p <- geoParams(data = d, sigma_mean = 1.0, sigma_squared_shape = 2)m <- geoMCMC(data = d, params = p)unknownPleasures(m$geoProfile, paper_ref = "Rgeoprofile v2.0.0")
-document()
-plot(Cholera$latitude, Cholera$longitude, xlab = "lon", ylab = "lat")points(WaterPumps$latitude, WaterPumps$longitude, pch = 15, col = "blue")
-library(devtools)
-document()
-install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)
-library(RgeoProfile)
-?geoMask
-library(devtools)
-document()
-?geoMask
-?geoParams
-?geoMask
-document()
-?geoMask
-document()
-?geoMask
-?geoPlotMap
-library(devtools)
-document()
-?RgeoProfile
-document()
-?RgeoProfile
-document()
-document()
-document()
-?RgeoProfile
-?RgeoProfile
-install.packages("~/Desktop/Rgeoprofile-develop", repos = NULL, type = "source")
-install_github("bobverity/Rgeoprofile",ref="develop",force=TRUE)
-devtools::check()
-document()
-document()
-devtools::check()
