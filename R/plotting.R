@@ -327,7 +327,7 @@ getZoom <- function(x,y) {
 #'
 #' @export
 #' @examples
-#' \donttest {
+#' \donttest{
 #' # London example data
 #' d <- LondonExample_crimes
 #' s <- LondonExample_sources
@@ -662,7 +662,7 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #'
 #' @export
 #' @examples
-#' \donttest {
+#' \donttest{
 #' # London example data
 #' d <- LondonExample_crimes
 #' s <- LondonExample_sources

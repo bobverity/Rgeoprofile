@@ -24,7 +24,7 @@ geoMask(probSurface, params, mask, scaleValue = 1, operation = "inside",
 This function allows information from a shapefile or raster to be incorporated within the geoprofile. For example, we might wish to exclude areas not on land, or weight the probabilities within a specific postcode differently. The spatial object used should be a SpatialPolygonsDataFrame as produced by the package sp or a raster.
 }
 \examples{
-\donttest {
+\donttest{
 # load London example data and set params
 d <- LondonExample_crimes
 s <- LondonExample_sources

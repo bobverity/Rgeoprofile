@@ -12,7 +12,7 @@
 #' @name RgeoProfile
 #' @docType package
 #' @examples
-#' \donttest {
+#' \donttest{
 #' # full example of Rgeoprofile 2.1.0 workflow, illustrating all functions
 #' # for details, see help for individual functions
 #' 
