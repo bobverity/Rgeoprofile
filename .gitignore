@@ -15,3 +15,5 @@ ignore/
 *.Rhistory
 *.Rproj*
 *.Rapp.history
+R/.Rd*
+
