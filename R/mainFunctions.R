@@ -490,8 +490,6 @@ geoParamsCheck <- function(params, silent=FALSE) {
   if (!("latitude_cells"%in%names(params$output)))
     stop("params$output must contain parameter 'latitude_cells'")
   
-  # TODO: SOME MORE CHECKS ON FORMAT OF params$output?
-  
   #---------------------------------------
   
   # if passed all checks
@@ -701,6 +699,7 @@ geoReportHitscores <- function(params, source, surface) {
 #' 
 #' @export
 #' @examples
+#' \dontrun {
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=10, sigma=1, tau=3)
@@ -715,6 +714,7 @@ geoReportHitscores <- function(params, source, surface) {
 #'                   mapType = "roadmap", surfaceCols =c("red", "orange","yellow","white"),
 #'                   crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2,
 #'                   surface = m$geoProfile, gpLegend=TRUE, opacity = 0.4)
+#' }
 
 geoModelSources <- function (mcmc, data) {
   
@@ -737,6 +737,7 @@ geoModelSources <- function (mcmc, data) {
 #'
 #' @export
 #' @examples
+#' \dontrun {
 #' # John Snow cholera data
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
@@ -747,6 +748,7 @@ geoModelSources <- function (mcmc, data) {
 #' map <- geoPlotMap(params = p, data = d, source = s, surface = gp_ring, 
 #' opacity = 1, breakPercent = seq(0,50,l=21))
 #' map
+#' }
 
 
 geoRing <- function(params, data, source, mcmc) {
@@ -789,6 +791,7 @@ geoRing <- function(params, data, source, mcmc) {
 #' 
 #' @export
 #' @examples
+#' \dontrun {
 #' # load London example data and set params
 #' d <- LondonExample_crimes
 #' s <- LondonExample_sources
@@ -809,14 +812,15 @@ geoRing <- function(params, data, source, mcmc) {
 #' map2 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked)
 #' map2
 #' 
-#'# repeat, restricting mask to Tower Hamlets and using 'near' instead of 'inside'
-#'TH_mask <- north_london_mask[which(north_london_mask$NAME == "Tower Hamlets"),]
-#'prob_masked2 <- geoMask(probSurface = m$posteriorSurface, params = p, mask = TH_mask, 
-#'                 operation = "far", scaleValue = 1)
-#'gp_masked2 <- geoProfile(prob_masked2$prob)
-#'# plot new surface
-#'map3 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked2)
-#'map3
+#' # repeat, restricting mask to Tower Hamlets and using 'near' instead of 'inside'
+#' TH_mask <- north_london_mask[which(north_london_mask$NAME == "Tower Hamlets"),]
+#' prob_masked2 <- geoMask(probSurface = m$posteriorSurface, params = p, mask = TH_mask, 
+#'                  operation = "far", scaleValue = 1)
+#' gp_masked2 <- geoProfile(prob_masked2$prob)
+#' # plot new surface
+#' map3 <- geoPlotMap(params = p, data = d, source = s, surface = gp_masked2)
+#' map3
+#' }
 
 geoMask <- function (probSurface, params, mask, scaleValue = 1, operation = "inside", maths = "multiply") {
   

@@ -327,6 +327,7 @@ getZoom <- function(x,y) {
 #'
 #' @export
 #' @examples
+#' \dontrun {
 #' # London example data
 #' d <- LondonExample_crimes
 #' s <- LondonExample_sources
@@ -360,6 +361,7 @@ getZoom <- function(x,y) {
 #'                 surfaceCols = c("blue","white"), crimeCol = "black", 
 #'                 crimeBorderCol = "white",crimeCex = 2, sourceCol = "red", sourceCex = 2,
 #'                 opacity = 0.7, gpLegend = FALSE)
+#' }
 
 geoPlotMap <- function(params, data=NULL, source=NULL, surface=NULL, surfaceCols=NULL, zoom=NULL, latLimits=NULL, lonLimits=NULL, mapSource="google", mapType="hybrid", opacity=0.6, plotContours=TRUE, breakPercent=seq(0,100,l=11), contourCol= "grey50", smoothScale=TRUE, crimeCex=1.5, crimeCol='red', crimeBorderCol='white', crimeBorderWidth=0.5, sourceCex=1.5, sourceCol='blue', gpLegend=TRUE) {
   
@@ -660,6 +662,7 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #'
 #' @export
 #' @examples
+#' \dontrun {
 #' # London example data
 #' d <- LondonExample_crimes
 #' s <- LondonExample_sources
@@ -671,6 +674,7 @@ geoPlotLorenz <- function(hit_scores, crimeNumbers=NULL, suspects_col="red", cri
 #'                 crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2)
 #' # calculate coallocation matrix and plot
 #' geoPlotCoallocation(m)
+#' }
 
 geoPlotCoallocation <- function(mcmc, cols=NULL) {
   

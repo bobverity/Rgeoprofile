@@ -15,6 +15,7 @@ geoModelSources(mcmc, data)
 This function takes the output of geoMCMC() and, for each 'crime', extracts the group to which it is assigned with the highest probability. For each group, the model returns the mean lat/long of all crimes assigned to that group.
 }
 \examples{
+\dontrun {
 # simulated data
 sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 51.5235505, alpha=10, sigma=1, tau=3)
@@ -29,4 +30,5 @@ geoPlotMap(data = d, source = ms, params = p, breakPercent = seq(0, 10, 1),
                   mapType = "roadmap", surfaceCols =c("red", "orange","yellow","white"),
                   crimeCol = "black", crimeCex = 2, sourceCol = "red", sourceCex = 2,
                   surface = m$geoProfile, gpLegend=TRUE, opacity = 0.4)
+}
 }

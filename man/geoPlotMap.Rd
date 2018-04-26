@@ -61,6 +61,7 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 Plots geoprofile on map, with various customisable options.
 }
 \examples{
+\dontrun {
 # London example data
 d <- LondonExample_crimes
 s <- LondonExample_sources
@@ -94,4 +95,5 @@ geoPlotMap(params = p, data = d, source = s, surface = m$geoProfile,
                 surfaceCols = c("blue","white"), crimeCol = "black", 
                 crimeBorderCol = "white",crimeCex = 2, sourceCol = "red", sourceCex = 2,
                 opacity = 0.7, gpLegend = FALSE)
+}
 }
