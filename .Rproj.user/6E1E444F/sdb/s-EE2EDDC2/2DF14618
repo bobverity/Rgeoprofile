@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "\n# choose data and sources from options above\ndata <- LondonExample_crimes\nsource <- LondonExample_sources\n\n# set model and MCMC parameters\nparams = geoParams(data = data, sigma_mean = sigma_mean, sigma_var = NULL, sigma_squared_shape = 2, chains = 5, burnin = 1e3, samples = 1e4, longitude_cells = 200, latitude_cells = 200)\n\n# run MCMC\nm = geoMCMC(data = data, params = params, lambda = 0.1)\n\n# read in north London shapefile as mask\nnorth_london_mask <- geoShapefile()\n\n# mask posterior surface and geoprofile\nprob_masked <- geoMask(m$posteriorSurface, params, north_london_mask, operation=\"near\", scaleValue=1)\ngp_masked <- geoProfile(prob_masked$prob)\n\n# plot masked map\nmap5 <- geoPlotMap(params, data=data, source=source, surface=gp_masked, opacity=0.8)\nmap5\n",
+    "created" : 1523618016317.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2548469318",
+    "id" : "2DF14618",
+    "lastKnownWriteTime" : 1523619139,
+    "last_content_update" : 1523619139631,
+    "path" : "~/Desktop/RgeoProfile/bugTest2.R",
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

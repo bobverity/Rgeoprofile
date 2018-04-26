@@ -1,0 +1,293 @@
+[
+    {
+        "definitions" : [
+            {
+                "column" : 36,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+                "kind" : 6,
+                "line" : 10,
+                "name" : "transpose(std::vector<std::vector<double> > &)",
+                "parent_name" : "",
+                "usr" : "c:@F@transpose#&$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S2_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+                "kind" : 6,
+                "line" : 23,
+                "name" : "subtractRows(std::vector<std::vector<double> > &)",
+                "parent_name" : "",
+                "usr" : "c:@F@subtractRows#&$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S2_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+                "kind" : 6,
+                "line" : 39,
+                "name" : "subtractCols(std::vector<std::vector<double> > &)",
+                "parent_name" : "",
+                "usr" : "c:@F@subtractCols#&$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S2_#"
+            },
+            {
+                "column" : 18,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+                "kind" : 6,
+                "line" : 55,
+                "name" : "augmentLeft(int, std::vector<std::vector<double> > &, std::vector<int> &, std::vector<int> &, std::vector<int> &)",
+                "parent_name" : "",
+                "usr" : "c:@F@augmentLeft#I#&$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S2_#&$@N@std@N@__1@C@vector>#I#$@N@std@N@__1@C@allocator>#I#S5_#S5_#"
+            },
+            {
+                "column" : 18,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+                "kind" : 6,
+                "line" : 77,
+                "name" : "augmentRight(int, std::vector<std::vector<double> > &, std::vector<int> &, std::vector<int> &, std::vector<int> &)",
+                "parent_name" : "",
+                "usr" : "c:@F@augmentRight#I#&$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S2_#&$@N@std@N@__1@C@vector>#I#$@N@std@N@__1@C@allocator>#I#S5_#S5_#"
+            },
+            {
+                "column" : 18,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+                "kind" : 6,
+                "line" : 98,
+                "name" : "hungarian(std::vector<std::vector<double> > &)",
+                "parent_name" : "",
+                "usr" : "c:@F@hungarian#&$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S2_#"
+            }
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.cpp",
+        "file_last_write" : 1522948174
+    },
+    {
+        "definitions" : [
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/Hungarian.h",
+        "file_last_write" : 1495105420
+    },
+    {
+        "definitions" : [
+            {
+                "column" : 12,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/main.cpp",
+                "kind" : 6,
+                "line" : 21,
+                "name" : "C_geoMCMC(Rcpp::List, Rcpp::List)",
+                "parent_name" : "",
+                "usr" : "c:@F@C_geoMCMC#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#S0_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/main.cpp",
+                "kind" : 6,
+                "line" : 390,
+                "name" : "updateGroup(int &, int &, vector<double> &, vector<double> &, vector<int> &, vector<int> &, vector<double> &, vector<double> &, vector<double> &, vector<double> &, int &, int &, vector<double> &, vector<double> &, vector<double> &, vector<double> &, vector<double> &, double &, double &, vector<double> &, vector<double> &, double &)",
+                "parent_name" : "",
+                "usr" : "c:@F@updateGroup#&I#S0_#&$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#S1_#&$@N@std@N@__1@C@vector>#I#$@N@std@N@__1@C@allocator>#I#S4_#S1_#S1_#S1_#S1_#S0_#S0_#S1_#S1_#S1_#S1_#S1_#&d#S7_#S1_#S1_#S7_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/main.cpp",
+                "kind" : 6,
+                "line" : 478,
+                "name" : "solveLabelSwitching(int &, vector<int> &, vector<vector<int> > &, vector<int> &, vector<int> &, vector<int> &, vector<int> &, vector<double> &, vector<double> &, vector<double> &, vector<double> &, vector<int> &, vector<double> &, vector<double> &, vector<double> &, vector<double> &, int &)",
+                "parent_name" : "",
+                "usr" : "c:@F@solveLabelSwitching#&I#&$@N@std@N@__1@C@vector>#I#$@N@std@N@__1@C@allocator>#I#&$@N@std@N@__1@C@vector>#S2_#$@N@std@N@__1@C@allocator>#S2_#S1_#S1_#S1_#S1_#&$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#S7_#S7_#S7_#S1_#S7_#S7_#S7_#S7_#S0_#"
+            }
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/main.cpp",
+        "file_last_write" : 1522848876
+    },
+    {
+        "definitions" : [
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/main.h",
+        "file_last_write" : 1495105437
+    },
+    {
+        "definitions" : [
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 9,
+                "name" : "print(int)",
+                "parent_name" : "",
+                "usr" : "c:@F@print#I#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 14,
+                "name" : "print(double)",
+                "parent_name" : "",
+                "usr" : "c:@F@print#d#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 19,
+                "name" : "print(std::string)",
+                "parent_name" : "",
+                "usr" : "c:@F@print#$@N@std@N@__1@C@basic_string>#C#$@N@std@N@__1@S@char_traits>#C#$@N@std@N@__1@C@allocator>#C#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 27,
+                "name" : "printVector(std::vector<int>)",
+                "parent_name" : "",
+                "usr" : "c:@F@printVector#$@N@std@N@__1@C@vector>#I#$@N@std@N@__1@C@allocator>#I#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 35,
+                "name" : "printVector(std::vector<double>)",
+                "parent_name" : "",
+                "usr" : "c:@F@printVector#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 43,
+                "name" : "printVector(std::vector<std::string>)",
+                "parent_name" : "",
+                "usr" : "c:@F@printVector#$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@basic_string>#C#$@N@std@N@__1@S@char_traits>#C#$@N@std@N@__1@C@allocator>#C#$@N@std@N@__1@C@allocator>#S1_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 54,
+                "name" : "printMatrix(std::vector<std::vector<int> >)",
+                "parent_name" : "",
+                "usr" : "c:@F@printMatrix#$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#I#$@N@std@N@__1@C@allocator>#I#$@N@std@N@__1@C@allocator>#S1_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 65,
+                "name" : "printMatrix(std::vector<std::vector<double> >)",
+                "parent_name" : "",
+                "usr" : "c:@F@printMatrix#$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#$@N@std@N@__1@C@allocator>#S1_#"
+            },
+            {
+                "column" : 6,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 76,
+                "name" : "printMatrix(std::vector<std::vector<std::string> >)",
+                "parent_name" : "",
+                "usr" : "c:@F@printMatrix#$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@vector>#$@N@std@N@__1@C@basic_string>#C#$@N@std@N@__1@S@char_traits>#C#$@N@std@N@__1@C@allocator>#C#$@N@std@N@__1@C@allocator>#S2_#$@N@std@N@__1@C@allocator>#S1_#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 90,
+                "name" : "logSum(double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@logSum#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 97,
+                "name" : "mean(std::vector<double> &)",
+                "parent_name" : "",
+                "usr" : "c:@F@mean#&$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 107,
+                "name" : "round_decimal(double, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@round_decimal#d#I#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+                "kind" : 6,
+                "line" : 115,
+                "name" : "round_sigfig(double, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@round_sigfig#d#I#"
+            }
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.cpp",
+        "file_last_write" : 1490363575
+    },
+    {
+        "definitions" : [
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/misc.h",
+        "file_last_write" : 1490363579
+    },
+    {
+        "definitions" : [
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.cpp",
+                "kind" : 6,
+                "line" : 13,
+                "name" : "runif1(double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@runif1#d#d#"
+            },
+            {
+                "column" : 5,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.cpp",
+                "kind" : 6,
+                "line" : 20,
+                "name" : "sample1(std::vector<double> &, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@sample1#&$@N@std@N@__1@C@vector>#d#$@N@std@N@__1@C@allocator>#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.cpp",
+                "kind" : 6,
+                "line" : 33,
+                "name" : "rgamma1(double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@rgamma1#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.cpp",
+                "kind" : 6,
+                "line" : 46,
+                "name" : "rbeta1(double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@rbeta1#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.cpp",
+                "kind" : 6,
+                "line" : 54,
+                "name" : "rnorm1(double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@rnorm1#d#d#"
+            }
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.cpp",
+        "file_last_write" : 1463413602
+    },
+    {
+        "definitions" : [
+        ],
+        "file" : "/Users/rverity/Dropbox/Bob/Work/My Programs/Geoprofiling/RgeoProfile/src/probability.h",
+        "file_last_write" : 1495105457
+    }
+]

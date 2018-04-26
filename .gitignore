@@ -12,8 +12,5 @@
 # specific files and folders #
 ##############################
 ignore/
-^.*\.Rproj$
-^\.Rproj\.user$
-.Rproj.user
-RgeoProfile.Rproj
-R/.Rd*
+*.Rhistory
+*.Rproj
