@@ -4,6 +4,7 @@ language: R
 sudo: required
 dist: trusty
 cache: packages
+install: travis_wait mvn install
 
 r_packages: devtools
 
