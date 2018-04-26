@@ -9,3 +9,4 @@ addons:
     packages:
       - libgdal-dev
       - libproj-dev
+      - libfftw3-dev
