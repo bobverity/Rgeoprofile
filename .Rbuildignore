@@ -2,3 +2,4 @@
 R/.Rd*
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.travis\.yml$
