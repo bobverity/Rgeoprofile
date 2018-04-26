@@ -699,7 +699,7 @@ geoReportHitscores <- function(params, source, surface) {
 #' 
 #' @export
 #' @examples
-#' \dontrun {
+#' \donttest {
 #' # simulated data
 #' sim <-rDPM(50, priorMean_longitude = -0.04217491, priorMean_latitude = 
 #' 51.5235505, alpha=10, sigma=1, tau=3)
@@ -737,7 +737,7 @@ geoModelSources <- function (mcmc, data) {
 #'
 #' @export
 #' @examples
-#' \dontrun {
+#' \donttest {
 #' # John Snow cholera data
 #' d <- geoData(Cholera$longitude, Cholera$latitude)
 #' s <- geoDataSource(WaterPumps$longitude, WaterPumps$latitude)
@@ -791,7 +791,7 @@ geoRing <- function(params, data, source, mcmc) {
 #' 
 #' @export
 #' @examples
-#' \dontrun {
+#' \donttest {
 #' # load London example data and set params
 #' d <- LondonExample_crimes
 #' s <- LondonExample_sources

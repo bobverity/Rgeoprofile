@@ -61,7 +61,7 @@ geoPlotMap(params, data = NULL, source = NULL, surface = NULL,
 Plots geoprofile on map, with various customisable options.
 }
 \examples{
-\dontrun {
+\donttest {
 # London example data
 d <- LondonExample_crimes
 s <- LondonExample_sources

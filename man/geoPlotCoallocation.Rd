@@ -15,7 +15,7 @@ geoPlotCoallocation(mcmc, cols = NULL)
 For all pairs of crimes, calculates the probability that both originate from the same source and plots a coloured half matrix representing these data. The data underlying these calculations can be accessed as the object $coAllocation produced by geoMCMC().
 }
 \examples{
-\dontrun {
+\donttest {
 # London example data
 d <- LondonExample_crimes
 s <- LondonExample_sources
