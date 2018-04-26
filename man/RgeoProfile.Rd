@@ -14,6 +14,7 @@ RgeoProfile: Dirichlet Process Mixture (DPM) model of geographic profiling
 Carries out a DPM mixture model of geographic profiling (and associated functions) as described in Verity et al. (2014) For links to papers see http:/www.sbcs.qmul.ac.uk/staff/stevenlecomber.html or contact Steven Le Comber (s.c.lecomber@qmul.ac.uk). Created and maintained by Bob Verity (r.verity@imperial.ac.uk).
 }
 \examples{
+\donttest {
 # full example of Rgeoprofile 2.1.0 workflow, illustrating all functions
 # for details, see help for individual functions
 
@@ -128,4 +129,5 @@ hs_mask <- geoReportHitscores(params = p, source = s, surface = gp_masked)
 hs_mask
 
 #------------------------------------------------------------------
+}
 }
