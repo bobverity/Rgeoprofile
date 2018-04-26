@@ -16,4 +16,4 @@ ignore/
 *.Rproj*
 *.Rapp.history
 R/.Rd*
-
+.Rproj.user

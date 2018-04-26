@@ -345,7 +345,7 @@ geoDataCheck <- function(data, silent=FALSE) {
 #'
 #' @param params a list of parameters, as defined by geoParams().
 #' @param silent whether to report passing check to console.
-#'
+#' 
 #' @export
 #' @examples
 #' # John Snow cholera data
