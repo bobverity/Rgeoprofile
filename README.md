@@ -12,7 +12,7 @@ RgeoProfile is written in R and C++, through the Rcpp package. The required data
 
 ## Installation
 
-RgeoProfile relies on the Rcpp package, which requires some additional tools to be installed on your system:
+RgeoProfile relies on the Rcpp package, which requires the following OS-specific steps:
 
 * Windows
     - Download and install the appropriate version of [Rtools](https://cran.rstudio.com/bin/windows/Rtools/) for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools
@@ -22,9 +22,9 @@ RgeoProfile relies on the Rcpp package, which requires some additional tools to 
 * Linux (Debian/Ubuntu)
     - Install the core software development utilities required for R package development as well as LaTeX by executing
     
-                ```
-                sudo apt-get install r-base-dev texlive-full
-                ```
+            ```
+            sudo apt-get install r-base-dev texlive-full
+            ```
 
 Next, ensure that you have devtools installed by running
 ```r
@@ -36,21 +36,21 @@ Finally, install the RgeoProfile package directly from GitHub by running
 install_github("bobverity/RgeoProfile")
 library(RgeoProfile)
 ```
-
-## Running
-
-Some code
-```r
-install.packages("rmarkdown")
-```
+Once installed, run `??RgeoProfile` to open the help for the package, which contains a number of worked examples.
 
 
 ## References
 
 <sup>1</sup> Rossmo, D.K., 1999. Geographic profiling. CRC press.
+
 <sup>2</sup> Le Comber, S.C., Nicholls, B., Rossmo, D.K. and Racey, P.A., 2006. Geographic profiling and animal foraging. Journal of Theoretical Biology, 240(2), pp.233-240.
+
 <sup>3</sup> Martin, R.A., Rossmo, D.K. and Hammerschlag, N., 2009. Hunting patterns and geographic profiling of white shark predation. Journal of Zoology, 279(2), pp.111-118.
+
 <sup>4</sup> Raine, N.E., Rossmo, D.K. and Le Comber, S.C., 2009. Geographic profiling applied to testing models of bumble-bee foraging. Journal of the Royal Society Interface, 6(32), pp.307-319.
+
 <sup>5</sup> Le Comber, S.C. and Stevenson, M.D., 2012. From Jack the Ripper to epidemiology and ecology. Trends in ecology & evolution, 27(6), pp.307-308.
+
 <sup>6</sup>Le Comber, S.C., Rossmo, D., Hassan, A.N., Fuller, D.O. and Beier, J.C., 2011. Geographic profiling as a novel spatial tool for targeting infectious disease control. International journal of health geographics, 10(1), p.35.
+
 <sup>7</sup> Verity, R., Stevenson, M.D., Rossmo, D.K., Nichols, R.A. and Le Comber, S.C., 2014. Spatial targeting of infectious disease control: identifying multiple, unknown sources. Methods in Ecology and Evolution, 5(7), pp.647-655.
