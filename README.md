@@ -10,6 +10,7 @@ The RgeoProfile package uses the Dirichlet Process Mixture (DPM) modelling frame
 
 <p align="center">
 <img src="R_ignore/LondonExample_figure1.png" width="700" align="middle">
+
 some text
 </p>
 
