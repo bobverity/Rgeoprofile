@@ -1,7 +1,6 @@
 
 # RgeoProfile
 ### Version2.1.0
-
 [![Build Status](https://travis-ci.org/bobverity/Rgeoprofile.svg?branch=version2.1.0)](https://travis-ci.org/bobverity/Rgeoprofile)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/bobverity/RgeoProfile?branch=version2.1.0&svg=true)](https://ci.appveyor.com/project/bobverity/RgeoProfile)
 
