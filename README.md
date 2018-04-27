@@ -15,11 +15,10 @@ RgeoProfile is written in R and C++, through the Rcpp package. The required data
 RgeoProfile relies on the Rcpp package, which requires some additional tools to be installed on your system:
 
 * Windows
-- Item 1
-- Item 2
-* Mac
-- Item 1
-- Item 2
+    - Download and install the appropriate version of [Rtools](https://cran.rstudio.com/bin/windows/Rtools/) for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools.
+* Mac OS X
+    - Download and install [XCode](http://itunes.apple.com/us/app/xcode/id497799835?mt=12)
+    - Within XCode go to Preferences : Downloads and install the Command Line Tools
 
 #### Windows
 - Download and install the appropriate version of [Rtools](https://cran.rstudio.com/bin/windows/Rtools/) for your version of R. On installation, ensure you check the box to arrange your system PATH as recommended by Rtools.
