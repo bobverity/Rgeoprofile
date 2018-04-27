@@ -1,4 +1,5 @@
 ^ignore$
+^R_ignore$
 R/.Rd*
 ^.*\.Rproj$
 ^\.Rproj\.user$
