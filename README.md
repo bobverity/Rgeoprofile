@@ -14,8 +14,10 @@ RgeoProfile is written in R, and links to C++ through the Rcpp package. The requ
 
 <figure>
     <img src="R_ignore/LondonExample_figure1.png" width="300">
-    <figcaption>Caption goes here</figcaption>
+    <figcaption>Example geoprofile produced by the tutorial data set</figcaption>
 </figure>
+
+RgeoProfile is written in R, and links to C++ through the Rcpp package. The required data is nothing more than the longitude/latitude of observed "crimes". The user is also required to define a series of parameters, for example defining prior beliefs about the average distance of a crime from a source. After running the main MCMC algorithm, a large number of plotting functions are available for exploring the output and, for evaluating the efficiency of the search strategy.
 
 ## Installation
 
