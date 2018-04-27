@@ -1,8 +1,8 @@
 
 # RgeoProfile
 ### Version2.1.0
-[![Build Status](https://travis-ci.org/bobverity/Rgeoprofile.svg?branch=version2.1.0)](https://travis-ci.org/bobverity/Rgeoprofile)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/bobverity/RgeoProfile?branch=version2.1.0&svg=true)](https://ci.appveyor.com/project/bobverity/RgeoProfile)
+[![Build Status](https://travis-ci.org/bobverity/Rgeoprofile.svg?branch=version2.1)](https://travis-ci.org/bobverity/Rgeoprofile)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/bobverity/RgeoProfile?branch=version2.1&svg=true)](https://ci.appveyor.com/project/bobverity/RgeoProfile)
 
 ## Background
 RgeoProfile is an R package for carrying out geographic profiling - a technique derived from criminology that uses the spatial locations of linked crimes to infer the home location (or locations) from which the criminal is operating<sup>1</sup>. More recently, this method has been applied to problems in ecology<sup>2-5</sup> and infectious disease<sup>6,7</sup>, where "crimes" are now equivalent to animal observations or sites of infection, and "home locations" may be roosts or persistent sources of disease. Finding these sources is often a key priority - for example in malaria this may provide a more efficient method of carrying out targeted larval source management<sup>7</sup>.
