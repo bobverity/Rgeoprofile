@@ -9,10 +9,12 @@ Authors@R: person("Robert", "Verity", email = "r.verity@imperial.ac.uk",
 Maintainer: Robert Verity <r.verity@imperial.ac.uk>
 Description: Can be used to infer multiple source locations from spatial data
     using a mixture modelling framework.
-License: file LICENSE
+License: MIT + file LICENSE
 BugReports: https://github.com/bobverity/RgeoProfile/issues
 Imports:
     Rcpp (>= 0.11.5),
+    parallel,
+    coda,
     fftwtools,
     ggplot2,
     ggmap,

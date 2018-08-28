@@ -79,8 +79,7 @@ rcpp_to_mat <- function(x) {
 #' @noRd
 call_hungarian <- function(x) {
   args <- list(cost_mat = mat_to_rcpp(x))
-  # TODO
-  #call_hungarian_cpp(args)
+  call_hungarian_cpp(args)
 }
 
 #------------------------------------------------

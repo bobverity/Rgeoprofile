@@ -3,6 +3,8 @@
 # The following commands are needed to ensure that the roxygen2 package, which deals with documenting the package, does not conflict with the Rcpp package.
 
 # Rcpp          - allows C++ integration
+# parallel      - running jobs in parallel
+# coda          - MCMC type objects and methods
 # fftwtools     - fast Fourier transform, used when smoothing posterior draws into final surface
 # ggplot2       - used to produce layered plots
 # ggmap         - needed for the get_map function, although ggmap function itself is broken
@@ -14,6 +16,8 @@
 
 #' @useDynLib RgeoProfile
 #' @importFrom Rcpp evalCpp
+#' @import parallel
+#' @import coda
 #' @import fftwtools
 #' @import ggplot2
 #' @import ggmap
