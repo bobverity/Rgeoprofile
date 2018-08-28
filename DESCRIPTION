@@ -1,6 +1,6 @@
 Package: RgeoProfile
 Title: Geographic profiling in R
-Version: 2.1.0
+Version: 3.0.0
 Date: 2015-08-04
 Author: Robert Verity
 Maintainer: Robert Verity <r.verity@imperial.ac.uk>
@@ -21,4 +21,3 @@ RoxygenNote: 6.0.1
 SystemRequirements:
     C++11
 LazyData: true
-
