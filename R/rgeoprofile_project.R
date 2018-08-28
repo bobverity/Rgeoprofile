@@ -80,85 +80,8 @@ print_full <- function(x, ...) {
 
 summary.rgeoprofile_project <- function(object, ...) {
   
-  # print data summary
-  cat("DATA:\n")
-  if (is.null(object$data)) {
-    cat("   (none loaded)\n")
-  } else {
-    # extract data properties
-    name <- object$data_processed$name
-    ploidy <- object$data_processed$ploidy
-    ploidy_min <- min(ploidy)
-    ploidy_max <- max(ploidy)
-    n <- length(ploidy)
-    loci <- length(object$data_processed$Jl)
-    pop <- object$data_processed$pop
-    
-    if (!is.null(name)) {
-      cat(sprintf("   '%s'\n", name))
-    }
-    cat(sprintf("   individuals = %s\n", n))
-    cat(sprintf("   loci = %s\n", loci))
-    if (ploidy_min==ploidy_max) {
-      cat(sprintf("   ploidy = %s\n", ploidy_min))
-    } else {
-      cat(sprintf("   ploidy range = %s to %s\n", ploidy_min, ploidy_max))
-    }
-    if (is.null(pop)) {
-      cat("   pops = (none defined)\n")
-    } else {
-      cat(sprintf("   pops = %s\n", length(unique(pop))))
-    }
-    
-    n1 <- sum(object$data_processed$dat==0)
-    n2 <- length(object$data_processed$dat)
-    cat(sprintf("   missing data = %s of %s gene copies (%s%%)\n", n1, n2, round(n1/n2*100)))
-  }
-  cat("\n")
+  message("TODO/n")
   
-  # print parameter sets summary
-  cat("PARAMETER SETS:\n")
-  if (length(object$parameter_sets)==0) {
-    cat("   (none defined)\n")
-  } else {
-    # print names of all sets
-    s <- object$active_set
-    for (i in 1:length(object$parameter_sets)) {
-      
-      # star next to active set
-      if (i==s) {
-        cat(" * ")
-      } else {
-        cat("   ")
-      }
-      
-      # print name of set
-      cat(sprintf("SET%s: %s\n", i, object$parameter_sets[[i]]$name))
-    }
-    cat("\n")
-    
-    # print details of active set
-    name <- object$parameter_sets[[s]]$name
-    admix_on <- object$parameter_sets[[s]]$admix_on
-    estimate_alpha <- object$parameter_sets[[s]]$estimate_alpha
-    alpha <- object$parameter_sets[[s]]$alpha
-    lambda <- object$parameter_sets[[s]]$lambda
-    
-    cat(sprintf("ACTIVE SET: SET%s\n", s))
-    if (admix_on) {
-      cat("   model = admixture\n")
-      cat(sprintf("   estimate alpha = %s\n", estimate_alpha))
-      if (!estimate_alpha) {
-        cat(sprintf("   alpha = %s\n", alpha))
-      }
-    } else {
-      cat("   model = no-admixture\n")
-    }
-    cat(sprintf("   lambda = %s\n", lambda))
-    
-  }
-  cat("\n")
-
 }
 
 #------------------------------------------------

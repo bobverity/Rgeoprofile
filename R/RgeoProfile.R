@@ -2,3 +2,4 @@
 #'
 #' @name RgeoProfile
 #' @docType package
+NULL
