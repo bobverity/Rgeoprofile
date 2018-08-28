@@ -1,12 +1,16 @@
 Package: RgeoProfile
+Type: Package
 Title: Geographic profiling in R
 Version: 3.0.0
-Date: 2015-08-04
-Author: Robert Verity
+Date: 2018-08-28
+URL: https://bobverity.github.io/RgeoProfile/
+Authors@R: person("Robert", "Verity", email = "r.verity@imperial.ac.uk",
+                  role = c("aut", "cre"))
 Maintainer: Robert Verity <r.verity@imperial.ac.uk>
 Description: Can be used to infer multiple source locations from spatial data
-    using a Dirichlet process mixture (DPM) modelling framework.
-License: GPL (>= 2)
+    using a mixture modelling framework.
+License: file LICENSE
+BugReports: https://github.com/bobverity/RgeoProfile/issues
 Imports:
     Rcpp (>= 0.11.5),
     fftwtools,
