@@ -267,8 +267,15 @@ lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
 # MISC CLASSES
 
 #------------------------------------------------
-# custom print function for rgeoprofile_simdata
-#' @noRd
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_simdata.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
 print.rgeoprofile_simdata <- function(x, ...) {
   
   # print raw list
