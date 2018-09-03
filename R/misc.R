@@ -137,6 +137,143 @@ update_progress <- function(pb_list, name, i, max_i) {
   }
 }
 
+#------------------------------------------------
+#' @title Draw from spherical normal distribution
+#'
+#' @description Draw from normal distribution converted to spherical coordinate
+#'   system. Points are first drawn from an ordinary cartesian 2D normal
+#'   distribution. The distances to points are then assumed to be great circle
+#'   distances, and are combined with a random bearing from the point
+#'   {centre_lat, centre_lon} to produce a final set of lat/lon points.
+#'
+#' @param n The number of points to draw
+#' @param centre_lon The mean longitude of the normal distribution
+#' @param centre_lat The mean latitude of the normal distribution
+#' @param sigma The standard deviation of the normal distribution
+#'
+#' @export
+#' @examples
+#' rnorm_sphere(n = 100, centre_lat = 0, centre_lon = 0, sigma = 1)
+
+rnorm_sphere <- function(n, centre_lon, centre_lat, sigma = 1) {
+  
+  # draw points centred at zero
+  x <- rnorm(n, sd = sigma)
+  y <- rnorm(n, sd = sigma)
+  
+  # calculate angle and euclidian distance of all points from origin. Angles are
+  # in degrees relative to due north
+  d <- sqrt(x^2 + y^2)
+  theta <- atan2(x, y)*360/(2*pi)
+  
+  # get lon/lat relative to origin
+  ret <- bearing_to_lonlat(centre_lon, centre_lat, theta, d)
+  
+  return(ret)
+}
+
+#------------------------------------------------
+#' @title Get spatial coordinate given an origin, a great circle distance and a
+#'   bearing
+#'
+#' @description Calculate destination lat/lon given an origin, a great circle
+#'   distance of travel, and a bearing.
+#'
+#' @param origin_lon The origin longitude
+#' @param origin_lat The origin latitude
+#' @param bearing The angle in degrees relative to due north
+#' @param gc_dist The great circle distance in (km)
+#'
+#' @export
+#' @examples
+#' # one degree longitude is approximately 111km at the equator. Therefore if we
+#' # travel 111km due east from the coordinate {0,0} we can verify that we have
+#' # moved approximately 1 degree longitude and zero degrees latitude
+#' bearing_to_lonlat(0, 0, 90, 111)
+
+bearing_to_lonlat <- function(origin_lon, origin_lat, bearing, gc_dist) {
+  
+  # convert origin_lat, origin_lon and bearing from degrees to radians
+  origin_lat <- origin_lat*2*pi/360
+  origin_lon <- origin_lon*2*pi/360
+  bearing <- bearing*2*pi/360
+  
+  # calculate new lat/lon using great circle distance
+  earth_rad <- 6371
+  new_lat <- asin(sin(origin_lat)*cos(gc_dist/earth_rad) + cos(origin_lat)*sin(gc_dist/earth_rad)*cos(bearing))
+  new_lon <- origin_lon + atan2(sin(bearing)*sin(gc_dist/earth_rad)*cos(origin_lat), cos(gc_dist/earth_rad)-sin(origin_lat)*sin(new_lat))
+  
+  # convert new_lat and new_lon from radians to degrees
+  new_lat <- new_lat*360/(2*pi)
+  new_lon <- new_lon*360/(2*pi)
+  
+  return(list(longitude = new_lon,
+              latitude = new_lat))
+}
+
+#------------------------------------------------
+#' @title Calculate great circle distance and bearing between coordinates
+#'
+#' @description Calculate great circle distance and bearing between spatial
+#'   coordinates.
+#'
+#' @param origin_lon The origin longitude
+#' @param origin_lat The origin latitude
+#' @param dest_lon The destination longitude
+#' @param dest_lat The destination latitude
+#'
+#' @export
+#' @examples
+#' # one degree longitude should equal approximately 111km at the equator
+#' lonlat_to_bearing(0, 0, 1, 0)
+
+lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
+  
+  # check for exact equality of points
+  if (origin_lon == dest_lon && origin_lat == dest_lat) {
+    return(list(bearing = 0, gc_dist = 0))
+  }
+  
+  # convert input arguments to radians
+  origin_lon <- origin_lon*2*pi/360
+  origin_lat <- origin_lat*2*pi/360
+  dest_lon <- dest_lon*2*pi/360
+  dest_lat <- dest_lat*2*pi/360
+  
+  delta_lon <- dest_lon - origin_lon
+  
+  # calculate bearing
+  bearing <- atan2(sin(delta_lon)*cos(dest_lat), cos(origin_lat)*sin(dest_lat)-sin(origin_lat)*cos(dest_lat)*cos(delta_lon))
+  
+  # calculate great circle angle. Use temporary variable to avoid acos(>1) or 
+  # acos(<0), which can happen due to underflow issues
+  tmp <- sin(origin_lat)*sin(dest_lat) + cos(origin_lat)*cos(dest_lat)*cos(delta_lon)
+  tmp <- ifelse(tmp > 1, 1, tmp)
+  tmp <- ifelse(tmp < 0, 0, tmp)
+  gc_angle <- acos(tmp)
+  
+  # convert bearing from radians to degrees measured clockwise from due north,
+  # and convert gc_angle to great circle distance via radius of earth (km)
+  bearing <- bearing*360/(2*pi)
+  bearing <- (bearing+360)%%360
+  earth_rad <- 6371
+  gc_dist <- earth_rad*gc_angle
+  
+  return(list(bearing = bearing, gc_dist = gc_dist))
+}
+
 
 ##########################################################################################################
 # MISC CLASSES
+
+#------------------------------------------------
+# custom print function for rgeoprofile_simdata
+#' @noRd
+print.rgeoprofile_simdata <- function(x, ...) {
+  
+  # print raw list
+  print(unclass(x))
+  
+  # return invisibly
+  invisible(x)
+}

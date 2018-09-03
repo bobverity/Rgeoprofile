@@ -365,3 +365,68 @@ vector< vector< vector<double> > > rcpp_to_array_double(Rcpp::List x) {
   }
   return ret;
 }
+
+// --------------------------------
+// Bhaskara I's approximation to sine, cosine, and tanjent functions. Sine and
+// cosine approximations have a maximum deviation from the true value of approx.
+// 0.00163
+double quick_cos(double x) {
+  
+  // bring x into the range [0,2*PI]
+  while (x<0) {
+    x += 2*PI;
+  }
+  while (x>2*PI) {
+    x -= 2*PI;
+  }
+  
+  // divide [0,2*PI] into 4 intervals. Use approximation on each interval
+  if (x<PI/2) {
+    return (PI_sq-4*x*x)/(PI_sq+x*x);
+  } else if (x<PI) {
+    x = PI - x;
+    return -(PI_sq-4*x*x)/(PI_sq+x*x);
+  } else if (x<(3*PI/2)) {
+    x -= PI;
+    return -(PI_sq-4*x*x)/(PI_sq+x*x);
+  } else {
+    x = 2*PI - x;
+    return (PI_sq-4*x*x)/(PI_sq+x*x);
+  }
+}
+double quick_sin(double x) {
+  return quick_cos(x-PI/2);
+}
+double quick_tan(double x) {
+  return quick_sin(x)/quick_cos(x);
+}
+
+// --------------------------------
+// get great circle distance between two points in lon/lat coordinates
+double gc_dist(double lon0, double lat0, double lon1, double lat1) {
+  
+  // check for exact equality of points
+  if (lon0 == lon1 && lat0 == lat1) {
+    return 0;
+  }
+  
+  // convert input arguments to radians
+  lon0 *= 2*PI/360;
+  lat0 *= 2*PI/360;
+  lon1 *= 2*PI/360;
+  lat1 *= 2*PI/360;
+  
+  // calculate great circle angle. Use temporary variable to avoid acos(>1) or
+  // acos(<0), which can occur due to underflow issues
+  double tmp = sin(lat0)*sin(lat1) + cos(lat0)*cos(lat1)*cos(lon1-lon0);
+  tmp = (tmp > 1.0) ? 1.0 : tmp;
+  tmp = (tmp < 0.0) ? 0.0 : tmp;
+  double gc_angle = acos(tmp);
+  
+  // convert gc_angle to great circle distance using radius of earth (km)
+  double gc_dist = gc_angle * EARTH_RAD_KM;
+  
+  return gc_dist;
+}
+
+

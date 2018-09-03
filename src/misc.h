@@ -4,9 +4,18 @@
 #include <Rcpp.h>
 
 //------------------------------------------------
+// define pi squared
+#define PI_sq 9.86960440
+#define LOG_PI 1.14472989
+
+//------------------------------------------------
 // define very large/small numbers for catching overflow/underflow problems
 #define OVERFLO   1e100
 #define UNDERFLO   1e-100
+
+//------------------------------------------------
+// define radius of earth in km
+#define EARTH_RAD_KM   6371
 
 //------------------------------------------------
 // basic sum over elements in a vector (templated for different data types).
@@ -249,5 +258,16 @@ std::vector< std::vector< std::vector<double> > > rcpp_to_array_double(Rcpp::Lis
 //------------------------------------------------
 // converts input from Rcpp::List format to vector<vector<vector<int>>> format.
 std::vector< std::vector< std::vector<int> > > rcpp_to_array_int(Rcpp::List x);
+
+// --------------------------------
+// Bhaskara I's approximation to sine, cosine, and tanjent functions
+double quick_cos(double x);
+double quick_sin(double x);
+double quick_tan(double x);
+
+// --------------------------------
+// get great circle distance between two points in lon/lat coordinates
+double gc_dist(double lon0, double lat0, double lon1, double lat1);
+
 
 

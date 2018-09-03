@@ -4,16 +4,14 @@
 \alias{bind_data}
 \title{Bind data to project}
 \usage{
-bind_data(project, df, missing_data = -9, name = NULL,
-  check_delete_output = TRUE)
+bind_data(project, df, name = NULL, check_delete_output = TRUE)
 }
 \arguments{
 \item{project}{an \code{rgeoprofile_project}, as produced by the function
 \code{rgeoprofile_project()}}
 
-\item{df}{a dataframe containing spatial data}
-
-\item{missing_data}{which value represents missing data}
+\item{df}{a dataframe with three columns named "longitude", "latitude",
+"counts" (in that order). Counts must be positive integers or zero}
 
 \item{name}{optional name of the data set to aid in record keeping}
 

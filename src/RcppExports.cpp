@@ -5,6 +5,17 @@
 
 using namespace Rcpp;
 
+// run_mcmc_cpp
+Rcpp::List run_mcmc_cpp(Rcpp::List args);
+RcppExport SEXP _RgeoProfile_run_mcmc_cpp(SEXP argsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type args(argsSEXP);
+    rcpp_result_gen = Rcpp::wrap(run_mcmc_cpp(args));
+    return rcpp_result_gen;
+END_RCPP
+}
 // call_hungarian_cpp
 Rcpp::List call_hungarian_cpp(Rcpp::List args);
 RcppExport SEXP _RgeoProfile_call_hungarian_cpp(SEXP argsSEXP) {
@@ -18,6 +29,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_RgeoProfile_run_mcmc_cpp", (DL_FUNC) &_RgeoProfile_run_mcmc_cpp, 1},
     {"_RgeoProfile_call_hungarian_cpp", (DL_FUNC) &_RgeoProfile_call_hungarian_cpp, 1},
     {NULL, NULL, 0}
 };

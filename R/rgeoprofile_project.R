@@ -10,7 +10,6 @@ rgeoprofile_project <- function() {
   
   # initialise project with default values
   ret <- list(data = NULL,
-              data_processed = NULL,
               parameter_sets = NULL,
               active_set = 0,
               output = list(single_set = list())
@@ -80,7 +79,7 @@ print_full <- function(x, ...) {
 
 summary.rgeoprofile_project <- function(object, ...) {
   
-  message("TODO/n")
+  message("TODO")
   
 }
 
