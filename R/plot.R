@@ -1,7 +1,14 @@
 
 #------------------------------------------------
-# default plot for class rgeoprofile_simdata
-#' @noRd
+#' @title TODO
+#'
+#' @description default plot for class rgeoprofile_simdata.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
 plot.rgeoprofile_simdata <- function(x, y, ...) {
   
   # subset observed vs. unobserved data
@@ -40,32 +47,8 @@ plot.rgeoprofile_simdata <- function(x, y, ...) {
   # titles, legends, scales etc.
   plot1 <- plot1 + scale_color_manual(values = c("data_unobserved" = grey(0.7), "data_observed" = grey(0)))
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  #plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
   plot1 <- plot1 + guides(color = FALSE)
   
-  return(plot1)
-  
-  # get data into ggplot format
-  m <- unclass(x)
-  n <- nrow(m)
-  K <- ncol(m)
-  df <- data.frame(ind = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), val = as.vector(t(m)))
-  
-  # produce basic plot
-  plot1 <- ggplot(df) + theme_empty()
-  plot1 <- plot1 + geom_bar(aes_(x = ~ind, y = ~val, fill = ~k), width = 1, stat = "identity")
-  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-  plot1 <- plot1 + xlab("sample") + ylab("probability")
-  
-  # add legends
-  plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
-  plot1 <- plot1 + scale_colour_manual(values = "white")
-  plot1 <- plot1 + guides(colour = FALSE)
-  
-  # add border
-  plot1 <- plot1 + theme(panel.border = element_rect(colour = "black", size = 2, fill = NA))
-  
-  # return plot object
   return(plot1)
 }
 
