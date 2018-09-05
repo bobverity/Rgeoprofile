@@ -26,6 +26,7 @@ public:
   std::vector<std::vector<double>> source_lon;
   std::vector<std::vector<double>> source_lat;
   std::vector<std::vector<double>> sigma;
+  std::vector<double> expected_popsize;
   
   // objects for storing acceptance rates
   std::vector<int> source_accept;

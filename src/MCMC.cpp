@@ -32,6 +32,7 @@ MCMC::MCMC() {
   source_lon = vector<vector<double>>(samples, vector<double>(K));
   source_lat = vector<vector<double>>(samples, vector<double>(K));
   sigma = vector<vector<double>>(samples, vector<double>(K));
+  expected_popsize = vector<double>(samples);
   
   // objects for storing acceptance rates
   source_accept = vector<int>(K);
@@ -87,6 +88,9 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       
       // update sigma
       particle_vec[rung].update_sigma(true, rep+1);
+      
+      // update expected population size
+      particle_vec[rung].update_expected_popsize();
       
     } // end loop over rungs
     
@@ -185,6 +189,9 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       // update sigma
       particle_vec[rung].update_sigma(false, 0);
       
+      // update expected population size
+      particle_vec[rung].update_expected_popsize();
+      
     } // end loop over rungs
     
     // Metropolis-coupling
@@ -207,6 +214,9 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
     
     // store sigma
     sigma[rep] = particle_vec[cold_rung].sigma;
+    
+    // store expected population size
+    expected_popsize[rep] = particle_vec[cold_rung].expected_popsize;
     
     // update progress bars
     if (!silent) {

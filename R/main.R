@@ -102,10 +102,10 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 #' @param sigma_prior_mean the prior mean of the parameter sigma (km)
 #' @param sigma_prior_sd the prior standard deviation of the parameter sigma 
 #'   (km). Set to zero to use a fixed value for sigma
-#' @param expected_popsize_prior_shape the shape parameter of the gamma prior on
-#'   expected total population size
-#' @param expected_popsize_prior_rate the rate parameter of the gamma prior on
-#'   expected total population size
+#' @param expected_popsize_prior_mean the prior mean of the expected total
+#'   population size
+#' @param expected_popsize_prior_sd the prior standard deviation of the expected
+#'   total population size
 #' 
 #' @export
 
@@ -119,8 +119,8 @@ new_set <- function(project,
                     sigma_model = "single",
                     sigma_prior_mean = 1,
                     sigma_prior_sd = 1,
-                    expected_popsize_prior_shape = 0.1,
-                    expected_popsize_prior_rate = 0.001) {
+                    expected_popsize_prior_mean = 100,
+                    expected_popsize_prior_sd = 10) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -133,9 +133,9 @@ new_set <- function(project,
   assert_gr(source_max_lat, source_min_lat)
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
-  assert_single_pos(sigma_prior_sd, zero_allowed = FALSE)
-  assert_single_pos(expected_popsize_prior_shape, zero_allowed = FALSE)
-  assert_single_pos(expected_popsize_prior_rate, zero_allowed = FALSE)
+  assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
+  assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
+  assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
@@ -153,8 +153,8 @@ new_set <- function(project,
                                       sigma_model = sigma_model,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
-                                      expected_popsize_prior_shape = expected_popsize_prior_shape,
-                                      expected_popsize_prior_rate = expected_popsize_prior_rate)
+                                      expected_popsize_prior_mean = expected_popsize_prior_mean,
+                                      expected_popsize_prior_sd = expected_popsize_prior_sd)
   
   names(project$parameter_sets)[s] <- paste0("set", s)
   

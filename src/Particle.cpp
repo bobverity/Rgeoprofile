@@ -39,6 +39,10 @@ Particle::Particle(double beta_raised) {
   log_sentinel_area = LOG_PI + 2*log(sentinel_radius);
   // area of source prior
   log_search_area = log(source_max_lon-source_min_lon) + log(source_max_lat-source_min_lat);
+  // sum of counts over all sentinel sites
+  counts_total = sum(sentinel_counts);
+  // log of K
+  log_K = log(K);
   
   // likelihood
   dist_source_data = vector<vector<double>>(n, vector<double>(K));
@@ -175,6 +179,9 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
       }
     }
     
+    // divide by K
+    log_hazard_sum -= log_K;
+    
     // define the rate lambda of the Poisson process at this sentinel site,
     // while remaining in log space
     double log_lambda = log_sentinel_area + log_expected_popsize + log_hazard_sum;
@@ -226,6 +233,11 @@ void Particle::update_sigma_single(bool robbins_monro_on, int iteration) {
 // update separate sigma for each source
 void Particle::update_sigma_separate(bool robbins_monro_on, int iteration) {
   
+  // return if prior is exact
+  if (sigma_prior_sdlog == 0) {
+    return;
+  }
+  
   // loop through sources
   for (int k=0; k<K; ++k) {
     
@@ -255,6 +267,9 @@ void Particle::update_sigma_separate(bool robbins_monro_on, int iteration) {
           log_hazard_sum = log_hazard_sum + log(1+exp(log_hazard_height[i][j] - log_hazard_sum));
         }
       }
+      
+      // divide by K
+      log_hazard_sum -= log_K;
       
       // define the rate lambda of the Poisson process at this sentinel site,
       // while remaining in log space
@@ -289,7 +304,6 @@ void Particle::update_sigma_separate(bool robbins_monro_on, int iteration) {
       if (robbins_monro_on) {
         sigma_accept[k]++;
         sigma_propSD[k] = exp(log(sigma_propSD[k]) + sigma_rm_stepsize*(1-0.234)/sqrt(iteration));
-        //sigma_propSD = exp(log(sigma_propSD) + sigma_rm_stepsize*(1-0.234)/sqrt(iteration));
       }
       
     } else {
@@ -297,12 +311,34 @@ void Particle::update_sigma_separate(bool robbins_monro_on, int iteration) {
       // Robbins-Monro negative update (on the log scale)
       if (robbins_monro_on) {
         sigma_propSD[k] = exp(log(sigma_propSD[k]) - sigma_rm_stepsize*0.234/sqrt(iteration));
-        //sigma_propSD = exp(log(sigma_propSD) - sigma_rm_stepsize*0.234/sqrt(iteration));
       }
       
     }  // end Metropolis-Hastings step
     
   }  // end loop over sources
+  
+}
+
+//------------------------------------------------
+// update separate sigma for each source
+void Particle::update_expected_popsize() {
+  
+  // sum of Poisson rate over sentinel sites
+  double lambda_total = 0;
+  
+  // loop through sentinel sites
+  for (int i=0; i<n; ++i) {
+    
+    // take mean of hazard over sources
+    for (int k=0; k<K; ++k) {
+      lambda_total += exp(log_sentinel_area + log_hazard_height[i][k] - log_K);
+    }
+  }
+  
+  // draw new expected population size
+  double posterior_shape = expected_popsize_prior_shape + counts_total;
+  double posterior_rate = expected_popsize_prior_rate + lambda_total;
+  expected_popsize = rgamma1(posterior_shape, posterior_rate);
   
 }
 
@@ -346,6 +382,9 @@ double Particle::calculate_loglike_source(double source_lon_prop, double source_
         log_hazard_sum = log_hazard_sum + log(1+exp(log_hazard_height[i][j] - log_hazard_sum));
       }
     }
+    
+    // divide by K
+    log_hazard_sum -= log_K;
     
     // define the rate lambda of the Poisson process at this sentinel site,
     // while remaining in log space

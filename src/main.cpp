@@ -60,6 +60,7 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   ret.push_back(Rcpp::wrap( mcmc.source_lon ));
   ret.push_back(Rcpp::wrap( mcmc.source_lat ));
   ret.push_back(Rcpp::wrap( mcmc.sigma ));
+  ret.push_back(Rcpp::wrap( mcmc.expected_popsize ));
   ret.push_back(Rcpp::wrap( mcmc.source_accept ));
   ret.push_back(Rcpp::wrap( mcmc.sigma_accept ));
   
@@ -69,6 +70,7 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   ret_names.push_back("source_lon");
   ret_names.push_back("source_lat");
   ret_names.push_back("sigma");
+  ret_names.push_back("expected_popsize");
   ret_names.push_back("source_accept");
   ret_names.push_back("sigma_accept");
   

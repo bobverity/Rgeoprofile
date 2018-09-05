@@ -40,6 +40,8 @@ public:
   // misc constants
   double log_sentinel_area;
   double log_search_area;
+  int counts_total;
+  double log_K;
   
   // likelihood
   std::vector<std::vector<double>> dist_source_data;
@@ -65,6 +67,7 @@ public:
   void update_sigma(bool robbins_monro_on, int iteration);
   void update_sigma_single(bool robbins_monro_on, int iteration);
   void update_sigma_separate(bool robbins_monro_on, int iteration);
+  void update_expected_popsize();
   
   // likelihoods
   double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);

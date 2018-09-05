@@ -5,6 +5,7 @@
 #' @description default plot for class rgeoprofile_simdata.
 #'
 #' @param x TODO
+#' @param y TODO
 #' @param ... TODO
 #'
 #' @export

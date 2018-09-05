@@ -7,8 +7,8 @@
 new_set(project, name = "(no name)", sentinel_radius = 0.2,
   source_min_lon = -10, source_max_lon = 10, source_min_lat = -10,
   source_max_lat = 10, sigma_model = "single", sigma_prior_mean = 1,
-  sigma_prior_sd = 1, expected_popsize_prior_shape = 0.1,
-  expected_popsize_prior_rate = 0.001)
+  sigma_prior_sd = 1, expected_popsize_prior_mean = 100,
+  expected_popsize_prior_sd = 10)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function 
@@ -35,11 +35,11 @@ distance for each source}
 \item{sigma_prior_sd}{the prior standard deviation of the parameter sigma 
 (km). Set to zero to use a fixed value for sigma}
 
-\item{expected_popsize_prior_shape}{the shape parameter of the gamma prior on
-expected total population size}
+\item{expected_popsize_prior_mean}{the prior mean of the expected total
+population size}
 
-\item{expected_popsize_prior_rate}{the rate parameter of the gamma prior on
-expected total population size}
+\item{expected_popsize_prior_sd}{the prior standard deviation of the expected
+total population size}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new 
