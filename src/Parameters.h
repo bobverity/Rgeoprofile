@@ -32,6 +32,7 @@ public:
   static int sigma_model;
   static double sigma_prior_meanlog;
   static double sigma_prior_sdlog;
+  static double expected_popsize_prior_sd;
   static double expected_popsize_prior_shape;
   static double expected_popsize_prior_rate;
   

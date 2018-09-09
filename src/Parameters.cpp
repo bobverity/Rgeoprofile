@@ -30,6 +30,7 @@ double Parameters::source_max_lat;
 int Parameters::sigma_model;
 double Parameters::sigma_prior_meanlog;
 double Parameters::sigma_prior_sdlog;
+double Parameters::expected_popsize_prior_sd;
 double Parameters::expected_popsize_prior_shape;
 double Parameters::expected_popsize_prior_rate;
 
@@ -68,8 +69,13 @@ Parameters::Parameters(const Rcpp::List &args) {
   
   // get expected_popsize shape and rate parameters from raw inputs
   double expected_popsize_prior_mean = rcpp_to_double(args["expected_popsize_prior_mean"]);
-  double expected_popsize_prior_sd = rcpp_to_double(args["expected_popsize_prior_sd"]);
-  expected_popsize_prior_shape = pow(expected_popsize_prior_mean,2)/pow(expected_popsize_prior_sd,2);
-  expected_popsize_prior_rate = expected_popsize_prior_mean/pow(expected_popsize_prior_sd,2);
+  expected_popsize_prior_sd = rcpp_to_double(args["expected_popsize_prior_sd"]);
+  if (expected_popsize_prior_sd == -1) {  // improper prior
+    expected_popsize_prior_shape = 0;
+    expected_popsize_prior_rate = 0;
+  } else {  // proper prior
+    expected_popsize_prior_shape = pow(expected_popsize_prior_mean,2)/pow(expected_popsize_prior_sd,2);
+    expected_popsize_prior_rate = expected_popsize_prior_mean/pow(expected_popsize_prior_sd,2);
+  }
   
 }

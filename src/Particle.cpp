@@ -323,10 +323,13 @@ void Particle::update_sigma_separate(bool robbins_monro_on, int iteration) {
 // update separate sigma for each source
 void Particle::update_expected_popsize() {
   
+  // return if prior is exact
+  if (expected_popsize_prior_sd == 0) {
+    return;
+  }
+  
   // sum of Poisson rate over sentinel sites
   double lambda_total = 0;
-  
-  // loop through sentinel sites
   for (int i=0; i<n; ++i) {
     
     // take mean of hazard over sources

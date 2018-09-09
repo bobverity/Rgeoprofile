@@ -26,7 +26,7 @@
 #' @import rgdal
 #' @importFrom raster raster extent extent<- rasterize projectRaster distance
 #' @import viridis
-#' @importFrom grDevices colorRampPalette
+#' @importFrom grDevices colorRampPalette grey
 #' @import graphics
 #' @import stats
 #' @import utils
@@ -135,7 +135,9 @@ new_set <- function(project,
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
   assert_single_pos(expected_popsize_prior_mean, zero_allowed = FALSE)
-  assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
+  if (expected_popsize_prior_sd != -1) {
+    assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
+  }
   
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
@@ -355,110 +357,48 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   for (i in 1:length(K)) {
     
     # create name lists
-    ind_names <- paste0("ind", 1:n)
-    locus_names <- paste0("locus", 1:L)
-    deme_names <- paste0("deme", 1:K[i])
-    rung_names <- paste0("rung", 1:rungs)
+    #ind_names <- paste0("ind", 1:n)
+    #locus_names <- paste0("locus", 1:L)
+    #deme_names <- paste0("deme", 1:K[i])
+    #rung_names <- paste0("rung", 1:rungs)
     
-    # define output manually if K==1
-    if (K[i]==1) {
-      
-      # get exact log-likelihood
-      exact_loglike <- output_raw[[i]]$loglike_sampling[[1]][1]
-      
-      # create qmatrix_ind
-      qmatrix_ind <- matrix(1,n,1)
-      colnames(qmatrix_ind) <- deme_names
-      rownames(qmatrix_ind) <- ind_names
-      class(qmatrix_ind) <- "maverick_qmatrix_ind"
-      
-      # create NULL outputs
-      loglike_burnin <- NULL
-      loglike_sampling <- NULL
-      loglike_quantiles <- NULL
-      alpha <- NULL
-      ESS <- NULL
-      GTI_path <- NULL
-      GTI_logevidence <- data.frame(estimate = exact_loglike,
-                                    SE = 0)
-      coupling_accept <- NULL
-      
-    } else { # extract output if K>1
-      
-      # ---------- raw mcmc results ----------
-      
-      # get loglikelihood in coda::mcmc format
-      loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
-      loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
-      
-      # alpha
-      alpha <- NULL
-      if (admix_on) {
-        alpha <- mcmc(output_raw[[i]]$alpha_store)
-      }
-      
-      # ---------- summary results ----------
-      
-      # get quantiles over sampling loglikelihoods
-      loglike_quantiles <- t(apply(loglike_sampling, 2, quantile_95))
-      rownames(loglike_quantiles) <- rung_names
-      class(loglike_quantiles) <- "maverick_loglike_quantiles"
-      
-      # process qmatrix_ind
-      qmatrix_ind <- rcpp_to_mat(output_raw[[i]]$qmatrix_ind)
-      colnames(qmatrix_ind) <- deme_names
-      rownames(qmatrix_ind) <- ind_names
-      class(qmatrix_ind) <- "maverick_qmatrix_ind"
-      
-      # ---------- GTI path and model evidence ----------
-      
-      # get ESS
-      ESS <- effectiveSize(loglike_sampling)
-      ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
-      ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
-      names(ESS) <- rung_names
-      
-      # weight likelihood according to GTI_pow
-      loglike_weighted <- loglike_sampling
-      for (j in 1:rungs) {
-        beta_j <- j/rungs
-        loglike_weighted[,j] <- GTI_pow*beta_j^(GTI_pow-1) * loglike_sampling[,j]
-      }
-      
-      # calculate GTI path mean and SE
-      GTI_path_mean <- colMeans(loglike_weighted)
-      GTI_path_var <- apply(loglike_weighted, 2, var)
-      GTI_path_SE <- sqrt(GTI_path_var/ESS)
-      GTI_path <- data.frame(mean = GTI_path_mean, SE = GTI_path_SE)
-      rownames(GTI_path) <- rung_names
-      class(GTI_path) <- "maverick_GTI_path"
-      
-      # calculate GTI estimate of log-evidence
-      GTI_vec <- 0.5*loglike_weighted[,1]/rungs
-      if (rungs>1) {
-        for (j in 2:rungs) {
-          GTI_vec <- GTI_vec + 0.5*(loglike_weighted[,j]+loglike_weighted[,j-1])/rungs
-        }
-      }
-      GTI_logevidence_mean <- mean(GTI_vec)
-      
-      # calculate standard error of GTI estimate
-      GTI_ESS <- as.numeric(effectiveSize(GTI_vec))
-      if (GTI_ESS==0) {
-        GTI_ESS <- samples # if no variation then assume perfect mixing
-      }
-      GTI_logevidence_SE <- sqrt(var(GTI_vec)/GTI_ESS)
-      
-      # produce final GTI_logevidence object
-      GTI_logevidence <- data.frame(estimate = GTI_logevidence_mean,
-                                    SE = GTI_logevidence_SE)
-      
-      # ---------- acceptance rates ----------
-      
-      # process acceptance rates
-      coupling_accept <- output_raw[[i]]$coupling_accept/samples
-      
+    # ---------- raw mcmc results ----------
+    
+    # get loglikelihood in coda::mcmc format
+    loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
+    loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
+    
+    # alpha
+    alpha <- NULL
+    if (admix_on) {
+      alpha <- mcmc(output_raw[[i]]$alpha_store)
     }
+    
+    # ---------- summary results ----------
+    
+    # get quantiles over sampling loglikelihoods
+    loglike_quantiles <- t(apply(loglike_sampling, 2, quantile_95))
+    rownames(loglike_quantiles) <- rung_names
+    class(loglike_quantiles) <- "maverick_loglike_quantiles"
+    
+    # process qmatrix_ind
+    qmatrix_ind <- rcpp_to_mat(output_raw[[i]]$qmatrix_ind)
+    colnames(qmatrix_ind) <- deme_names
+    rownames(qmatrix_ind) <- ind_names
+    class(qmatrix_ind) <- "maverick_qmatrix_ind"
+    
+    # ---------- ESS ----------
+    
+    # get ESS
+    ESS <- effectiveSize(loglike_sampling)
+    ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
+    ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
+    names(ESS) <- rung_names
+    
+    # ---------- acceptance rates ----------
+    
+    # process acceptance rates
+    coupling_accept <- output_raw[[i]]$coupling_accept/samples
     
     # ---------- save arguments ----------
     
@@ -501,10 +441,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   # ---------- tidy up and end ----------
   
   # reorder qmatrices
-  project <- align_qmatrix(project)
-  
-  # recalculate evidence over K
-  project <- recalculate_evidence(project)
+  #project <- align_qmatrix(project)
   
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
