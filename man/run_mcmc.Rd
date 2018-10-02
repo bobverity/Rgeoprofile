@@ -4,10 +4,11 @@
 \alias{run_mcmc}
 \title{Run main MCMC}
 \usage{
-run_mcmc(project, K = 3, precision_lon = 0.001, precision_lat = 0.001,
+run_mcmc(project, K = 3, precision_lat = 0.001, precision_lon = 0.001,
   burnin = 100, samples = 1000, auto_converge = TRUE,
   converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE,
-  cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster))
+  cluster = NULL, pb_markdown = FALSE, store_raw = TRUE,
+  silent = !is.null(cluster))
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function 
@@ -15,10 +16,10 @@ run_mcmc(project, K = 3, precision_lon = 0.001, precision_lat = 0.001,
 
 \item{K}{the number of sources}
 
-\item{precision_lon}{the level of precision at which longitudes are
+\item{precision_lat}{the level of precision at which latitudes are
 represented}
 
-\item{precision_lat}{the level of precision at which latitudes are
+\item{precision_lon}{the level of precision at which longitudes are
 represented}
 
 \item{burnin}{the number of burn-in iterations}
@@ -35,13 +36,16 @@ iterations if \code{auto_converge} is being used}
 
 \item{solve_label_switching_on}{whether to implement the Stevens' solution to
 the label-switching problem. If turned off then Q-matrix output will no 
-longer be correct, although evidence estimates will be unaffected.}
+longer be correct, although evidence estimates will be unaffected}
 
 \item{cluster}{option to pass in a cluster environment (see package 
 "parallel")}
 
 \item{pb_markdown}{whether to run progress bars in markdown mode, in which 
-case they are updated once at the end to avoid large amounts of output.}
+case they are updated once at the end to avoid large amounts of output}
+
+\item{store_raw}{whether to store raw MCMC output in addition to summary 
+output. Setting to FALSE can considerably reduce output size in memory}
 
 \item{silent}{whether to suppress all console output}
 }

@@ -26,20 +26,23 @@ new_set(project, name = "(no name)", sentinel_radius = 0.2,
 
 \item{source_max_lat}{the minimum possible latitude of source locations}
 
-\item{sigma_model}{set as "single" to assume the same dispersal distance for
-all sources, or "independent" to assume an independently drawn dispersal
-distance for each source}
+\item{sigma_model}{set as \code{"single"} to assume the same dispersal
+distance for all sources, or \code{"independent"} to assume an
+independently drawn dispersal distance for each source}
 
 \item{sigma_prior_mean}{the prior mean of the parameter sigma (km)}
 
 \item{sigma_prior_sd}{the prior standard deviation of the parameter sigma 
-(km). Set to zero to use a fixed value for sigma}
+(km). Set to 0 to use a fixed value for sigma (fixed at
+\code{sigma_prior_mean})}
 
 \item{expected_popsize_prior_mean}{the prior mean of the expected total
 population size}
 
 \item{expected_popsize_prior_sd}{the prior standard deviation of the expected
-total population size}
+total population size. Set to 0 to use a fixed value (fixed at
+\code{expected_popsize_prior_mean}), or set to -1 to use an improper,
+infinitely diffuse prior}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new 

@@ -33,6 +33,18 @@
 NULL
 
 #------------------------------------------------
+#' @title Check that RgeoProfile package has loaded successfully
+#'
+#' @description Simple function to check that RgeoProfile package has loaded 
+#'   successfully. Prints "RgeoProfile loaded successfully!" if so.
+#'
+#' @export
+
+check_rgeoprofile_loaded <- function() {
+  message("RgeoProfile loaded successfully!")
+}
+
+#------------------------------------------------
 #' @title Bind data to project
 #'   
 #' @description Load data into a \code{rgeoprofile_project} prior to analysis.
@@ -96,16 +108,19 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 #' @param source_max_lon the minimum possible longitude of source locations
 #' @param source_min_lat the minimum possible latitude of source locations
 #' @param source_max_lat the minimum possible latitude of source locations
-#' @param sigma_model set as "single" to assume the same dispersal distance for
-#'   all sources, or "independent" to assume an independently drawn dispersal
-#'   distance for each source
+#' @param sigma_model set as \code{"single"} to assume the same dispersal
+#'   distance for all sources, or \code{"independent"} to assume an
+#'   independently drawn dispersal distance for each source
 #' @param sigma_prior_mean the prior mean of the parameter sigma (km)
 #' @param sigma_prior_sd the prior standard deviation of the parameter sigma 
-#'   (km). Set to zero to use a fixed value for sigma
+#'   (km). Set to 0 to use a fixed value for sigma (fixed at
+#'   \code{sigma_prior_mean})
 #' @param expected_popsize_prior_mean the prior mean of the expected total
 #'   population size
 #' @param expected_popsize_prior_sd the prior standard deviation of the expected
-#'   total population size
+#'   total population size. Set to 0 to use a fixed value (fixed at
+#'   \code{expected_popsize_prior_mean}), or set to -1 to use an improper,
+#'   infinitely diffuse prior
 #' 
 #' @export
 
@@ -248,16 +263,18 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #'   iterations if \code{auto_converge} is being used
 #' @param solve_label_switching_on whether to implement the Stevens' solution to
 #'   the label-switching problem. If turned off then Q-matrix output will no 
-#'   longer be correct, although evidence estimates will be unaffected.
+#'   longer be correct, although evidence estimates will be unaffected
 #' @param cluster option to pass in a cluster environment (see package 
 #'   "parallel")
 #' @param pb_markdown whether to run progress bars in markdown mode, in which 
-#'   case they are updated once at the end to avoid large amounts of output.
+#'   case they are updated once at the end to avoid large amounts of output
+#' @param store_raw whether to store raw MCMC output in addition to summary 
+#'   output. Setting to FALSE can considerably reduce output size in memory
 #' @param silent whether to suppress all console output
 #' 
 #' @export
 
-run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3, burnin = 1e2, samples = 1e3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, cluster = NULL, pb_markdown = FALSE, silent = !is.null(cluster)) {
+run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3, burnin = 1e2, samples = 1e3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_raw = TRUE, silent = !is.null(cluster)) {
   
   # start timer
   t0 <- Sys.time()
@@ -343,7 +360,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
   }
   
-  return(output_raw)
+  #return(output_raw)
   
   #------------------------
   
@@ -354,12 +371,13 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   
   # loop through K
   ret <- list()
+  all_converged <- TRUE
   for (i in 1:length(K)) {
     
     # create name lists
     #ind_names <- paste0("ind", 1:n)
     #locus_names <- paste0("locus", 1:L)
-    #deme_names <- paste0("deme", 1:K[i])
+    deme_names <- paste0("deme", 1:K[i])
     #rung_names <- paste0("rung", 1:rungs)
     
     # ---------- raw mcmc results ----------
@@ -368,24 +386,47 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
     loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
     
-    # alpha
-    alpha <- NULL
-    if (admix_on) {
-      alpha <- mcmc(output_raw[[i]]$alpha_store)
+    # get source lat lon in coda::mcmc format
+    full_source_lat <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat))
+    colnames(full_source_lat) <- deme_names
+    full_source_lon <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon))
+    colnames(full_source_lon) <- deme_names
+    
+    # get sigma in coda::mcmc format
+    full_sigma <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma))
+    colnames(full_sigma) <- deme_names
+    
+    # get expected_popsize in coda::mcmc format
+    full_expected_popsize <- mcmc(output_raw[[i]]$expected_popsize)
+    
+    # get whether rungs have converged
+    converged <- output_raw[[i]]$rung_converged
+    if (all_converged && any(!converged)) {
+      all_converged <- FALSE
     }
     
     # ---------- summary results ----------
     
-    # get quantiles over sampling loglikelihoods
-    loglike_quantiles <- t(apply(loglike_sampling, 2, quantile_95))
-    rownames(loglike_quantiles) <- rung_names
-    class(loglike_quantiles) <- "maverick_loglike_quantiles"
+    # get 95% credible intervals over sampling loglikelihoods
+    loglike_intervals <- t(apply(loglike_sampling, 2, quantile_95))
+    #rownames(loglike_intervals) <- rung_names
+    class(loglike_intervals) <- "rgeoprofile_loglike_intervals"
     
-    # process qmatrix_ind
-    qmatrix_ind <- rcpp_to_mat(output_raw[[i]]$qmatrix_ind)
-    colnames(qmatrix_ind) <- deme_names
-    rownames(qmatrix_ind) <- ind_names
-    class(qmatrix_ind) <- "maverick_qmatrix_ind"
+    # get 95% credible intervals over sigma
+    sigma_intervals <- t(apply(full_sigma, 2, quantile_95))
+    #rownames(loglike_intervals) <- rung_names
+    class(sigma_intervals) <- "rgeoprofile_sigma_intervals"
+    
+    # get 95% credible intervals over expected_popsize
+    expected_popsize_intervals <- quantile_95(full_expected_popsize)
+    #rownames(loglike_intervals) <- rung_names
+    class(expected_popsize_intervals) <- "rgeoprofile_expected_popsize_intervals"
+    
+    # process Q-matrix
+    qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)
+    qmatrix[project$data$counts == 0,] <- rep(NA, K)
+    colnames(qmatrix) <- deme_names
+    class(qmatrix) <- "rgeoprofile_qmatrix"
     
     # ---------- ESS ----------
     
@@ -393,23 +434,28 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     ESS <- effectiveSize(loglike_sampling)
     ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
     ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
-    names(ESS) <- rung_names
+    #names(ESS) <- rung_names
     
     # ---------- acceptance rates ----------
     
     # process acceptance rates
-    coupling_accept <- output_raw[[i]]$coupling_accept/samples
+    source_accept <- output_raw[[i]]$source_accept/samples
+    names(source_accept) <- deme_names
+    
+    sigma_accept <- output_raw[[i]]$sigma_accept/samples
+    names(sigma_accept) <- deme_names
+    
+    #coupling_accept <- output_raw[[i]]$coupling_accept/samples
     
     # ---------- save arguments ----------
     
-    output_args <- list(burnin = burnin,
+    output_args <- list(precision_lat = precision_lat,
+                        precision_lon = precision_lon,
+                        burnin = burnin,
                         samples = samples,
-                        rungs = rungs,
-                        GTI_pow = GTI_pow,
                         auto_converge = auto_converge,
                         converge_test = converge_test,
                         solve_label_switching_on = solve_label_switching_on,
-                        coupling_on = coupling_on,
                         pb_markdown = pb_markdown,
                         silent = silent)
     
@@ -418,16 +464,23 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     # add to project
     project$output$single_set[[s]]$single_K[[K[i]]] <- list()
     
-    project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(qmatrix_ind = qmatrix_ind,
-                                                                    loglike_quantiles = loglike_quantiles,
+    project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(loglike_intervals = loglike_intervals,
+                                                                    qmatrix = qmatrix,
+                                                                    sigma_intervals = sigma_intervals,
+                                                                    expected_popsize_intervals = expected_popsize_intervals,
                                                                     ESS = ESS,
-                                                                    GTI_path = GTI_path,
-                                                                    GTI_logevidence = GTI_logevidence)
+                                                                    converged = converged,
+                                                                    source_accept = source_accept,
+                                                                    sigma_accept = sigma_accept)
     
-    project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
-                                                                loglike_sampling = loglike_sampling,
-                                                                alpha = alpha,
-                                                                coupling_accept = coupling_accept)
+    if (store_raw) {
+      project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
+                                                                  loglike_sampling = loglike_sampling,
+                                                                  source_lat = full_source_lat,
+                                                                  source_lon = full_source_lon,
+                                                                  sigma = full_sigma,
+                                                                  expected_popsize = full_expected_popsize)
+    }
     
     project$output$single_set[[s]]$single_K[[K[i]]]$function_call <- list(args = output_args,
                                                                           call = match.call())
@@ -449,6 +502,11 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
   } else {
     message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))
+  }
+  
+  # warning if any rungs in any MCMCs did not converge
+  if (!all_converged && !silent) {
+    message("\n**WARNING** at least one MCMC run did not converge\n")
   }
   
   # return invisibly

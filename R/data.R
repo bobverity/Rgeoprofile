@@ -86,29 +86,43 @@ sim_data <- function(sentinel_lon,
     }
   }
   
-  # assign points as observed or unobserved based on distance to sentinel sites
+  # get distance between all points and sentinel sites
   gc_dist <- mapply(function(x, y) {
                       lonlat_to_bearing(x, y, df_all$longitude, df_all$latitude)$gc_dist
                     }, x = sentinel_lon, y = sentinel_lat)
+  
+  # assign points as observed or unobserved based on distance to sentinel sites
   counts <- colSums(gc_dist < sentinel_radius)
   df_observed <- data.frame(longitude = sentinel_lon,
                             latitude = sentinel_lat,
                             counts = counts)
   
-  # add record of whether data point is observed or unobserved to df_all. Value
-  # gives the number of sentinel sites that observe the data
+  # add record of whether data point is observed or unobserved to df_all
   df_all$observed <- rowSums(gc_dist < sentinel_radius)
+  df_all$observed_by <- as.list(apply(gc_dist, 1, function(x) which(x < sentinel_radius)))
+  
+  # create true q-matrix as proportion of points belonging to each group per sentinel site
+  true_qmatrix <- t(apply(gc_dist, 2, function(x) {
+                      ret <- tabulate(group[x < sentinel_radius], nbins = K)
+                      ret <- ret/sum(ret)
+                      ret[is.na(ret)] <- NA
+                      ret
+                    }))
   
   # return simulated data and true parameter values
-  ret <- list()
-  ret$sentinel_radius <- sentinel_radius
-  ret$source <- data.frame(longitude = source_lon,
-                              latitude = source_lat)
-  ret$source_N <- source_N
-  ret$group <- group
-  ret$sigma <- sigma
-  ret$data_all <- df_all
-  ret$data_observed <- df_observed
+  ret_data <- df_observed
+  ret_record <- list()
+  
+  ret_record$sentinel_radius <- sentinel_radius
+  ret_record$true_source <- data.frame(longitude = source_lon, latitude = source_lat)
+  ret_record$true_source_N <- source_N
+  ret_record$true_group <- group
+  ret_record$true_sigma <- sigma
+  ret_record$true_qmatrix <- true_qmatrix
+  ret_record$data_all <- df_all
+  
+  ret <- list(data = ret_data,
+              record = ret_record)
   
   # make custom class
   class(ret) <- "rgeoprofile_simdata"
@@ -116,198 +130,3 @@ sim_data <- function(sentinel_lon,
   return(ret)
 }
 
-#------------------------------------------------
-# simulate bi-allelic data
-#' @noRd
-sim_data_biallelic <- function(n, L, K, true_group, true_p = true_p, true_m, locus_names, samp_names, e1, e2, prop_missing, pop_col_on) {
-  
-  # simulate raw data
-  dat <- NULL
-  for (k in 1:K) {
-    if (any(true_group == k)) {
-      
-      # draw raw numbers of REF allele for individuals in this deme
-      true_m_k <- true_m[true_group == k]
-      true_p_k <- mapply(function(x) {x[k,1]}, true_p)
-      dat_raw_k <- t(mapply(rbinom, n = L, size = true_m_k, MoreArgs = list(prob = true_p_k)))
-      
-      # convert to matrix of {0.0, 0.5, 1.0}
-      dat_k <- matrix(0.5, length(true_m_k), L)
-      dat_k[dat_raw_k == matrix(true_m_k, length(true_m_k), L)] <- 1
-      dat_k[dat_raw_k == 0] <- 0
-      
-      # append data
-      dat <- rbind(dat, dat_k)
-    }
-  }
-  colnames(dat) <- locus_names
-  
-  # add errors and missing data
-  dat_uncorrupted <- NULL
-  if (e1>0 || e2>0 || prop_missing>0) {
-    dat_uncorrupted <- dat
-    
-    # error1 - homo missclassified as het
-    if (e1 > 0) {
-      homo1 <- dat[dat_uncorrupted == 1]
-      homo1[runif(length(homo1)) < e1] <- 0.5
-      dat[dat_uncorrupted == 1] <- homo1
-      
-      homo2 <- dat[dat_uncorrupted == 0]
-      homo2[runif(length(homo2)) < e1] <- 0.5
-      dat[dat_uncorrupted == 0] <- homo2
-    }
-    
-    # error2 - het missclassified as homo
-    if (e2 > 0) {
-      het <- dat[dat_uncorrupted == 0.5]
-      rand1 <- (runif(length(het)) < e2)
-      if (any(rand1)) {
-        het[rand1] <- sample(c(0,1), sum(rand1), replace = TRUE)
-      }
-      dat[dat_uncorrupted == 0.5] <- het
-    }
-    
-    # missing data
-    if (prop_missing > 0) {
-      prop_missing_round <- round(prop_missing*n*L)
-      dat[sample.int(n*L, prop_missing_round )] <- -9
-    }
-  }
-  
-  # convert dat and dat_uncorrupted to dataframe
-  df <- data.frame(sample_ID = samp_names, stringsAsFactors = FALSE)
-  rownames(df) <- NULL
-  if (pop_col_on) {
-    df$pop <- true_group
-  }
-  df_uncorrupted <- NULL
-  if (!is.null(dat_uncorrupted)) {
-    df_uncorrupted <- cbind(df, dat_uncorrupted)
-  }
-  df <- cbind(df, dat)
-  
-  # return list
-  return(list(df = df, df_uncorrupted = df_uncorrupted))
-}
-
-#------------------------------------------------
-# simulate multi-allelic data
-#' @noRd
-sim_data_multiallelic <- function(n, L, K, true_group, true_p = true_p, true_m, locus_names, samp_names, e1, e2, prop_missing, pop_col_on) {
-  
-  # simulate raw data
-  df <- NULL
-  for (l in 1:L) {
-    true_p_group <- lapply(true_group, function(i) {true_p[[l]][i,]})
-    haplotypes <- mapply(function(x,y) {
-      sort(unique(sample.int(length(x), y, replace = TRUE, prob = x)))
-    }, true_p_group, y = true_m)
-    df_l <- data.frame(sample_ID = rep(samp_names, times = sapply(haplotypes,length)), locus = l, haplotype = unlist(haplotypes), stringsAsFactors = FALSE)
-    df <- rbind(df, df_l)
-  }
-  df <- df[order(df$sample),]
-  row.names(df) <- NULL
-  
-  # add missing data
-  df_uncorrupted <- NULL
-  if (prop_missing > 0) {
-    df_uncorrupted <- df
-    
-    prop_missing_round <- round(prop_missing*n*L)
-    missing_index <- expand.grid(unique(df$sample_ID), 1:L, -9)[sample.int(n*L, prop_missing_round, replace = FALSE),]
-    names(missing_index) <- c("sample_ID", "locus", "haplotype")
-    df <- subset(df, !( paste(df$sample_ID, df$locus, sep=".") %in% paste(missing_index$sample_ID, missing_index$locus, sep=".") ))
-    df <- rbind(df, missing_index)
-    df <- df[order(df$locus),]
-    df <- df[order(df$sample),]
-    row.names(df) <- NULL
-  }
-  
-  # return list
-  return(list(df = df, df_uncorrupted = df_uncorrupted))
-}
-
-#------------------------------------------------
-#' @title Simulate genetic data subject to constraints
-#'
-#' @description TODO - text
-#'
-#' @details TODO
-#'
-#' @param ... TODO
-#' @param data_format TODO
-#' @param no_invariant_loci TODO
-#' @param no_missing_samples TODO
-#' @param no_missing_loci TODO
-#' @param max_attempts TODO
-#'
-#' @export
-#' @examples
-#' # TODO
-
-sim_data_safe <- function(..., data_format = "biallelic", no_invariant_loci = TRUE, no_missing_samples = TRUE, no_missing_loci = TRUE, max_attempts = 1e3) {
-
-  # attempt to simulate satisfactory data a finite number of times
-  for (i in 1:max_attempts) {
-
-    # simulate data
-    sim1 <- sim_data(..., data_format = data_format)
-    data <- sim1$data
-    n <- sim1$n
-    L <- sim1$L
-
-    # bi-allelic data
-    if (data_format=="biallelic") {
-
-      # check no invariant loci
-      if (no_invariant_loci & any(colSums(data==1 | data==0)==nrow(data)) ) {
-        next
-      }
-
-      # check no missing samples
-      if ( no_missing_samples & any(colSums(data==-1)==nrow(data)) ) {
-        next
-      }
-
-      # check no missing loci
-      if ( no_missing_loci & any(rowSums(data==-1)==ncol(data)) ) {
-        next
-      }
-    }
-
-    # multi-allelic data
-    if (data_format=="multiallelic") {
-
-      # check no invariant loci
-      n_haplotypes <- mapply(function(i) {
-        s <- data$haplotype[data$locus==i]
-        length(unique(s[s>0]))
-        }, 1:L)
-      if (no_invariant_loci & any(n_haplotypes==1)) {
-        next
-      }
-
-      # check no missing samples
-      n_nonmissing_samples <- mapply(function(i){
-        sum(data$sample==i & data$haplotype>0)
-        }, 1:n)
-      if (no_missing_samples & any(n_nonmissing_samples==0)) {
-        next
-      }
-
-      # check no missing loci
-      n_nonmissing_loci <- mapply(function(i){
-        sum(data$locus==i & data$haplotype>0)
-        }, 1:L)
-      if ( no_missing_loci & any(n_nonmissing_loci==0) ) {
-        next
-      }
-    }
-
-    # if made it to here then data passed all checks
-    return(sim1)
-  }
-
-  stop(paste("Unable to produce data set satisfying constraints within", max_attempts, "random draws"))
-}

@@ -29,6 +29,10 @@ public:
   double expected_popsize;
   double log_expected_popsize;
   
+  // qmatrices
+  std::vector<std::vector<double>> log_qmatrix;
+  std::vector<std::vector<double>> qmatrix;
+  
   // proposal standard deviations
   std::vector<double> source_propSD;
   std::vector<double> sigma_propSD;
@@ -51,6 +55,19 @@ public:
   std::vector<std::vector<double>> log_hazard_height_prop2;
   double loglike;
   
+  // initialise ordering of labels
+  std::vector<int> label_order;
+  std::vector<int> label_order_new;
+  
+  // objects for solving label switching problem
+  std::vector<std::vector<double>> cost_mat;
+  std::vector<int> best_perm;
+  std::vector<int> best_perm_order;
+  std::vector<int> edges_left;
+  std::vector<int> edges_right;
+  std::vector<int> blocked_left;
+  std::vector<int> blocked_right;
+  
   // store acceptance rates
   std::vector<int> source_accept;
   std::vector<int> sigma_accept;
@@ -62,25 +79,15 @@ public:
   Particle() {};
   Particle(double beta_raised);
   
-  // update functions
+  // other functions
+  void reset();
+  double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
   void update_sources(bool robbins_monro_on, int iteration);
   void update_sigma(bool robbins_monro_on, int iteration);
   void update_sigma_single(bool robbins_monro_on, int iteration);
-  void update_sigma_separate(bool robbins_monro_on, int iteration);
+  void update_sigma_independent(bool robbins_monro_on, int iteration);
   void update_expected_popsize();
-  
-  // likelihoods
-  double calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k);
-  
-  // priors
-  double logprior_sigma();
-  double logprior_sigma_single();
-  double logprior_sigma_separate();
-  double logprior_sigma_prop_single(double sigma_prop);
-  double logprior_sigma_prop_separate(double sigma_prop, int k);
-  
-  // misc
-  void reset();
-  //void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
+  void update_qmatrix();
+  void solve_label_switching(const std::vector<std::vector<double>> &log_qmatrix_running);
   
 };

@@ -20,6 +20,13 @@ public:
   // vector of particles
   std::vector<Particle> particle_vec;
   
+  // ordering of labels
+  std::vector<int> label_order;
+  
+  // qmatrices
+  std::vector<std::vector<double>> log_qmatrix_running;
+  std::vector<std::vector<double>> qmatrix_final;
+  
   // objects for storing results
   std::vector<std::vector<double>> loglike_burnin;
   std::vector<std::vector<double>> loglike_sampling;
@@ -32,6 +39,9 @@ public:
   std::vector<int> source_accept;
   std::vector<int> sigma_accept;
   std::vector<int> coupling_accept;
+  
+  // store convergence
+  std::vector<bool> rung_converged;
   
   
   // PUBLIC FUNCTIONS

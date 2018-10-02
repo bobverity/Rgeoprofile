@@ -284,3 +284,15 @@ print.rgeoprofile_simdata <- function(x, ...) {
   # return invisibly
   invisible(x)
 }
+
+#------------------------------------------------
+# Overload print function for malecot_qmatrix
+#' @noRd
+print.rgeoprofile_qmatrix <- function(x, ...) {
+  
+  # print raw list
+  print(unclass(x))
+  
+  # return invisibly
+  invisible(x)
+}

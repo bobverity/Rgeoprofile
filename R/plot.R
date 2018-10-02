@@ -13,8 +13,8 @@
 plot.rgeoprofile_simdata <- function(x, y, ...) {
   
   # subset observed vs. unobserved data
-  data_all_observed <- subset(x$data_all, observed > 0)
-  data_all_unobserved <- subset(x$data_all, observed == 0)
+  data_all_observed <- subset(x$record$data_all, observed > 0)
+  data_all_unobserved <- subset(x$record$data_all, observed == 0)
   
   # plot raw unobserved points
   plot1 <- ggplot() + theme_bw()
@@ -23,15 +23,15 @@ plot.rgeoprofile_simdata <- function(x, y, ...) {
   
   # overlay true source locations
   plot1 <- plot1 + geom_point(aes_(x = ~longitude, y = ~latitude),
-                              shape = 8, size = 2, col = "blue", data = x$source)
+                              shape = 8, size = 2, col = "blue", data = x$record$true_source)
   
   # overlay circles around sentinel sites
   n_nodes <- 20
-  for (i in 1:nrow(x$data_observed)) {
-    sentinel_lon <- x$data_observed$longitude
-    sentinel_lat <- x$data_observed$latitude
+  for (i in 1:nrow(x$data)) {
+    sentinel_lon <- x$data$longitude
+    sentinel_lat <- x$data$latitude
     circle_lonlat <- as.data.frame(bearing_to_lonlat(sentinel_lon[i], sentinel_lat[i],
-                                                     seq(0, 360, l=n_nodes), x$sentinel_radius))
+                                                     seq(0, 360, l=n_nodes), x$record$sentinel_radius))
     plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude),
                                   col = "#FF000099", fill = NA, data = circle_lonlat)
   }
@@ -41,9 +41,9 @@ plot.rgeoprofile_simdata <- function(x, y, ...) {
                               size = 0.5, data = data_all_observed)
   
   # overlay count numbers around sentinel sites
-  x$data_observed$count_text <- mapply(function(x) {ifelse(x == 0, "", x)}, x$data_observed$counts)
+  x$data$count_text <- mapply(function(x) {ifelse(x == 0, "", x)}, x$data$counts)
   plot1 <- plot1 + geom_text(aes_(x = ~longitude, y = ~latitude, label = ~count_text),
-                             col = "red", data = x$data_observed)
+                             col = "red", data = x$data)
   
   # titles, legends, scales etc.
   plot1 <- plot1 + scale_color_manual(values = c("data_unobserved" = grey(0.7), "data_observed" = grey(0)))
