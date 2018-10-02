@@ -509,8 +509,16 @@ plot_geoprofile <- function(project, K = NULL, source = NULL) {
 }
 
 #------------------------------------------------
-# Default plot for class rgeoprofile_qmatrix
-#' @noRd
+#' @title TODO
+#'
+#' @description default plot for class rgeoprofile_qmatrix.
+#'
+#' @param x TODO
+#' @param y TODO
+#' @param ... TODO
+#'
+#' @export
+
 plot.rgeoprofile_qmatrix <- function(x, y, ...) {
   
   # get data into ggplot format
