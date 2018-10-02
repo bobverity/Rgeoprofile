@@ -1,4 +1,4 @@
-context("assertions_v1")
+context("assertions_v3")
 
 #------------------------------------------------
 test_that("nice_format working correctly", {
@@ -116,6 +116,7 @@ test_that("assert_int working correctly", {
   expect_true(assert_int(5))
   expect_true(assert_int(-5))
   expect_true(assert_int(-5:5))
+  expect_true(assert_int(c(a = 5)))
   
   expect_error(assert_int(NULL))
   expect_error(assert_int(0.5))
@@ -252,6 +253,7 @@ test_that("assert_eq working correctly", {
   expect_true(assert_eq(5,5))
   expect_true(assert_eq(1:5,1:5))
   expect_true(assert_eq("foo","foo"))
+  expect_true(assert_eq(c(a = 5), c(b = 5)))
   
   expect_error(assert_eq(NULL,5))
   expect_error(assert_eq(5,NULL))

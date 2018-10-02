@@ -21,6 +21,7 @@
 #' @import coda
 #' @import fftwtools
 #' @import ggplot2
+#' @import gridExtra
 #' @import ggmap
 #' @import RColorBrewer
 #' @import rgdal
@@ -281,7 +282,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-  assert_single_pos_int(K, zero_allowed = FALSE)
+  assert_pos_int(K, zero_allowed = FALSE)
   assert_single_pos(precision_lon, zero_allowed = TRUE)
   assert_single_pos(precision_lat, zero_allowed = TRUE)
   assert_single_pos_int(burnin, zero_allowed = FALSE)
@@ -423,8 +424,8 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     class(expected_popsize_intervals) <- "rgeoprofile_expected_popsize_intervals"
     
     # process Q-matrix
-    qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)
-    qmatrix[project$data$counts == 0,] <- rep(NA, K)
+    qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
+    qmatrix[project$data$counts == 0,] <- rep(NA, K[i])
     colnames(qmatrix) <- deme_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
@@ -476,8 +477,8 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     if (store_raw) {
       project$output$single_set[[s]]$single_K[[K[i]]]$raw <- list(loglike_burnin = loglike_burnin,
                                                                   loglike_sampling = loglike_sampling,
-                                                                  source_lat = full_source_lat,
                                                                   source_lon = full_source_lon,
+                                                                  source_lat = full_source_lat,
                                                                   sigma = full_sigma,
                                                                   expected_popsize = full_expected_popsize)
     }

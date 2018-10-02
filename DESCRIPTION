@@ -17,6 +17,7 @@ Imports:
     coda,
     fftwtools,
     ggplot2,
+    gridExtra,
     ggmap,
     RColorBrewer,
     rgdal,

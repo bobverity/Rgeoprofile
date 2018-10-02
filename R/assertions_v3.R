@@ -124,7 +124,7 @@ assert_single_numeric <- function(x, name = deparse(substitute(x))) {
 #' @noRd
 assert_int <- function(x, message = "%s must be integer valued", name = deparse(substitute(x))) {
   assert_numeric(x, name = name)
-  if (!isTRUE(all.equal(x, as.integer(x)))) {
+  if (!isTRUE(all.equal(x, as.integer(x), check.attributes = FALSE))) {
     stop(sprintf(message, name), call. = FALSE)
   }
   return(TRUE)
@@ -241,7 +241,7 @@ assert_eq <- function(x, y, message = "%s must equal %s",
   assert_non_null(x, name = name_x)
   assert_non_null(y, name = name_y)
   assert_same_length(x, y, name_x = name_x, name_y = name_y)
-  if (!isTRUE(all.equal(x,y))) {
+  if (!isTRUE(all.equal(x, y, check.attributes = FALSE))) {
     stop(sprintf(message, name_x, name_y), call. = FALSE)
   }
   return(TRUE)

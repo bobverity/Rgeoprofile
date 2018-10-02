@@ -277,22 +277,66 @@ lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
 #' @export
 
 print.rgeoprofile_simdata <- function(x, ...) {
-  
-  # print raw list
   print(unclass(x))
-  
-  # return invisibly
   invisible(x)
 }
 
 #------------------------------------------------
-# Overload print function for malecot_qmatrix
-#' @noRd
-print.rgeoprofile_qmatrix <- function(x, ...) {
-  
-  # print raw list
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_loglike_intervals.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
+print.rgeoprofile_loglike_intervals <- function(x, ...) {
   print(unclass(x))
-  
-  # return invisibly
+  invisible(x)
+}
+
+#------------------------------------------------
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_qmatrix.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
+print.rgeoprofile_qmatrix <- function(x, ...) {
+  print(unclass(x))
+  invisible(x)
+}
+
+#------------------------------------------------
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_sigma_intervals.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
+print.rgeoprofile_sigma_intervals <- function(x, ...) {
+  print(unclass(x))
+  invisible(x)
+}
+
+#------------------------------------------------
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_expected_popsize_intervals.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
+print.rgeoprofile_expected_popsize_intervals <- function(x, ...) {
+  print(unclass(x))
   invisible(x)
 }
