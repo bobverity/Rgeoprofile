@@ -105,10 +105,10 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 #'   \code{rgeoprofile_project()}
 #' @param name an optional name for the parameter set
 #' @param sentinel_radius the observation radius of sentinel sites
-#' @param source_min_lon the minimum possible longitude of source locations
-#' @param source_max_lon the minimum possible longitude of source locations
-#' @param source_min_lat the minimum possible latitude of source locations
-#' @param source_max_lat the minimum possible latitude of source locations
+#' @param min_lon the minimum possible longitude of source locations
+#' @param max_lon the maximum possible longitude of source locations
+#' @param min_lat the minimum possible latitude of source locations
+#' @param max_lat the maximum possible latitude of source locations
 #' @param sigma_model set as \code{"single"} to assume the same dispersal
 #'   distance for all sources, or \code{"independent"} to assume an
 #'   independently drawn dispersal distance for each source
@@ -128,10 +128,10 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 new_set <- function(project,
                     name = "(no name)",
                     sentinel_radius = 0.2,
-                    source_min_lon = -10,
-                    source_max_lon = 10,
-                    source_min_lat = -10,
-                    source_max_lat = 10,
+                    min_lon = -10,
+                    max_lon = 10,
+                    min_lat = -10,
+                    max_lat = 10,
                     sigma_model = "single",
                     sigma_prior_mean = 1,
                     sigma_prior_sd = 1,
@@ -141,12 +141,12 @@ new_set <- function(project,
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
-  assert_single_numeric(source_min_lon)
-  assert_single_numeric(source_max_lon)
-  assert_gr(source_max_lon, source_min_lon)
-  assert_single_numeric(source_min_lat)
-  assert_single_numeric(source_max_lat)
-  assert_gr(source_max_lat, source_min_lat)
+  assert_single_numeric(min_lon)
+  assert_single_numeric(max_lon)
+  assert_gr(max_lon, min_lon)
+  assert_single_numeric(min_lat)
+  assert_single_numeric(max_lat)
+  assert_gr(max_lat, min_lat)
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
@@ -164,10 +164,10 @@ new_set <- function(project,
   # create new parameter set
   project$parameter_sets[[s]] <- list(name = name,
                                       sentinel_radius = sentinel_radius,
-                                      source_min_lon = source_min_lon,
-                                      source_max_lon = source_max_lon,
-                                      source_min_lat = source_min_lat,
-                                      source_max_lat = source_max_lat,
+                                      min_lon = min_lon,
+                                      max_lon = max_lon,
+                                      min_lat = min_lat,
+                                      max_lat = max_lat,
                                       sigma_model = sigma_model,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
@@ -298,7 +298,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   
   # get active set
   s <- project$active_set
-  if (s==0) {
+  if (s == 0) {
     stop("no active parameter set")
   }
   
@@ -361,8 +361,6 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
   }
   
-  #return(output_raw)
-  
   #------------------------
   
   # begin processing results
@@ -387,11 +385,11 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
     loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
     
-    # get source lat lon in coda::mcmc format
-    full_source_lat <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat))
-    colnames(full_source_lat) <- deme_names
+    # get source lon lat in coda::mcmc format
     full_source_lon <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon))
     colnames(full_source_lon) <- deme_names
+    full_source_lat <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat))
+    colnames(full_source_lat) <- deme_names
     
     # get sigma in coda::mcmc format
     full_sigma <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma))
@@ -429,6 +427,46 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     colnames(qmatrix) <- deme_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
+    # get lon/lat midpoins of domain
+    min_lon <- project$parameter_sets[[s]]$min_lon
+    max_lon <- project$parameter_sets[[s]]$max_lon
+    breaks_lon <- seq(min_lon, max_lon, precision_lon)
+    midpoints_lon <- breaks_lon[-1] - precision_lon/2
+    min_lat <- project$parameter_sets[[s]]$min_lat
+    max_lat <- project$parameter_sets[[s]]$max_lat
+    breaks_lat <- seq(min_lat, max_lat, precision_lat)
+    midpoints_lat <- breaks_lat[-1] - precision_lat/2
+    
+    # produce prob_surface dataframe
+    prob_surface <- expand.grid(midpoints_lon, midpoints_lat)
+    names(prob_surface) <- c("lon", "lat")
+    prob_surface_combined <- 0
+    for (k in 1:K[i]) {
+      smooth_source_k <- kernel_smooth(full_source_lon[,k],
+                                       full_source_lat[,k],
+                                       breaks_lon,
+                                       breaks_lat)
+      smooth_source_k <- smooth_source_k/sum(smooth_source_k)
+      
+      prob_surface <- cbind(prob_surface, as.vector(t(smooth_source_k)))
+      names(prob_surface)[ncol(prob_surface)] <- paste0("source", k)
+      prob_surface_combined <- prob_surface_combined + smooth_source_k/K[i]
+    }
+    prob_surface$combined <- as.vector(t(prob_surface_combined))
+    
+    # produce geoprofile from prob_surface
+    geoprofile <- prob_surface
+    for (k in 3:ncol(prob_surface)) {
+      geoprofile[,k] <- rank(prob_surface[,k], ties.method = "first")
+      geoprofile[,k][is.na(prob_surface[,k])] <- NA
+      geoprofile[,k] <- 100 * (1 - (geoprofile[,k]-1)/max(geoprofile[,k], na.rm = TRUE))
+    }
+    
+    # set class of prob_surface and geoprofile
+    class(prob_surface) <- "rgeoprofile_prob_surface"
+    class(geoprofile) <- "rgeoprofile_geoprofile"
+    
+    
     # ---------- ESS ----------
     
     # get ESS
@@ -436,6 +474,11 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
     ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
     #names(ESS) <- rung_names
+    
+    # ---------- model comparison statistics ----------
+    mu <- mean(loglike_sampling[,ncol(loglike_sampling)])
+    sigma_sq <- var(loglike_sampling[,ncol(loglike_sampling)])
+    DIC_gelman <- mu + sigma_sq/2
     
     # ---------- acceptance rates ----------
     
@@ -466,10 +509,13 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     project$output$single_set[[s]]$single_K[[K[i]]] <- list()
     
     project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(loglike_intervals = loglike_intervals,
+                                                                    prob_surface = prob_surface,
+                                                                    geoprofile = geoprofile,
                                                                     qmatrix = qmatrix,
                                                                     sigma_intervals = sigma_intervals,
                                                                     expected_popsize_intervals = expected_popsize_intervals,
                                                                     ESS = ESS,
+                                                                    DIC_gelman = DIC_gelman,
                                                                     converged = converged,
                                                                     source_accept = source_accept,
                                                                     sigma_accept = sigma_accept)
@@ -513,3 +559,4 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   # return invisibly
   invisible(project)
 }
+

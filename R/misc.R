@@ -259,7 +259,274 @@ lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
   earth_rad <- 6371
   gc_dist <- earth_rad*gc_angle
   
-  return(list(bearing = bearing, gc_dist = gc_dist))
+  # return list
+  ret <-list(bearing = bearing,
+             gc_dist = gc_dist)
+  return(ret)
+}
+
+#------------------------------------------------
+#' @title Convert lat/lon to cartesian coordinates
+#'
+#' @description Convert lat/lon coordinates to cartesian coordinates by first
+#'   calculating great circle distance and bearing and then mapping these
+#'   coordinates into cartesian space. This mapping is relative to the point
+#'   {centre_lat, centre_lon}, which should be roughly at the midpoint of the
+#'   observed data.
+#'
+#' @param centre_lon The centre longitude
+#' @param centre_lat The centre latitude
+#' @param data_lon The data longitude
+#' @param data_lat The data latitude
+#'
+#' @export
+#' @examples
+#' # TODO
+
+lonlat_to_cartesian <- function(centre_lon, centre_lat, data_lon, data_lat) {
+  
+  # calculate bearing and great circle distance of data relative to centre
+  data_trans <- lonlat_to_bearing(centre_lon, centre_lat, data_lon, data_lat)
+  
+  # use bearing and distance to calculate cartesian coordinates
+  theta <- data_trans$bearing*2*pi/360
+  d <- data_trans$gc_dist
+  data_x <- d*sin(theta)
+  data_y <- d*cos(theta)
+  
+  # return list
+  ret <- list(x = data_x,
+              y = data_y)
+  return(ret)
+}
+
+#------------------------------------------------
+# Scaled Student's t distribution. Used in kernel density smoothing.
+#' @noRd
+dts <- function(x, df = 3, scale = 1, log = FALSE) {
+  ret <- lgamma((df+1)/2) - lgamma(df/2) - 0.5*log(pi*df*scale^2) - ((df+1)/2)*log(1 + x^2/(df*scale^2))
+  if (!log) {
+    ret <- exp(ret)
+  }
+  return(ret)
+}
+
+#------------------------------------------------
+# Bin values in two dimensions
+#' @noRd
+bin2D <- function(x, y, x_breaks, y_breaks) {
+  
+  # get number of breaks in each dimension
+  nx <- length(x_breaks)
+  ny <- length(y_breaks)
+  
+  # create table of binned values
+  tab1 <- table(findInterval(x, x_breaks), findInterval(y, y_breaks))
+  
+  # convert to dataframe and force numeric
+  df1 <- as.data.frame(tab1, stringsAsFactors = FALSE)
+  names(df1) <- c("x", "y", "count")
+  df1$x <- as.numeric(df1$x)
+  df1$y <- as.numeric(df1$y)
+  
+  # subset to within breaks range
+  df2 <- subset(df1, x > 0 & x < nx & y > 0 & y < ny)
+  
+  # fill in matrix
+  mat1 <- matrix(0, ny-1, nx-1)
+  mat1[cbind(df2$y, df2$x)] <- df2$count
+  
+  # calculate cell midpoints
+  x_mids <- (x_breaks[-1] + x_breaks[-nx])/2
+  y_mids <- (y_breaks[-1] + y_breaks[-ny])/2
+  
+  # return output as list
+  ret <- list(x_mids = x_mids,
+              y_mids = y_mids,
+              z = mat1)
+  return(ret)
+}
+
+#------------------------------------------------
+#' Produce a smooth surface using 2D kernel density smoothing
+#'
+#' Takes lon/lat coordinates, bins in two dimensions and smooths using kernel 
+#' density smoothing. Kernel densities are computed using the fast Fourier 
+#' transform method, which is many times faster than simple summation when using
+#' a large number of points. Each Kernel is student's-t distributed and scaled
+#' by the bandwidth lambda. If lambda is set to \code{NULL} then the optimal
+#' value of lambda is chosen automatically using the leave-one-out maximum
+#' likelihood method.
+#'
+#' @param longitude longitude of input points
+#' @param latitude latitude of input points
+#' @param breaks_lon positions of longitude breaks
+#' @param breaks_lat positions of latitude breaks
+#' @param lambda bandwidth to use in posterior smoothing. If NULL then optimal 
+#'   bandwidth is chosen automatically by maximum-likelihood
+#' @param nu degrees of freedom of student's-t kernel
+#'
+#' @references Barnard, Etienne. "Maximum leave-one-out likelihood for kernel
+#'   density estimation." Proceedings of the Twenty-First Annual Symposium of
+#'   the Pattern Recognition Association of South Africa. 2010
+#' @export
+#' @examples
+#' # TODO
+
+kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = NULL, nu = 3) {
+  
+  # check inputs
+  assert_numeric(longitude)
+  assert_numeric(latitude)
+  assert_same_length(longitude, latitude)
+  assert_numeric(breaks_lon)
+  assert_numeric(breaks_lat)
+  if (!is.null(lambda)) {
+    assert_single_pos(lambda, zero_allowed = FALSE)
+  }
+  assert_single_pos(nu, zero_allowed = FALSE)
+  
+  # get properties of cells in each dimension
+  cells_lon <- length(breaks_lon) - 1
+  cells_lat <- length(breaks_lat) - 1
+  centre_lon <- mean(breaks_lon)
+  centre_lat <- mean(breaks_lat)
+  cellSize_lon <- diff(breaks_lon[1:2])
+  cellSize_lat <- diff(breaks_lat[1:2])
+  
+  # bin lon/lat values in two dimensions and check that at least one value in
+  # chosen region
+  surface_raw <- bin2D(longitude, latitude, breaks_lon, breaks_lat)$z
+  if (all(surface_raw == 0)) {
+    stop('chosen lat/long window contains no posterior draws')
+  }
+  
+  # temporarily add guard rail to surface to avoid Fourier series bleeding round
+  # edges
+  rail_size_lon <- cells_lon
+  rail_size_lat <- cells_lat
+  rail_mat_lon <- matrix(0, cells_lat, rail_size_lon)
+  rail_mat_lat <- matrix(0, rail_size_lat, cells_lon + 2*rail_size_lon)
+  
+  surface_normalised <- surface_raw/sum(surface_raw)
+  surface_normalised <- cbind(rail_mat_lon, surface_normalised, rail_mat_lon)
+  surface_normalised <- rbind(rail_mat_lat, surface_normalised, rail_mat_lat)
+  
+  # calculate Fourier transform of posterior surface
+  f1 = fftw2d(surface_normalised)
+  
+  # calculate x and y size of one cell in cartesian space. Because of
+  # transformation, this size will technically be different for each cell, but
+  # use centre of space to get a middling value
+  cellSize_trans <- lonlat_to_cartesian(centre_lon, centre_lat, centre_lon + cellSize_lon, centre_lat + cellSize_lat)
+  cellSize_trans_lon <- cellSize_trans$x
+  cellSize_trans_lat <- cellSize_trans$y
+  
+  # produce surface over which kernel will be calculated. This surface wraps
+  # around in both x and y (i.e. the kernel is actually defined over a torus)
+  kernel_lon <- cellSize_trans_lon * c(0:floor(ncol(surface_normalised)/2), floor((ncol(surface_normalised) - 1)/2):1)
+  kernel_lat <- cellSize_trans_lat * c(0:floor(nrow(surface_normalised)/2), floor((nrow(surface_normalised) - 1)/2):1)
+  kernel_lon_mat <- outer(rep(1,length(kernel_lat)), kernel_lon)
+  kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
+  kernel_s_mat <- sqrt(kernel_lon_mat^2 + kernel_lat_mat^2)
+  
+  # set lambda (bandwidth) range to be explored
+  if (is.null(lambda)) {
+    lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
+    lambda_vec <- lambda_step*(1:100)
+  } else {
+    lambda_vec <- lambda
+  }
+  
+  # loop through range of values of lambda
+  logLike <- -Inf
+  for (i in 1:length(lambda_vec)) {
+    
+    # calculate Fourier transform of kernel
+    lambda_this <- lambda_vec[i]
+    kernel <- dts(kernel_s_mat, df=3, scale=lambda_this)
+    f2 = fftw2d(kernel)
+    
+    # combine Fourier transformed surfaces and take inverse. f4 will ultimately
+    # become the main surface of interest.
+    f3 = f1*f2
+    f4 = Re(fftw2d(f3, inverse = T))/length(surface_normalised)
+    
+    # subtract from f4 the probability density of each point measured from
+    # itself. In other words, move towards a leave-one-out kernel density method
+    f5 <- f4 - surface_normalised*dts(0, df = nu, scale = lambda_this)
+    f5[f5<0] <- 0
+    f5 <- f5/sum(f4)
+    
+    # calculate leave-one-out log-likelihood at each point on surface
+    f6 <- surface_normalised*log(f5)
+    
+    # break if total log-likelihood is at a local maximum
+    if (sum(f6, na.rm = T) < logLike) {
+      break()
+    }
+    
+    # otherwise update logLike
+    logLike <- sum(f6,na.rm=T)
+  }
+  
+  # report chosen value of lambda
+  #if (is.null(lambda)) {
+  #  message(sprintf("maximum likelihood lambda = %s", round(lambda_this,3)))
+  #}
+  
+  # remove guard rail
+  f4 <- f4[,(rail_size_lon+1):(ncol(f4)-rail_size_lon)]
+  f4 <- f4[(rail_size_lat+1):(nrow(f4)-rail_size_lat),]
+  
+  # return surface
+  return(f4)
+}
+
+#------------------------------------------------
+#' @title Get ESS
+#'
+#' @description Returns effective sample size (ESS) of chosen model run.
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K get ESS for this value of K
+#'
+#' @export
+#' @examples
+#' # TODO
+
+get_ESS <- function(project, K = NULL) {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K, zero_allowed = FALSE)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$ESS)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no ESS output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  ESS <- project$output$single_set[[s]]$single_K[[K]]$summary$ESS
+  if (is.null(ESS)) {
+    stop(sprintf("no ESS output for K = %s of active set", K))
+  }
+  
+  return(ESS)
 }
 
 
@@ -293,6 +560,38 @@ print.rgeoprofile_simdata <- function(x, ...) {
 
 print.rgeoprofile_loglike_intervals <- function(x, ...) {
   print(unclass(x))
+  invisible(x)
+}
+
+#------------------------------------------------
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_prob_surface.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
+print.rgeoprofile_prob_surface <- function(x, ...) {
+  class(x) <- "data.frame"
+  print(x)
+  invisible(x)
+}
+
+#------------------------------------------------
+#' @title TODO
+#'
+#' @description custom print function for rgeoprofile_geoprofile.
+#'
+#' @param x TODO
+#' @param ... TODO
+#'
+#' @export
+
+print.rgeoprofile_geoprofile <- function(x, ...) {
+  class(x) <- "data.frame"
+  print(x)
   invisible(x)
 }
 

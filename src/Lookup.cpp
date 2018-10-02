@@ -30,10 +30,10 @@ Lookup::Lookup(const Data &data, const Parameters &parameters) {
   
   // get index limits. These are used in converting continuous lon/lat values to
   // an integer index starting at zero
-  index_limit_lon_min = ceil(parameters.source_min_lon / precision_lon);
-  index_limit_lon_max = floor(parameters.source_max_lon / precision_lon);
-  index_limit_lat_min = ceil(parameters.source_min_lat / precision_lat);
-  index_limit_lat_max = floor(parameters.source_max_lat / precision_lat);
+  index_limit_lon_min = ceil(parameters.min_lon / precision_lon);
+  index_limit_lon_max = floor(parameters.max_lon / precision_lon);
+  index_limit_lat_min = ceil(parameters.min_lat / precision_lat);
+  index_limit_lat_max = floor(parameters.max_lat / precision_lat);
   
   // populate lookup table
   n_lon = index_limit_lon_max - index_limit_lon_min + 1;

@@ -37,6 +37,30 @@ default_colours <- function(K) {
 }
 
 #------------------------------------------------
+# blue-to-red colour palette. Full credit to tim.colors from the fields package,
+# from which these colours derive. Copied rather than including the fields
+# package to avoid dependence on another package for the sake of a single colour
+# scheme.
+#' @noRd
+tim_colours <- function(n = 10) {
+  raw_cols <- c("#00008F", "#00009F", "#0000AF", "#0000BF", 
+                "#0000CF", "#0000DF", "#0000EF", "#0000FF", "#0010FF", 
+                "#0020FF", "#0030FF", "#0040FF", "#0050FF", "#0060FF", 
+                "#0070FF", "#0080FF", "#008FFF", "#009FFF", "#00AFFF", 
+                "#00BFFF", "#00CFFF", "#00DFFF", "#00EFFF", "#00FFFF", 
+                "#10FFEF", "#20FFDF", "#30FFCF", "#40FFBF", "#50FFAF", 
+                "#60FF9F", "#70FF8F", "#80FF80", "#8FFF70", "#9FFF60", 
+                "#AFFF50", "#BFFF40", "#CFFF30", "#DFFF20", "#EFFF10", 
+                "#FFFF00", "#FFEF00", "#FFDF00", "#FFCF00", "#FFBF00", 
+                "#FFAF00", "#FF9F00", "#FF8F00", "#FF8000", "#FF7000", 
+                "#FF6000", "#FF5000", "#FF4000", "#FF3000", "#FF2000", 
+                "#FF1000", "#FF0000", "#EF0000", "#DF0000", "#CF0000", 
+                "#BF0000", "#AF0000", "#9F0000", "#8F0000", "#800000")
+  my_pal <- colorRampPalette(raw_cols)
+  return(my_pal(n))
+}
+
+#------------------------------------------------
 #' @title TODO
 #'
 #' @description default plot for class rgeoprofile_simdata.
@@ -288,6 +312,197 @@ plot_source_raw <- function(project, K = NULL) {
   # titles, legends, scales etc.
   plot1 <- plot1 + scale_color_manual(values = default_colours(K), name = "source")
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+# Default plot for class rgeoprofile_prob_surface. Plot combined surface by
+# default
+#' @noRd
+plot.rgeoprofile_prob_surface <- function(x, y, ...) {
+  
+  # get into ggplot format
+  class(x) <- "data.frame"
+  
+  # produce basic plot
+  plot1 <- ggplot() + theme_bw()
+  plot1 <- plot1 + geom_raster(aes(x = lon, y = lat, fill = combined), interpolate = TRUE, data = x)
+  plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability")
+  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot surface of source locations
+#'
+#' @description Plot surface of source locations
+#'
+#' @details TODO
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K which value of K to plot
+#' @param source which source to plot. If NULL then plot combined surface
+#' @param zlim z limits. If NULL then chosen automatically
+#'
+#' @export
+#' @examples
+#' # TODO
+
+plot_surface <- function(project, K = NULL, source = NULL, zlim = NULL) {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K, zero_allowed = FALSE)
+  }
+  if (!is.null(source)) {
+    assert_single_pos_int(source, zero_allowed = FALSE)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$prob_surface)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no prob_surface output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  prob_surface <- project$output$single_set[[s]]$single_K[[K]]$summary$prob_surface
+  if (is.null(prob_surface)) {
+    stop(sprintf("no prob_surface output for K = %s of active set", K))
+  }
+  
+  # choose which surface to plot
+  if (is.null(source)) {
+    source_plot <- "combined"
+  } else {
+    source_plot <- paste0("source", source)
+  }
+  
+  # get into ggplot format
+  df <- data.frame(x = prob_surface$lon,
+                   y = prob_surface$lat,
+                   z = prob_surface[[source_plot]])
+  
+  # produce basic plot
+  plot1 <- ggplot() + theme_bw()
+  plot1 <- plot1 + geom_raster(aes(x = x, y = y, fill = z), interpolate = TRUE, data = df)
+  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+  
+  # add zlim if defined
+  if (is.null(zlim)) {
+    plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability")
+  } else {
+    plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability", limits = zlim)
+  }
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+# Default plot for class rgeoprofile_rgeoprofile. Plot combined surface by 
+# default
+#' @noRd
+plot.rgeoprofile_geoprofile <- function(x, y, ...) {
+  
+  # get into ggplot format
+  class(x) <- "data.frame"
+  
+  # produce basic plot
+  plot1 <- ggplot() + theme_bw()
+  plot1 <- plot1 + geom_raster(aes(x = lon, y = lat, fill = combined), interpolate = TRUE, data = x)
+  plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "hiscore percentage", limits = c(0,100))
+  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+  
+  # return plot object
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Plot geoprofile
+#'
+#' @description Plot geoprofile of selected sources.
+#'
+#' @details TODO
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K which value of K to plot
+#' @param source which source to plot. If NULL then plot combined surface
+#'
+#' @export
+#' @examples
+#' # TODO
+
+plot_geoprofile <- function(project, K = NULL, source = NULL) {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(K)) {
+    assert_single_pos_int(K, zero_allowed = FALSE)
+  }
+  if (!is.null(source)) {
+    assert_single_pos_int(source, zero_allowed = FALSE)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$geoprofile)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no geoprofile output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  geoprofile <- project$output$single_set[[s]]$single_K[[K]]$summary$geoprofile
+  if (is.null(geoprofile)) {
+    stop(sprintf("no geoprofile output for K = %s of active set", K))
+  }
+  
+  # choose which surface to plot
+  if (is.null(source)) {
+    source_plot <- "combined"
+  } else {
+    source_plot <- paste0("source", source)
+  }
+  
+  # get into ggplot format
+  df <- data.frame(x = geoprofile$lon,
+                   y = geoprofile$lat,
+                   z = geoprofile[[source_plot]])
+  
+  # produce basic plot
+  plot1 <- ggplot() + theme_bw()
+  plot1 <- plot1 + geom_raster(aes(x = x, y = y, fill = z), interpolate = TRUE, data = df)
+  plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "hiscore percentage", limits = c(0,100))
+  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
+  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
   
   # return plot object
   return(plot1)

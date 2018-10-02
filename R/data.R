@@ -108,6 +108,7 @@ sim_data <- function(sentinel_lon,
                       ret[is.na(ret)] <- NA
                       ret
                     }))
+  class(true_qmatrix) <- "rgeoprofile_qmatrix"
   
   # return simulated data and true parameter values
   ret_data <- df_observed

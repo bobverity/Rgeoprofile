@@ -4,11 +4,10 @@
 \alias{new_set}
 \title{Create new parameter set}
 \usage{
-new_set(project, name = "(no name)", sentinel_radius = 0.2,
-  source_min_lon = -10, source_max_lon = 10, source_min_lat = -10,
-  source_max_lat = 10, sigma_model = "single", sigma_prior_mean = 1,
-  sigma_prior_sd = 1, expected_popsize_prior_mean = 100,
-  expected_popsize_prior_sd = 10)
+new_set(project, name = "(no name)", sentinel_radius = 0.2, min_lon = -10,
+  max_lon = 10, min_lat = -10, max_lat = 10, sigma_model = "single",
+  sigma_prior_mean = 1, sigma_prior_sd = 1,
+  expected_popsize_prior_mean = 100, expected_popsize_prior_sd = 10)
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function 
@@ -18,13 +17,13 @@ new_set(project, name = "(no name)", sentinel_radius = 0.2,
 
 \item{sentinel_radius}{the observation radius of sentinel sites}
 
-\item{source_min_lon}{the minimum possible longitude of source locations}
+\item{min_lon}{the minimum possible longitude of source locations}
 
-\item{source_max_lon}{the minimum possible longitude of source locations}
+\item{max_lon}{the maximum possible longitude of source locations}
 
-\item{source_min_lat}{the minimum possible latitude of source locations}
+\item{min_lat}{the minimum possible latitude of source locations}
 
-\item{source_max_lat}{the minimum possible latitude of source locations}
+\item{max_lat}{the maximum possible latitude of source locations}
 
 \item{sigma_model}{set as \code{"single"} to assume the same dispersal
 distance for all sources, or \code{"independent"} to assume an

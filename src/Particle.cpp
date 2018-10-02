@@ -42,7 +42,7 @@ Particle::Particle(double beta_raised) {
   // area around a sentinel site
   log_sentinel_area = LOG_PI + 2*log(sentinel_radius);
   // area of source prior
-  log_search_area = log(source_max_lon-source_min_lon) + log(source_max_lat-source_min_lat);
+  log_search_area = log(max_lon-min_lon) + log(max_lat-min_lat);
   // sum of counts over all sentinel sites
   counts_total = sum(sentinel_counts);
   // log of K
@@ -81,8 +81,8 @@ void Particle::reset() {
   
   // draw source locations from prior
   for (int k=0; k<K; ++k) {
-    source_lon[k] = runif1(source_min_lon, source_max_lon);
-    source_lat[k] = runif1(source_min_lat, source_max_lat);
+    source_lon[k] = runif1(min_lon, max_lon);
+    source_lat[k] = runif1(min_lat, max_lat);
   }
   
   // draw sigma from prior
@@ -181,7 +181,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     double source_lat_prop = rnorm1(source_lat[k], source_propSD[k]);
     
     // check proposed source within defined range
-    if (source_lon_prop < source_min_lon || source_lon_prop > source_max_lon || source_lat_prop < source_min_lat || source_lat_prop > source_max_lat) {
+    if (source_lon_prop < min_lon || source_lon_prop > max_lon || source_lat_prop < min_lat || source_lat_prop > max_lat) {
       
       // auto-reject proposed move
       if (robbins_monro_on) {

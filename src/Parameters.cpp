@@ -23,10 +23,10 @@ bool Parameters::coupling_on;
 // model parameters
 int Parameters::K;
 double Parameters::sentinel_radius;
-double Parameters::source_min_lon;
-double Parameters::source_max_lon;
-double Parameters::source_min_lat;
-double Parameters::source_max_lat;
+double Parameters::min_lon;
+double Parameters::max_lon;
+double Parameters::min_lat;
+double Parameters::max_lat;
 int Parameters::sigma_model;
 double Parameters::sigma_prior_meanlog;
 double Parameters::sigma_prior_sdlog;
@@ -54,10 +54,10 @@ Parameters::Parameters(const Rcpp::List &args) {
   // model parameters
   K = rcpp_to_int(args["K"]);
   sentinel_radius = rcpp_to_double(args["sentinel_radius"]);
-  source_min_lon = rcpp_to_double(args["source_min_lon"]);
-  source_max_lon = rcpp_to_double(args["source_max_lon"]);
-  source_min_lat = rcpp_to_double(args["source_min_lat"]);
-  source_max_lat = rcpp_to_double(args["source_max_lat"]);
+  min_lon = rcpp_to_double(args["min_lon"]);
+  max_lon = rcpp_to_double(args["max_lon"]);
+  min_lat = rcpp_to_double(args["min_lat"]);
+  max_lat = rcpp_to_double(args["max_lat"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
   
   // get sigma prior mean and sd in log space from raw inputs

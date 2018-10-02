@@ -25,10 +25,10 @@ public:
   // model parameters
   static int K;
   static double sentinel_radius;
-  static double source_min_lon;
-  static double source_max_lon;
-  static double source_min_lat;
-  static double source_max_lat;
+  static double min_lon;
+  static double max_lon;
+  static double min_lat;
+  static double max_lat;
   static int sigma_model;
   static double sigma_prior_meanlog;
   static double sigma_prior_sdlog;

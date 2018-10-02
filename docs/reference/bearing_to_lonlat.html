@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bind data to project — bind_data • RgeoProfile</title>
+<title>Get spatial coordinate given an origin, a great circle distance and a
+  bearing — bearing_to_lonlat • RgeoProfile</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -28,13 +29,11 @@
 
 
 
-<meta property="og:title" content="Bind data to project — bind_data" />
+<meta property="og:title" content="Get spatial coordinate given an origin, a great circle distance and a
+  bearing — bearing_to_lonlat" />
 
-<meta property="og:description" content="Load data into a rgeoprofile_project prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways." />
+<meta property="og:description" content="Calculate destination lat/lon given an origin, a great circle
+  distance of travel, and a bearing." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -93,54 +92,61 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Bind data to project</h1>
+    <h1>Get spatial coordinate given an origin, a great circle distance and a
+  bearing</h1>
     
-    <div class="hidden name"><code>bind_data.Rd</code></div>
+    <div class="hidden name"><code>bearing_to_lonlat.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Load data into a <code>rgeoprofile_project</code> prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways.</p>
+    <p>Calculate destination lat/lon given an origin, a great circle
+  distance of travel, and a bearing.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>bind_data</span>(<span class='no'>project</span>, <span class='no'>df</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>check_delete_output</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>bearing_to_lonlat</span>(<span class='no'>origin_lon</span>, <span class='no'>origin_lat</span>, <span class='no'>bearing</span>, <span class='no'>gc_dist</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>project</th>
-      <td><p>an <code>rgeoprofile_project</code>, as produced by the function
-<code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code></p></td>
+      <th>origin_lon</th>
+      <td><p>The origin longitude</p></td>
     </tr>
     <tr>
-      <th>df</th>
-      <td><p>a dataframe with three columns named "longitude", "latitude",
-"counts" (in that order). Counts must be positive integers or zero</p></td>
+      <th>origin_lat</th>
+      <td><p>The origin latitude</p></td>
     </tr>
     <tr>
-      <th>name</th>
-      <td><p>optional name of the data set to aid in record keeping</p></td>
+      <th>bearing</th>
+      <td><p>The angle in degrees relative to due north</p></td>
     </tr>
     <tr>
-      <th>check_delete_output</th>
-      <td><p>whether to prompt the user before overwriting 
-existing data</p></td>
+      <th>gc_dist</th>
+      <td><p>The great circle distance in (km)</p></td>
     </tr>
     </table>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='co'># one degree longitude is approximately 111km at the equator. Therefore if we</span>
+<span class='co'># travel 111km due east from the coordinate {0,0} we can verify that we have</span>
+<span class='co'># moved approximately 1 degree longitude and zero degrees latitude</span>
+<span class='fu'>bearing_to_lonlat</span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>90</span>, <span class='fl'>111</span>)</div><div class='output co'>#&gt; $longitude
+#&gt; [1] 0.998247
+#&gt; 
+#&gt; $latitude
+#&gt; [1] 6.112191e-17
+#&gt; </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+            
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
   </div>
 </div>

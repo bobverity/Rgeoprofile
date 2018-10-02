@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bind data to project — bind_data • RgeoProfile</title>
+<title>Produce MCMC autocorrelation plot — plot_acf • RgeoProfile</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -28,13 +28,9 @@
 
 
 
-<meta property="og:title" content="Bind data to project — bind_data" />
+<meta property="og:title" content="Produce MCMC autocorrelation plot — plot_acf" />
 
-<meta property="og:description" content="Load data into a rgeoprofile_project prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways." />
+<meta property="og:description" content="Produce MCMC autocorrelation plot of the log-likelihood" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -93,44 +89,38 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Bind data to project</h1>
+    <h1>Produce MCMC autocorrelation plot</h1>
     
-    <div class="hidden name"><code>bind_data.Rd</code></div>
+    <div class="hidden name"><code>plot_acf.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Load data into a <code>rgeoprofile_project</code> prior to analysis.
-  Data must be formatted as a dataframe with samples in rows and loci in
-  columns. If individuals are polyploid then multiple rows can be used per
-  sample. Ploidy is allowed to vary between samples, and can be specified in
-  multiple ways.</p>
+    <p>Produce MCMC autocorrelation plot of the log-likelihood</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>bind_data</span>(<span class='no'>project</span>, <span class='no'>df</span>, <span class='kw'>name</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>check_delete_output</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>plot_acf</span>(<span class='no'>project</span>, <span class='kw'>K</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>rung</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>col</span> <span class='kw'>=</span> <span class='st'>"black"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>project</th>
-      <td><p>an <code>rgeoprofile_project</code>, as produced by the function
+      <td><p>an RgeoProfile project, as produced by the function 
 <code><a href='rgeoprofile_project.html'>rgeoprofile_project()</a></code></p></td>
     </tr>
     <tr>
-      <th>df</th>
-      <td><p>a dataframe with three columns named "longitude", "latitude",
-"counts" (in that order). Counts must be positive integers or zero</p></td>
+      <th>K</th>
+      <td><p>which value of K to plot</p></td>
     </tr>
     <tr>
-      <th>name</th>
-      <td><p>optional name of the data set to aid in record keeping</p></td>
+      <th>rung</th>
+      <td><p>which rung to plot. Defaults to the cold chain</p></td>
     </tr>
     <tr>
-      <th>check_delete_output</th>
-      <td><p>whether to prompt the user before overwriting 
-existing data</p></td>
+      <th>col</th>
+      <td><p>colour of the trace</p></td>
     </tr>
     </table>
     
