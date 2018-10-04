@@ -377,7 +377,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     rungs <- 1
     #ind_names <- paste0("ind", 1:n)
     #locus_names <- paste0("locus", 1:L)
-    deme_names <- paste0("deme", 1:K[i])
+    source_names <- paste0("source", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
     
     # ---------- raw mcmc results ----------
@@ -390,9 +390,9 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # get source lon lat in coda::mcmc format
     full_source_lon <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon))
-    colnames(full_source_lon) <- deme_names
+    colnames(full_source_lon) <- source_names
     full_source_lat <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat))
-    colnames(full_source_lat) <- deme_names
+    colnames(full_source_lat) <- source_names
     
     # get sigma in coda::mcmc format
     full_sigma <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma))
@@ -400,7 +400,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
       full_sigma <- full_sigma[, 1, drop = FALSE]
       colnames(full_sigma) <- "all_demes"
     } else {
-      colnames(full_sigma) <- deme_names
+      colnames(full_sigma) <- source_names
     }
     
     # get expected_popsize in coda::mcmc format
@@ -421,7 +421,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
     qmatrix[project$data$counts == 0,] <- rep(NA, K[i])
-    colnames(qmatrix) <- deme_names
+    colnames(qmatrix) <- source_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
     # get lon/lat midpoins of domain
@@ -482,10 +482,10 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # process acceptance rates
     source_accept <- output_raw[[i]]$source_accept/samples
-    names(source_accept) <- deme_names
+    names(source_accept) <- source_names
     
     sigma_accept <- output_raw[[i]]$sigma_accept/samples
-    names(sigma_accept) <- deme_names
+    names(sigma_accept) <- source_names
     
     #coupling_accept <- output_raw[[i]]$coupling_accept/samples
     
@@ -539,7 +539,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   # ---------- tidy up and end ----------
   
   # reorder qmatrices
-  #project <- align_qmatrix(project)
+  project <- align_qmatrix(project)
   
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
@@ -558,3 +558,113 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   invisible(project)
 }
 
+#------------------------------------------------
+# align qmatrices over all K
+#' @noRd
+align_qmatrix <- function(project) {
+  
+  # get active set
+  s <- project$active_set
+  
+  # extract objects of interest
+  x <- project$output$single_set[[s]]$single_K
+  
+  # find values with output
+  null_output <- mapply(function(y) {is.null(y$summary$qmatrix)}, x)
+  w <- which(!null_output)
+  
+  # set template to first qmatrix
+  template_qmatrix <- x[[w[1]]]$summary$qmatrix
+  n <- nrow(template_qmatrix)
+  c <- ncol(template_qmatrix)
+  positive_sentinels <- which(!is.na(template_qmatrix[,1]))
+  
+  # loop through output
+  best_perm <- NULL
+  for (i in w) {
+    
+    # expand template
+    qmatrix <- unclass(x[[i]]$summary$qmatrix)
+    template_qmatrix <- cbind(template_qmatrix, matrix(0, n, i-c))
+    
+    # calculate cost matrix
+    cost_mat <- matrix(0,i,i)
+    for (k1 in 1:i) {
+      for (k2 in 1:i) {
+        cost_mat[k1,k2] <- sum(qmatrix[positive_sentinels,k1] * (log(qmatrix[positive_sentinels,k1]+1e-100) - log(template_qmatrix[positive_sentinels,k2]+1e-100)))
+      }
+    }
+    
+    # get lowest cost permutation
+    best_perm <- call_hungarian(cost_mat)$best_matching + 1
+    best_perm_order <- order(best_perm)
+    
+    # reorder qmatrix
+    source_names <- paste0("deme", 1:ncol(qmatrix))
+    qmatrix <- qmatrix[, best_perm_order, drop = FALSE]
+    colnames(qmatrix) <- source_names
+    
+    # reorder raw output
+    if (!is.null(x[[i]]$raw)) {
+      
+      # reorder source_lon
+      source_lon <- x[[i]]$raw$source_lon[, best_perm_order, drop = FALSE]
+      names(source_lon) <- source_names
+      project$output$single_set[[s]]$single_K[[i]]$raw$source_lon <- source_lon
+      
+      # reorder source_lat
+      source_lat <- x[[i]]$raw$source_lat[, best_perm_order, drop = FALSE]
+      names(source_lat) <- source_names
+      project$output$single_set[[s]]$single_K[[i]]$raw$source_lat <- source_lat
+      
+      # reorder sigma
+      sigma <- x[[i]]$raw$sigma
+      if (ncol(sigma) > 1) {
+        sigma <- sigma[, best_perm_order, drop = FALSE]
+        names(sigma) <- source_names
+        project$output$single_set[[s]]$single_K[[i]]$raw$sigma <- sigma
+      }
+    }
+    
+    # reorder prob_surface
+    prob_surface <- x[[i]]$summary$prob_surface
+    nc <- ncol(prob_surface)
+    df_names <- colnames(prob_surface)
+    prob_surface[, -c(1,2,nc)] <- prob_surface[, -c(1,2,nc), drop = FALSE][, best_perm_order]
+    names(prob_surface) <- df_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$prob_surface <- prob_surface
+    
+    # reorder geoprofile
+    geoprofile <- x[[i]]$summary$geoprofile
+    nc <- ncol(geoprofile)
+    df_names <- colnames(geoprofile)
+    geoprofile[, -c(1,2,nc)] <- geoprofile[, -c(1,2,nc), drop = FALSE][, best_perm_order]
+    names(geoprofile) <- df_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$geoprofile <- geoprofile
+    
+    # reorder sigma_intervals
+    sigma_intervals <- x[[i]]$summary$sigma_intervals[best_perm_order,,drop = FALSE]
+    rownames(sigma_intervals) <- source_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
+    
+    # reorder source_accept
+    source_accept <- x[[i]]$summary$source_accept[best_perm_order]
+    names(source_accept) <- source_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$source_accept <- source_accept
+    
+    # reorder sigma_accept
+    sigma_accept <- x[[i]]$summary$sigma_accept[best_perm_order]
+    names(sigma_accept) <- source_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept <- sigma_accept
+    
+    # qmatrix becomes template for next level up
+    template_qmatrix <- qmatrix
+    
+    # store result
+    class(qmatrix) <- "malecot_qmatrix"
+    project$output$single_set[[s]]$single_K[[i]]$summary$qmatrix <- qmatrix
+  }
+  
+  # return modified project
+  return(project)
+}

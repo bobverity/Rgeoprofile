@@ -296,7 +296,7 @@ plot_source_raw <- function(project, K = NULL) {
                              col = grey(0.7), data = project$data)
   
   # titles, legends, scales etc.
-  plot1 <- plot1 + scale_color_manual(values = default_colours(K), name = "source")
+  plot1 <- plot1 + scale_color_manual(values = default_colours(K), name = "group")
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
   
   # return plot object
@@ -574,6 +574,93 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
     plot1 <- plot1 + geom_segment(aes_(x = ~x, y = ~y, xend = ~x, yend = ~y+1, col = "white"), size = 0.3, data = data.frame(x = 1:n-0.5, y = rep(0,n)))
   }
   
+  return(plot1)
+}
+
+#------------------------------------------------
+#' @title Posterior allocation plot in space
+#'
+#' @description Produce posterior allocation plot in space of current active set.
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K which value of K to produce the plot for
+#' @param pie_radius radius of pie charts
+#'
+#' @export
+
+plot_spatial_structure <- function(project, K = NULL, pie_radius = 0.5) {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(K)) {
+    assert_pos_int(K)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("no active parameter set")
+  }
+  
+  # set default K to all values with output
+  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  qmatrix <- project$output$single_set[[s]]$single_K[[K]]$summary$qmatrix
+  if (is.null(qmatrix)) {
+    stop(sprintf("no qmatrix output for K = %s of active set", K))
+  }
+  
+  # produce basic empty plot
+  plot1 <- ggplot() + theme_bw()
+  
+  # overlay pie charts at sentinel sites
+  n_nodes <- 20
+  for (i in 1:nrow(project$data)) {
+    
+    # make background circle
+    centre_lon <- project$data$longitude[i]
+    centre_lat <- project$data$latitude[i]
+    circle_lonlat <- as.data.frame(bearing_to_lonlat(centre_lon, centre_lat, seq(0, 360, l=n_nodes), pie_radius))
+    
+    # empty circle if no observations
+    if (project$data$counts[i] == 0) {
+      plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude),
+                                    col = grey(0.7), fill = NA, data = circle_lonlat)
+      next()
+    }
+    
+    # add segments
+    q0 <- 0
+    for (k in 1:K) {
+      q1 <- q0 + qmatrix[i,k]
+      x0 <- 1 + round(q0*(n_nodes-1))
+      x1 <- 1 + round(q1*(n_nodes-1))
+      q0 <- q1
+      
+      if (x0 != x1) {
+        df <- rbind(c(centre_lon, centre_lat),
+                    circle_lonlat[x0:x1,])
+        plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude, fill = as.factor(k)),
+                                      col = "black", data = df)
+      }
+    }
+    
+  }
+  
+  # titles, legends, scales etc.
+  plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
+  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
+  
+  # return plot object
   return(plot1)
 }
 
