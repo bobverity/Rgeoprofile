@@ -2,13 +2,8 @@
 
 S3method(plot,rgeoprofile_qmatrix)
 S3method(plot,rgeoprofile_simdata)
-S3method(print,rgeoprofile_expected_popsize_intervals)
-S3method(print,rgeoprofile_geoprofile)
-S3method(print,rgeoprofile_loglike_intervals)
-S3method(print,rgeoprofile_prob_surface)
 S3method(print,rgeoprofile_project)
 S3method(print,rgeoprofile_qmatrix)
-S3method(print,rgeoprofile_sigma_intervals)
 S3method(print,rgeoprofile_simdata)
 export(bearing_to_lonlat)
 export(bind_data)

@@ -374,16 +374,19 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   for (i in 1:length(K)) {
     
     # create name lists
+    rungs <- 1
     #ind_names <- paste0("ind", 1:n)
     #locus_names <- paste0("locus", 1:L)
     deme_names <- paste0("deme", 1:K[i])
-    #rung_names <- paste0("rung", 1:rungs)
+    rung_names <- paste0("rung", 1:rungs)
     
     # ---------- raw mcmc results ----------
     
     # get loglikelihood in coda::mcmc format
     loglike_burnin <- mapply(function(x){mcmc(x)}, output_raw[[i]]$loglike_burnin)
+    colnames(loglike_burnin) <- rung_names
     loglike_sampling <- mcmc(t(rcpp_to_mat(output_raw[[i]]$loglike_sampling)))
+    colnames(loglike_sampling) <- rung_names
     
     # get source lon lat in coda::mcmc format
     full_source_lon <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon))
@@ -393,33 +396,27 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # get sigma in coda::mcmc format
     full_sigma <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma))
-    colnames(full_sigma) <- deme_names
+    if (args_model$sigma_model == "single") {
+      full_sigma <- full_sigma[, 1, drop = FALSE]
+      colnames(full_sigma) <- "all_demes"
+    } else {
+      colnames(full_sigma) <- deme_names
+    }
     
     # get expected_popsize in coda::mcmc format
     full_expected_popsize <- mcmc(output_raw[[i]]$expected_popsize)
     
-    # get whether rungs have converged
-    converged <- output_raw[[i]]$rung_converged
-    if (all_converged && any(!converged)) {
-      all_converged <- FALSE
-    }
-    
     # ---------- summary results ----------
     
     # get 95% credible intervals over sampling loglikelihoods
-    loglike_intervals <- t(apply(loglike_sampling, 2, quantile_95))
-    #rownames(loglike_intervals) <- rung_names
-    class(loglike_intervals) <- "rgeoprofile_loglike_intervals"
+    loglike_intervals <- as.data.frame(t(apply(loglike_sampling, 2, quantile_95)))
     
     # get 95% credible intervals over sigma
-    sigma_intervals <- t(apply(full_sigma, 2, quantile_95))
-    #rownames(loglike_intervals) <- rung_names
-    class(sigma_intervals) <- "rgeoprofile_sigma_intervals"
+    sigma_intervals <- as.data.frame(t(apply(full_sigma, 2, quantile_95)))
     
     # get 95% credible intervals over expected_popsize
-    expected_popsize_intervals <- quantile_95(full_expected_popsize)
-    #rownames(loglike_intervals) <- rung_names
-    class(expected_popsize_intervals) <- "rgeoprofile_expected_popsize_intervals"
+    expected_popsize_intervals <- as.data.frame(t(quantile_95(full_expected_popsize)))
+    rownames(expected_popsize_intervals) <- "expected_popsize"
     
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
@@ -462,10 +459,11 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
       geoprofile[,k] <- 100 * (1 - (geoprofile[,k]-1)/max(geoprofile[,k], na.rm = TRUE))
     }
     
-    # set class of prob_surface and geoprofile
-    class(prob_surface) <- "rgeoprofile_prob_surface"
-    class(geoprofile) <- "rgeoprofile_geoprofile"
-    
+    # get whether rungs have converged
+    converged <- output_raw[[i]]$rung_converged
+    if (all_converged && any(!converged)) {
+      all_converged <- FALSE
+    }
     
     # ---------- ESS ----------
     

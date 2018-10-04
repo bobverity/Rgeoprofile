@@ -130,26 +130,6 @@ theme_empty <- function() {
 }
 
 #------------------------------------------------
-# Default plot for class rgeoprofile_loglike_intervals
-#' @noRd
-plot.rgeoprofile_loglike_intervals <- function(x, y, ...) {
-  
-  # get data into ggplot format
-  df <- as.data.frame(unclass(x))
-  n <- nrow(df)
-  x_vec <- y
-  
-  # produce plot
-  plot1 <- ggplot(df) + theme_bw()
-  plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
-  plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
-  plot1 <- plot1 + xlab("rung") + ylab("log-likelihood")
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
 #' @title Plot loglikelihood 95\% credible intervals
 #'   
 #' @description Plot loglikelihood 95\% credible intervals of current active set
@@ -171,7 +151,7 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
   if (!is.null(K)) {
     assert_single_pos_int(K, zero_allowed = FALSE)
   }
-  assert_in(axis_type, 1:3)
+  assert_in(axis_type, 1:2)
   assert_single_logical(connect_points)
   assert_single_logical(connect_whiskers)
   
@@ -197,36 +177,42 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
     stop(sprintf("no loglike_intervals output for K = %s of active set", K))
   }
   
-  # produce plot with different axis options
+  # get properties
   rungs <- nrow(loglike_intervals)
+  
+  # produce plot with different axis options
+  plot1 <- ggplot(loglike_intervals) + theme_bw()
   if (axis_type == 1) {
-    x_vec <- 1:rungs
-    plot1 <- plot(loglike_intervals, as.factor(x_vec))
+    x_vec <- as.factor(1:rungs)
+    plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
+    plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
+    plot1 <- plot1 + xlab("rung") + ylab("log-likelihood")
     
   } else if (axis_type == 2) {
     x_vec <- (1:rungs)/rungs
-    plot1 <- plot(loglike_intervals, x_vec)
-    plot1 <- plot1 + xlab(parse(text = "beta"))
+    plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
+    plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
+    plot1 <- plot1 + xlab(parse(text = "beta")) + ylab("log-likelihood")
     plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
     
   } else {
-    GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
-    x_vec <- ((1:rungs)/rungs)^GTI_pow
-    plot1 <- plot(loglike_intervals, x_vec)
-    plot1 <- plot1 + xlab(parse(text = "beta^gamma"))
-    plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
+    # TODO - make this option available if and when we implement temperature rungs
+    #GTI_pow <- project$output$single_set[[s]]$single_K[[K]]$function_call$args$GTI_pow
+    #x_vec <- ((1:rungs)/rungs)^GTI_pow
+    #plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
+    #plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
+    #plot1 <- plot1 + xlab(parse(text = "beta^gamma")) + ylab("log-likelihood")
+    #plot1 <- plot1 + coord_cartesian(xlim = c(0,1))
   }
   
   # optionally add central line
   if (connect_points) {
-    df <- as.data.frame(unclass(loglike_intervals))
-    plot1 <- plot1 + geom_line(aes(x = x_vec, y = df$Q50))
+    plot1 <- plot1 + geom_line(aes(x = x_vec, y = loglike_intervals$Q50))
   }
   
   # optionally connect whiskers
   if (connect_whiskers) {
-    df <- as.data.frame(unclass(loglike_intervals))
-    plot1 <- plot1 + geom_line(aes(x = x_vec, y = df$Q2.5), linetype = "dotted") + geom_line(aes(x = x_vec, y = df$Q97.5), linetype = "dotted")
+    plot1 <- plot1 + geom_line(aes(x = x_vec, y = loglike_intervals$Q2.5), linetype = "dotted") + geom_line(aes(x = x_vec, y = loglike_intervals$Q97.5), linetype = "dotted")
   }
   
   # return plot object
@@ -318,26 +304,6 @@ plot_source_raw <- function(project, K = NULL) {
 }
 
 #------------------------------------------------
-# Default plot for class rgeoprofile_prob_surface. Plot combined surface by
-# default
-#' @noRd
-plot.rgeoprofile_prob_surface <- function(x, y, ...) {
-  
-  # get into ggplot format
-  class(x) <- "data.frame"
-  
-  # produce basic plot
-  plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_raster(aes(x = lon, y = lat, fill = combined), interpolate = TRUE, data = x)
-  plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability")
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
 #' @title Plot surface of source locations
 #'
 #' @description Plot surface of source locations
@@ -401,7 +367,7 @@ plot_surface <- function(project, K = NULL, source = NULL, zlim = NULL) {
   
   # produce basic plot
   plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_raster(aes(x = x, y = y, fill = z), interpolate = TRUE, data = df)
+  plot1 <- plot1 + geom_raster(aes_(x = ~x, y = ~y, fill = ~z), interpolate = TRUE, data = df)
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
   
@@ -411,26 +377,6 @@ plot_surface <- function(project, K = NULL, source = NULL, zlim = NULL) {
   } else {
     plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability", limits = zlim)
   }
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
-# Default plot for class rgeoprofile_rgeoprofile. Plot combined surface by 
-# default
-#' @noRd
-plot.rgeoprofile_geoprofile <- function(x, y, ...) {
-  
-  # get into ggplot format
-  class(x) <- "data.frame"
-  
-  # produce basic plot
-  plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_raster(aes(x = lon, y = lat, fill = combined), interpolate = TRUE, data = x)
-  plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "hiscore percentage", limits = c(0,100))
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
   
   # return plot object
   return(plot1)
@@ -499,7 +445,7 @@ plot_geoprofile <- function(project, K = NULL, source = NULL) {
   
   # produce basic plot
   plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_raster(aes(x = x, y = y, fill = z), interpolate = TRUE, data = df)
+  plot1 <- plot1 + geom_raster(aes_(x = ~x, y = ~y, fill = ~z), interpolate = TRUE, data = df)
   plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "hiscore percentage", limits = c(0,100))
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
@@ -523,16 +469,16 @@ plot.rgeoprofile_qmatrix <- function(x, y, ...) {
   
   # get data into ggplot format
   m <- unclass(x)
-  m <- m[!is.na(m[,1]),]
+  m <- m[!is.na(m[,1]), , drop = FALSE]
   n <- nrow(m)
   K <- ncol(m)
-  df <- data.frame(ind = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), val = as.vector(t(m)))
+  df <- data.frame(sentinel_site = rep(1:n,each=K), k = as.factor(rep(1:K,times=n)), prob = as.vector(t(m)))
   
   # produce basic plot
   plot1 <- ggplot(df) + theme_empty()
-  plot1 <- plot1 + geom_bar(aes_(x = ~ind, y = ~val, fill = ~k), width = 1, stat = "identity")
+  plot1 <- plot1 + geom_bar(aes_(x = ~sentinel_site, y = ~prob, fill = ~k), width = 1, stat = "identity")
   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-  plot1 <- plot1 + xlab("sample") + ylab("probability")
+  plot1 <- plot1 + xlab("positive sentinel site") + ylab("probability")
   
   # add legends
   plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
@@ -602,16 +548,17 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
   plot1 <- ggplot(df) + theme_empty()
   plot1 <- plot1 + geom_bar(aes_(x = ~ind, y = ~val, fill = ~k), width = 1, stat = "identity")
   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
+  plot1 <- plot1 + xlab("positive sentinel site")
   
   # arrange in rows
   if (length(K) == 1) {
     plot1 <- plot1 + facet_wrap(~K, ncol = 1)
     plot1 <- plot1 + theme(strip.background = element_blank(), strip.text = element_blank())
-    plot1 <- plot1 + xlab("sample") + ylab("probability")
+    plot1 <- plot1 + ylab("probability")
   } else {
     plot1 <- plot1 + facet_wrap(~K, ncol = 1, strip.position = "left")
     plot1 <- plot1 + theme(strip.background = element_blank())
-    plot1 <- plot1 + xlab("sample") + ylab("K")
+    plot1 <- plot1 + ylab("K")
   }
   
   # add legends
@@ -627,26 +574,6 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
     plot1 <- plot1 + geom_segment(aes_(x = ~x, y = ~y, xend = ~x, yend = ~y+1, col = "white"), size = 0.3, data = data.frame(x = 1:n-0.5, y = rep(0,n)))
   }
   
-  return(plot1)
-}
-
-#------------------------------------------------
-# Default plot for class rgeoprofile_sigma_intervals
-#' @noRd
-plot.rgeoprofile_sigma_intervals <- function(x, y, ...) {
-  
-  # get data into ggplot format
-  df <- as.data.frame(unclass(x))
-  n <- nrow(df)
-  
-  # produce plot
-  plot1 <- ggplot(df) + theme_bw()
-  plot1 <- plot1 + geom_segment(aes_(x = ~1:n, y = ~Q2.5, xend = ~1:n, yend = ~Q97.5))
-  plot1 <- plot1 + geom_point(aes_(x = ~1:n, y = ~Q50))
-  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(df$Q97.5)*1.1), expand = c(0,0))
-  plot1 <- plot1 + xlab("source") + ylab("sigma")
-  
-  # return plot object
   return(plot1)
 }
 
@@ -695,27 +622,15 @@ plot_sigma <- function(project, K = NULL) {
     stop(sprintf("no sigma_intervals output for K = %s of active set", K))
   }
   
-  # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$sigma_intervals)
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
-# Default plot for class rgeoprofile_expected_popsize_intervals
-#' @noRd
-plot.rgeoprofile_expected_popsize_intervals <- function(x, y, ...) {
-  
-  # get data into ggplot format
-  df <- data.frame(Q2.5 = x[1], Q50 = x[2], Q97.5 = x[3])
+  # get properties
+  x_vec <- rownames(sigma_intervals)
   
   # produce plot
-  plot1 <- ggplot(df) + theme_bw()
-  plot1 <- plot1 + geom_segment(aes_(x = "", y = ~Q2.5, xend = "", yend = ~Q97.5))
-  plot1 <- plot1 + geom_point(aes_(x = 1, y = ~Q50))
-  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(df$Q97.5)*1.1), expand = c(0,0))
-  plot1 <- plot1 + xlab("") + ylab("expected population size")
+  plot1 <- ggplot(sigma_intervals) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = ~x_vec, y = ~Q2.5, xend = ~x_vec, yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = ~x_vec, y = ~Q50))
+  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(sigma_intervals$Q97.5)*1.1), expand = c(0,0))
+  plot1 <- plot1 + xlab("source") + ylab("sigma")
   
   # return plot object
   return(plot1)
@@ -766,8 +681,12 @@ plot_expected_popsize <- function(project, K = NULL) {
     stop(sprintf("no expected_popsize_intervals output for K = %s of active set", K))
   }
   
-  # produce quantile plot
-  plot1 <- plot(project$output$single_set[[s]]$single_K[[K]]$summary$expected_popsize_intervals)
+  # produce plot
+  plot1 <- ggplot(expected_popsize_intervals) + theme_bw()
+  plot1 <- plot1 + geom_segment(aes_(x = "", y = ~Q2.5, xend = "", yend = ~Q97.5))
+  plot1 <- plot1 + geom_point(aes_(x = 1, y = ~Q50))
+  plot1 <- plot1 + scale_y_continuous(limits = c(0, max(expected_popsize_intervals$Q97.5)*1.1), expand = c(0,0))
+  plot1 <- plot1 + xlab("") + ylab("expected population size")
   
   # return plot object
   return(plot1)

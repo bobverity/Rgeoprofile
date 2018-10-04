@@ -551,53 +551,6 @@ print.rgeoprofile_simdata <- function(x, ...) {
 #------------------------------------------------
 #' @title TODO
 #'
-#' @description custom print function for rgeoprofile_loglike_intervals.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-
-print.rgeoprofile_loglike_intervals <- function(x, ...) {
-  print(unclass(x))
-  invisible(x)
-}
-
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description custom print function for rgeoprofile_prob_surface.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-
-print.rgeoprofile_prob_surface <- function(x, ...) {
-  class(x) <- "data.frame"
-  print(x)
-  invisible(x)
-}
-
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description custom print function for rgeoprofile_geoprofile.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-
-print.rgeoprofile_geoprofile <- function(x, ...) {
-  class(x) <- "data.frame"
-  print(x)
-  invisible(x)
-}
-
-#------------------------------------------------
-#' @title TODO
-#'
 #' @description custom print function for rgeoprofile_qmatrix.
 #'
 #' @param x TODO
@@ -606,36 +559,6 @@ print.rgeoprofile_geoprofile <- function(x, ...) {
 #' @export
 
 print.rgeoprofile_qmatrix <- function(x, ...) {
-  print(unclass(x))
-  invisible(x)
-}
-
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description custom print function for rgeoprofile_sigma_intervals.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-
-print.rgeoprofile_sigma_intervals <- function(x, ...) {
-  print(unclass(x))
-  invisible(x)
-}
-
-#------------------------------------------------
-#' @title TODO
-#'
-#' @description custom print function for rgeoprofile_expected_popsize_intervals.
-#'
-#' @param x TODO
-#' @param ... TODO
-#'
-#' @export
-
-print.rgeoprofile_expected_popsize_intervals <- function(x, ...) {
   print(unclass(x))
   invisible(x)
 }
