@@ -19,13 +19,13 @@
 #' @importFrom Rcpp evalCpp
 #' @import parallel
 #' @import coda
-#' @import fftwtools
+#' @importFrom fftwtools fftw2d
 #' @import ggplot2
 #' @import gridExtra
-#' @import ggmap
 #' @import RColorBrewer
+#' @import leaflet
 #' @import rgdal
-#' @importFrom raster raster extent extent<- rasterize projectRaster distance
+#' @importFrom raster raster flip crs extent extent<- rasterize projectRaster distance
 #' @import viridis
 #' @importFrom grDevices colorRampPalette grey
 #' @import graphics
@@ -543,7 +543,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
-  if (tdiff<60) {
+  if (tdiff < 60) {
     message(sprintf("Total run-time: %s seconds", round(tdiff, 2)))
   } else {
     message(sprintf("Total run-time: %s minutes", round(tdiff/60, 2)))

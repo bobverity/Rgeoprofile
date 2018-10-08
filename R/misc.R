@@ -229,11 +229,6 @@ bearing_to_lonlat <- function(origin_lon, origin_lat, bearing, gc_dist) {
 
 lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
   
-  # check for exact equality of points
-  if (origin_lon == dest_lon && origin_lat == dest_lat) {
-    return(list(bearing = 0, gc_dist = 0))
-  }
-  
   # convert input arguments to radians
   origin_lon <- origin_lon*2*pi/360
   origin_lat <- origin_lat*2*pi/360

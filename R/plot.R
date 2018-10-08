@@ -1,48 +1,19 @@
 
 #------------------------------------------------
-# default RgeoProfile colours
+# red-to-blue colours
 #' @noRd
-default_colours <- function(K) {
-  
-  # generate palette and colours
+col_hotcold <- function(n = 6) {
   raw_cols <- c("#D73027", "#FC8D59", "#FEE090", "#E0F3F8", "#91BFDB", "#4575B4")
-  my_palette <- colorRampPalette(raw_cols)
-  
-  # simple case if small K
-  if (K <= 2) {
-    return(my_palette(K))
-  }
-  
-  # some logic to choose a palette size and sequence of colours that is
-  # consistent across different values of K
-  ncol <- 3
-  while(ncol<K) {
-    ncol <- ncol+(ncol-1)
-  }
-  dist_mat <- matrix(1:ncol, ncol, ncol)
-  dist_mat <- abs(t(dist_mat)-dist_mat)
-  x <- rep(FALSE, ncol)
-  
-  col_index <- 1
-  for (i in 2:K) {
-    x[col_index] <- TRUE
-    s <- apply(dist_mat[which(x),,drop=FALSE], 2, min)
-    next_index <- which.max(s)
-    col_index <- c(col_index, next_index)
-  }
-  col_index
-  ret <- my_palette(ncol)[col_index]
-  
-  return(ret)
+  my_pal <- colorRampPalette(raw_cols)
+  return(my_pal(n))
 }
 
 #------------------------------------------------
-# blue-to-red colour palette. Full credit to tim.colors from the fields package,
-# from which these colours derive. Copied rather than including the fields
-# package to avoid dependence on another package for the sake of a single colour
-# scheme.
+# blue-to-red colours. Full credit to tim.colors from the fields package, from 
+# which these colours derive. Copied rather than including the fields package to
+# avoid dependency on another package for the sake of a single colour scheme.
 #' @noRd
-tim_colours <- function(n = 10) {
+col_tim <- function(n = 10) {
   raw_cols <- c("#00008F", "#00009F", "#0000AF", "#0000BF", 
                 "#0000CF", "#0000DF", "#0000EF", "#0000FF", "#0010FF", 
                 "#0020FF", "#0030FF", "#0040FF", "#0050FF", "#0060FF", 
@@ -61,57 +32,54 @@ tim_colours <- function(n = 10) {
 }
 
 #------------------------------------------------
-#' @title TODO
+#' @title Expand series of colours by interpolation
 #'
-#' @description default plot for class rgeoprofile_simdata.
+#' @description Expand a series of colours by interpolation to produce any 
+#'   number of colours from a given series. The pattern of interpolation is 
+#'   designed so that (n+1)th value contains the nth value plus one more colour,
+#'   rather than being a completely different series. For example, running
+#'   \code{more_colours(5)} and \code{more_colours(4)}, the first 4 colours will
+#'   be shared between the two series.
 #'
-#' @param x TODO
-#' @param y TODO
-#' @param ... TODO
+#' @param n how many colours to return
+#' @param raw_cols vector of colours to interpolate
 #'
 #' @export
 
-plot.rgeoprofile_simdata <- function(x, y, ...) {
+more_colours <- function(n = 5, raw_cols = col_hotcold()) {
   
-  # subset observed vs. unobserved data
-  data_all_observed <- subset(x$record$data_all, observed > 0)
-  data_all_unobserved <- subset(x$record$data_all, observed == 0)
+  # check inputs
+  assert_single_pos_int(n, zero_allowed = FALSE)
+  assert_string(raw_cols)
+  assert_vector(raw_cols)
   
-  # plot raw unobserved points
-  plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_point(aes_(x = ~longitude, y = ~latitude, col = "data_unobserved"),
-                              size = 0.5, data = data_all_unobserved)
+  # generate colour palette from raw colours
+  my_palette <- colorRampPalette(raw_cols)
   
-  # overlay true source locations
-  plot1 <- plot1 + geom_point(aes_(x = ~longitude, y = ~latitude),
-                              shape = 8, size = 2, col = "blue", data = x$record$true_source)
-  
-  # overlay circles around sentinel sites
-  n_nodes <- 20
-  for (i in 1:nrow(x$data)) {
-    sentinel_lon <- x$data$longitude
-    sentinel_lat <- x$data$latitude
-    circle_lonlat <- as.data.frame(bearing_to_lonlat(sentinel_lon[i], sentinel_lat[i],
-                                                     seq(0, 360, l=n_nodes), x$record$sentinel_radius))
-    plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude),
-                                  col = "#FF000099", fill = NA, data = circle_lonlat)
+  # simple case if n small
+  if (n <= 2) {
+    return(my_palette(3)[1:n])
   }
   
-  # overlay raw observed points
-  plot1 <- plot1 + geom_point(aes_(x = ~longitude, y = ~latitude, col = "data_observed"),
-                              size = 0.5, data = data_all_observed)
+  # interpolate colours by repeatedly splitting the [0,1] interval until we have
+  # enough values. n_steps is the number of times we have to do this. n_breaks
+  # is the number of breaks for each step
+  n_steps <- ceiling(log(n-1)/log(2))
+  n_breaks <- 2^(1:n_steps) + 1
   
-  # overlay count numbers around sentinel sites
-  x$data$count_text <- mapply(function(x) {ifelse(x == 0, "", x)}, x$data$counts)
-  plot1 <- plot1 + geom_text(aes_(x = ~longitude, y = ~latitude, label = ~count_text),
-                             col = "red", data = x$data)
+  # split the [0,1] interval this many times and drop duplicated values
+  s <- unlist(mapply(function(x) seq(0,1,l=x), n_breaks, SIMPLIFY = FALSE))
+  s <- s[!duplicated(s)]
   
-  # titles, legends, scales etc.
-  plot1 <- plot1 + scale_color_manual(values = c("data_unobserved" = grey(0.7), "data_observed" = grey(0)))
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  plot1 <- plot1 + guides(color = FALSE)
+  # convert s to integer index
+  w <- match(s, seq(0,1,l = n_breaks[n_steps]))
+  w <- w[1:n]
   
-  return(plot1)
+  # get final colours
+  all_cols <- my_palette(n_breaks[n_steps])
+  ret <- all_cols[w]
+  
+  return(ret)
 }
 
 #------------------------------------------------
@@ -296,7 +264,7 @@ plot_source_raw <- function(project, K = NULL) {
                              col = grey(0.7), data = project$data)
   
   # titles, legends, scales etc.
-  plot1 <- plot1 + scale_color_manual(values = default_colours(K), name = "group")
+  plot1 <- plot1 + scale_color_manual(values = more_colours(K), name = "group")
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
   
   # return plot object
@@ -373,9 +341,9 @@ plot_surface <- function(project, K = NULL, source = NULL, zlim = NULL) {
   
   # add zlim if defined
   if (is.null(zlim)) {
-    plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability")
+    plot1 <- plot1 + scale_fill_gradientn(colours = col_tim(100), name = "probability")
   } else {
-    plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "probability", limits = zlim)
+    plot1 <- plot1 + scale_fill_gradientn(colours = col_tim(100), name = "probability", limits = zlim)
   }
   
   # return plot object
@@ -446,7 +414,7 @@ plot_geoprofile <- function(project, K = NULL, source = NULL) {
   # produce basic plot
   plot1 <- ggplot() + theme_bw()
   plot1 <- plot1 + geom_raster(aes_(x = ~x, y = ~y, fill = ~z), interpolate = TRUE, data = df)
-  plot1 <- plot1 + scale_fill_gradientn(colours = tim_colours(100), name = "hiscore percentage", limits = c(0,100))
+  plot1 <- plot1 + scale_fill_gradientn(colours = col_tim(100), name = "hiscore percentage", limits = c(0,100))
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
   plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
   
@@ -481,7 +449,7 @@ plot.rgeoprofile_qmatrix <- function(x, y, ...) {
   plot1 <- plot1 + xlab("positive sentinel site") + ylab("probability")
   
   # add legends
-  plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
+  plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
   plot1 <- plot1 + scale_colour_manual(values = "white")
   plot1 <- plot1 + guides(colour = FALSE)
   
@@ -562,7 +530,7 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
   }
   
   # add legends
-  plot1 <- plot1 + scale_fill_manual(values = default_colours(max(K)), name = "group")
+  plot1 <- plot1 + scale_fill_manual(values = more_colours(max(K)), name = "group")
   plot1 <- plot1 + scale_colour_manual(values = "white")
   plot1 <- plot1 + guides(colour = FALSE)
   
@@ -657,7 +625,7 @@ plot_spatial_structure <- function(project, K = NULL, pie_radius = 0.5) {
   }
   
   # titles, legends, scales etc.
-  plot1 <- plot1 + scale_fill_manual(values = default_colours(K), name = "group")
+  plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
   plot1 <- plot1 + xlab("longitude") + ylab("latitude")
   
   # return plot object
@@ -1057,4 +1025,244 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
   
   # produce grid of plots
   ret <- grid.arrange(plot1, plot2, plot3, layout_matrix = rbind(c(1,1), c(2,3)))
+}
+
+#------------------------------------------------
+#' @title Create dynamic map
+#'
+#' @description Create dynamic map
+#'
+#' @export
+
+plot_map <- function() {
+  
+  # produce plot
+  myplot <- leaflet()
+  myplot <- addTiles(myplot)
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add sentinel sites to dynamic map
+#'
+#' @description Add sentinel sites to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param sentinel_radius the radius of sentinel sites. Taken from the active
+#'   parameter set if unspecified
+#' @param fill whether to fill circles
+#' @param fill_colour fill colour
+#' @param fill_opacity fill opacity
+#' @param border whether to add border to circles
+#' @param border_colour colour of circle borders
+#' @param border_weight thickness of circle borders
+#' @param border_opacity opacity of circle borders
+#'
+#' @export
+
+overlay_sentinels <- function(myplot,
+                              project,
+                              sentinel_radius = NULL,
+                              fill = TRUE,
+                              fill_colour = "blue",
+                              fill_opacity = 0.5,
+                              border = FALSE,
+                              border_colour = "black",
+                              border_weight = 1,
+                              border_opacity = 1.0) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(sentinel_radius)) {
+    assert_single_pos(sentinel_radius)
+  }
+  
+  # check for data
+  df <- project$data
+  if (is.null(df)) {
+    stop("no data loaded")
+  }
+  
+  # get sentinel radius from active parameter set by default
+  if (is.null(sentinel_radius)) {
+    message("getting sentinel radius from active parameter set:")
+    
+    # get active set and check non-zero
+    s <- project$active_set
+    if (s == 0) {
+      stop("  no active parameter set")
+    }
+    
+    # get sentinel radius
+    sentinel_radius <- project$parameter_sets[[s]]$sentinel_radius
+    message(sprintf("  sentinal radius = %skm", sentinel_radius))
+  }
+  
+  # overlay circles
+  myplot <- addCircles(myplot, lng = df$longitude, lat = df$latitude,
+                      radius = sentinel_radius*1e3,
+                      fill = fill, fillColor = fill_colour, fillOpacity = fill_opacity,
+                      stroke = border, color = border_colour,
+                      opacity = border_opacity, weight = border_weight)
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add points to dynamic map
+#'
+#' @description Add points to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param lon longitude of points
+#' @param lat latitude of points
+#' @param col colour of points
+#' @param size size of points
+#' @param opacity opacity of points
+#'
+#' @export
+
+overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 1.0) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_numeric(lon)
+  assert_vector(lon)
+  assert_numeric(lat)
+  assert_vector(lat)
+  assert_same_length(lon, lat)
+  assert_single_string(col)
+  assert_single_pos(size, zero_allowed = FALSE)
+  
+  # add circle markers
+  myplot <- addCircleMarkers(myplot, lng = lon, lat = lat, radius = 2,
+                             fillColor = col, stroke = FALSE, fillOpacity = opacity)
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add geoprofile to dynamic map
+#'
+#' @description Add geoprofile to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K which value of K to plot
+#' @param source which source to plot. If NULL then plot combined surface
+#' @param threshold what proportion of geoprofile to plot
+#' @param col set of plotting colours
+#' @param opacity opacity of geoprofile (that is not invisible due to being below threshold)
+#'
+#' @export
+
+overlay_geoprofile <- function(myplot,
+                               project,
+                               K = NULL,
+                               source = NULL,
+                               threshold = 0.1,
+                               col = col_hotcold(),
+                               opacity = 0.8) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(source)) {
+    assert_single_pos_int(source, zero_allowed = FALSE)
+  }
+
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$geoprofile)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no geoprofile output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  geoprofile <- project$output$single_set[[s]]$single_K[[K]]$summary$geoprofile
+  if (is.null(geoprofile)) {
+    stop(sprintf("no geoprofile output for K = %s of active set", K))
+  }
+  
+  # choose which surface to plot
+  if (is.null(source)) {
+    source_plot <- "combined"
+  } else {
+    assert_leq(source, K)
+    source_plot <- paste0("source", source)
+  }
+  
+  # extract geoprofile into matrix
+  gp <- t(matrix(geoprofile[[source_plot]], nrow = length(unique(geoprofile$lon))))
+  gp[gp > threshold*100] <- NA
+  
+  # convert to raster
+  r <- flip(raster(gp), direction = 2)
+  
+  # set extents and projection
+  min_lon <- project$parameter_sets[[s]]$min_lon
+  max_lon <- project$parameter_sets[[s]]$max_lon
+  min_lat <- project$parameter_sets[[s]]$min_lat
+  max_lat <- project$parameter_sets[[s]]$max_lat
+  r <- setExtent(r, extent(min_lon, max_lon, min_lat, max_lat))
+  crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+  print(col)
+  # overlay raster
+  col_pal <- colorNumeric(col, values(r), na.color = "transparent")
+  myplot <- addRasterImage(myplot, x = r, colors = col_pal, opacity = opacity)
+  
+  # add bounding rect
+  myplot <- addRectangles(myplot, min_lon, min_lat, max_lon, max_lat,
+                          fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add sources to dynamic map
+#'
+#' @description Add sources to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param lon longitude of sources
+#' @param lat latitude of sources
+#'
+#' @export
+
+overlay_sources <- function(myplot, lon, lat) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_numeric(lon)
+  assert_vector(lon)
+  assert_numeric(lat)
+  assert_vector(lat)
+  assert_same_length(lon, lat)
+  
+  # create custom icon
+  source_icon <- makeAwesomeIcon(icon = 'flag', markerColor = 'red', iconColor = 'black')
+  
+  # add custom markers
+  myplot <- addAwesomeMarkers(myplot, lng = lon, lat = lat, icon = source_icon)
+  
+  # return plot object
+  return(myplot)
 }

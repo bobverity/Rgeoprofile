@@ -18,7 +18,7 @@ Imports:
     fftwtools,
     ggplot2,
     gridExtra,
-    ggmap,
+    leaflet,
     RColorBrewer,
     rgdal,
     raster,
