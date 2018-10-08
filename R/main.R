@@ -25,7 +25,7 @@
 #' @import RColorBrewer
 #' @import leaflet
 #' @import rgdal
-#' @importFrom raster raster flip crs extent extent<- rasterize projectRaster distance
+#' @importFrom raster raster flip crs setExtent extent extent<- rasterize projectRaster distance
 #' @import viridis
 #' @importFrom grDevices colorRampPalette grey
 #' @import graphics
