@@ -1032,13 +1032,19 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
 #'
 #' @description Create dynamic map
 #'
+#' @param map_type an index from 1 to 137 indicating the type of base map. The
+#'   map types are taken from \code{leaflet::providers}. Defaults to "CartoDB"
+#'
 #' @export
 
-plot_map <- function() {
+plot_map <- function(map_type = 97) {
+  
+  # check inputs
+  assert_in(map_type, 1:137, message = "map_type must be in 1:137")
   
   # produce plot
   myplot <- leaflet()
-  myplot <- addTiles(myplot)
+  myplot <-  addProviderTiles(myplot, providers[[map_type]])
   
   # return plot object
   return(myplot)
@@ -1055,7 +1061,7 @@ plot_map <- function() {
 #' @param sentinel_radius the radius of sentinel sites. Taken from the active
 #'   parameter set if unspecified
 #' @param fill whether to fill circles
-#' @param fill_colour fill colour
+#' @param fill_colour colour of circle fill
 #' @param fill_opacity fill opacity
 #' @param border whether to add border to circles
 #' @param border_colour colour of circle borders
@@ -1068,7 +1074,7 @@ overlay_sentinels <- function(myplot,
                               project,
                               sentinel_radius = NULL,
                               fill = TRUE,
-                              fill_colour = "blue",
+                              fill_colour = c(grey(0.5), "red"),
                               fill_opacity = 0.5,
                               border = FALSE,
                               border_colour = "black",
@@ -1081,6 +1087,34 @@ overlay_sentinels <- function(myplot,
   if (!is.null(sentinel_radius)) {
     assert_single_pos(sentinel_radius)
   }
+  assert_logical(fill)
+  assert_vector(fill)
+  assert_in(length(fill), c(1,2))
+  if (length(fill) == 1) {
+    fill <- rep(fill, 2)
+  }
+  assert_string(fill_colour)
+  assert_vector(fill_colour)
+  assert_in(length(fill_colour), c(1,2))
+  if (length(fill_colour) == 1) {
+    fill_colour <- rep(fill_colour, 2)
+  }
+  assert_single_pos(fill_opacity)
+  assert_bounded(fill_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_logical(border)
+  assert_vector(border)
+  assert_in(length(border), c(1,2))
+  if (length(border) == 1) {
+    border <- rep(border, 2)
+  }
+  assert_string(border_colour)
+  assert_vector(border_colour)
+  assert_in(length(border_colour), c(1,2))
+  if (length(border_colour) == 1) {
+    border_colour <- rep(border_colour, 2)
+  }
+  assert_single_pos(border_opacity)
+  assert_bounded(border_opacity, 0, 1, inclusive_left = TRUE, inclusive_right = TRUE)
   
   # check for data
   df <- project$data
@@ -1103,11 +1137,22 @@ overlay_sentinels <- function(myplot,
     message(sprintf("  sentinal radius = %skm", sentinel_radius))
   }
   
+  # make circle attributes depend on counts
+  n <- nrow(df)
+  fill_vec <- rep(fill[1], n)
+  fill_vec[df$counts > 0] <- fill[2]
+  fill_colour_vec <- rep(fill_colour[1], n)
+  fill_colour_vec[df$counts > 0] <- fill_colour[2]
+  border_vec <- rep(border[1], n)
+  border_vec[df$counts > 0] <- border[2]
+  border_colour_vec <- rep(border_colour[1], n)
+  border_colour_vec[df$counts > 0] <- border_colour[2]
+  
   # overlay circles
   myplot <- addCircles(myplot, lng = df$longitude, lat = df$latitude,
                       radius = sentinel_radius*1e3,
-                      fill = fill, fillColor = fill_colour, fillOpacity = fill_opacity,
-                      stroke = border, color = border_colour,
+                      fill = fill_vec, fillColor = fill_colour_vec, fillOpacity = fill_opacity,
+                      stroke = border_vec, color = border_colour_vec,
                       opacity = border_opacity, weight = border_weight)
   
   # return plot object
@@ -1223,7 +1268,7 @@ overlay_geoprofile <- function(myplot,
   max_lat <- project$parameter_sets[[s]]$max_lat
   r <- setExtent(r, extent(min_lon, max_lon, min_lat, max_lat))
   crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
-  print(col)
+  
   # overlay raster
   col_pal <- colorNumeric(col, values(r), na.color = "transparent")
   myplot <- addRasterImage(myplot, x = r, colors = col_pal, opacity = opacity)
@@ -1244,10 +1289,28 @@ overlay_geoprofile <- function(myplot,
 #' @param myplot dynamic map produced by \code{plot_map()} function
 #' @param lon longitude of sources
 #' @param lat latitude of sources
+#' @param icon_url what image to use for the icon
+#' @param icon_width the width of the icon
+#' @param icon_height the height of the icon
+#' @param icon_anchor_x the coordinates of the "tip" of the icon (relative to
+#'   its top left corner, i.e. the top left corner means \code{icon_anchor_x =
+#'   0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
+#'   point is at the marker's geographical location
+#' @param icon_anchor_y the coordinates of the "tip" of the icon (relative to
+#'   its top left corner, i.e. the top left corner means \code{icon_anchor_x =
+#'   0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
+#'   point is at the marker's geographical location
 #'
 #' @export
 
-overlay_sources <- function(myplot, lon, lat) {
+overlay_sources <- function(myplot,
+                            lon,
+                            lat,
+                            icon_url = "http://simpleicon.com/wp-content/uploads/cross.png",
+                            icon_width = 20,
+                            icon_height = 20,
+                            icon_anchor_x = 10,
+                            icon_anchor_y = 10) {
   
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -1256,12 +1319,18 @@ overlay_sources <- function(myplot, lon, lat) {
   assert_numeric(lat)
   assert_vector(lat)
   assert_same_length(lon, lat)
+  assert_single_string(icon_url)
+  assert_single_pos_int(icon_width)
+  assert_single_pos_int(icon_height)
+  assert_single_pos_int(icon_anchor_x)
+  assert_single_pos_int(icon_anchor_y)
   
   # create custom icon
-  source_icon <- makeAwesomeIcon(icon = 'flag', markerColor = 'red', iconColor = 'black')
+  source_icon <- makeIcon(iconUrl = icon_url, iconWidth = icon_width, iconHeight = icon_height,
+                          iconAnchorX = icon_anchor_x, iconAnchorY = icon_anchor_y)
   
   # add custom markers
-  myplot <- addAwesomeMarkers(myplot, lng = lon, lat = lat, icon = source_icon)
+  myplot <- addMarkers(myplot, lng = lon, lat = lat, icon = source_icon)
   
   # return plot object
   return(myplot)

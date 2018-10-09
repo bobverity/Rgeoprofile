@@ -4,7 +4,10 @@
 \alias{overlay_sources}
 \title{Add sources to dynamic map}
 \usage{
-overlay_sources(myplot, lon, lat)
+overlay_sources(myplot, lon, lat,
+  icon_url = "http://simpleicon.com/wp-content/uploads/cross.png",
+  icon_width = 20, icon_height = 20, icon_anchor_x = 10,
+  icon_anchor_y = 10)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}
@@ -12,6 +15,22 @@ overlay_sources(myplot, lon, lat)
 \item{lon}{longitude of sources}
 
 \item{lat}{latitude of sources}
+
+\item{icon_url}{what image to use for the icon}
+
+\item{icon_width}{the width of the icon}
+
+\item{icon_height}{the height of the icon}
+
+\item{icon_anchor_x}{the coordinates of the "tip" of the icon (relative to
+its top left corner, i.e. the top left corner means \code{icon_anchor_x =
+0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
+point is at the marker's geographical location}
+
+\item{icon_anchor_y}{the coordinates of the "tip" of the icon (relative to
+its top left corner, i.e. the top left corner means \code{icon_anchor_x =
+0} and \code{icon_anchor_y = 0}), and the icon will be aligned so that this
+point is at the marker's geographical location}
 }
 \description{
 Add sources to dynamic map

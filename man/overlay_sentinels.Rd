@@ -5,7 +5,7 @@
 \title{Add sentinel sites to dynamic map}
 \usage{
 overlay_sentinels(myplot, project, sentinel_radius = NULL, fill = TRUE,
-  fill_colour = "blue", fill_opacity = 0.5, border = FALSE,
+  fill_colour = c(grey(0.5), "red"), fill_opacity = 0.5, border = FALSE,
   border_colour = "black", border_weight = 1, border_opacity = 1)
 }
 \arguments{
@@ -19,7 +19,7 @@ parameter set if unspecified}
 
 \item{fill}{whether to fill circles}
 
-\item{fill_colour}{fill colour}
+\item{fill_colour}{colour of circle fill}
 
 \item{fill_opacity}{fill opacity}
 
