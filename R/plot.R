@@ -1044,7 +1044,7 @@ plot_map <- function(map_type = 97) {
   
   # produce plot
   myplot <- leaflet()
-  myplot <-  addProviderTiles(myplot, providers[[map_type]])
+  myplot <-  addProviderTiles(myplot, leaflet::providers[[map_type]])
   
   # return plot object
   return(myplot)
