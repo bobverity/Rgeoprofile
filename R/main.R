@@ -24,6 +24,7 @@
 #' @import gridExtra
 #' @import RColorBrewer
 #' @import leaflet
+#' @import leaflet.minicharts
 #' @import rgdal
 #' @importFrom raster raster values flip crs<- setExtent extent extent<- rasterize projectRaster distance
 #' @import viridis
@@ -377,7 +378,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     rungs <- 1
     #ind_names <- paste0("ind", 1:n)
     #locus_names <- paste0("locus", 1:L)
-    source_names <- paste0("source", 1:K[i])
+    group_names <- paste0("group", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
     
     # ---------- raw mcmc results ----------
@@ -390,17 +391,17 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # get source lon lat in coda::mcmc format
     full_source_lon <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lon))
-    colnames(full_source_lon) <- source_names
+    colnames(full_source_lon) <- group_names
     full_source_lat <- mcmc(rcpp_to_mat(output_raw[[i]]$source_lat))
-    colnames(full_source_lat) <- source_names
+    colnames(full_source_lat) <- group_names
     
     # get sigma in coda::mcmc format
     full_sigma <- mcmc(rcpp_to_mat(output_raw[[i]]$sigma))
     if (args_model$sigma_model == "single") {
       full_sigma <- full_sigma[, 1, drop = FALSE]
-      colnames(full_sigma) <- "all_demes"
+      colnames(full_sigma) <- "all_groups"
     } else {
-      colnames(full_sigma) <- source_names
+      colnames(full_sigma) <- group_names
     }
     
     # get expected_popsize in coda::mcmc format
@@ -421,7 +422,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     # process Q-matrix
     qmatrix <- rcpp_to_mat(output_raw[[i]]$qmatrix)/samples
     qmatrix[project$data$counts == 0,] <- rep(NA, K[i])
-    colnames(qmatrix) <- source_names
+    colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
     # get lon/lat midpoins of domain
@@ -482,10 +483,10 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # process acceptance rates
     source_accept <- output_raw[[i]]$source_accept/samples
-    names(source_accept) <- source_names
+    names(source_accept) <- group_names
     
     sigma_accept <- output_raw[[i]]$sigma_accept/samples
-    names(sigma_accept) <- source_names
+    names(sigma_accept) <- group_names
     
     #coupling_accept <- output_raw[[i]]$coupling_accept/samples
     
@@ -600,28 +601,28 @@ align_qmatrix <- function(project) {
     best_perm_order <- order(best_perm)
     
     # reorder qmatrix
-    source_names <- paste0("deme", 1:ncol(qmatrix))
+    group_names <- paste0("group", 1:ncol(qmatrix))
     qmatrix <- qmatrix[, best_perm_order, drop = FALSE]
-    colnames(qmatrix) <- source_names
+    colnames(qmatrix) <- group_names
     
     # reorder raw output
     if (!is.null(x[[i]]$raw)) {
       
       # reorder source_lon
       source_lon <- x[[i]]$raw$source_lon[, best_perm_order, drop = FALSE]
-      names(source_lon) <- source_names
+      names(source_lon) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$raw$source_lon <- source_lon
       
       # reorder source_lat
       source_lat <- x[[i]]$raw$source_lat[, best_perm_order, drop = FALSE]
-      names(source_lat) <- source_names
+      names(source_lat) <- group_names
       project$output$single_set[[s]]$single_K[[i]]$raw$source_lat <- source_lat
       
       # reorder sigma
       sigma <- x[[i]]$raw$sigma
       if (ncol(sigma) > 1) {
         sigma <- sigma[, best_perm_order, drop = FALSE]
-        names(sigma) <- source_names
+        names(sigma) <- group_names
         project$output$single_set[[s]]$single_K[[i]]$raw$sigma <- sigma
       }
     }
@@ -644,24 +645,24 @@ align_qmatrix <- function(project) {
     
     # reorder sigma_intervals
     sigma_intervals <- x[[i]]$summary$sigma_intervals[best_perm_order,,drop = FALSE]
-    rownames(sigma_intervals) <- source_names
+    rownames(sigma_intervals) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_intervals <- sigma_intervals
     
     # reorder source_accept
     source_accept <- x[[i]]$summary$source_accept[best_perm_order]
-    names(source_accept) <- source_names
+    names(source_accept) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$source_accept <- source_accept
     
     # reorder sigma_accept
     sigma_accept <- x[[i]]$summary$sigma_accept[best_perm_order]
-    names(sigma_accept) <- source_names
+    names(sigma_accept) <- group_names
     project$output$single_set[[s]]$single_K[[i]]$summary$sigma_accept <- sigma_accept
     
     # qmatrix becomes template for next level up
     template_qmatrix <- qmatrix
     
     # store result
-    class(qmatrix) <- "malecot_qmatrix"
+    class(qmatrix) <- "rgeoprofile_qmatrix"
     project$output$single_set[[s]]$single_K[[i]]$summary$qmatrix <- qmatrix
   }
   

@@ -188,241 +188,6 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
 }
 
 #------------------------------------------------
-#' @title Plot raw source locations
-#'
-#' @description Plot raw source locations.
-#'
-#' @details TODO
-#'
-#' @param project an RgeoProfile project, as produced by the function 
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot_source_raw <- function(project, K = NULL) {
-  
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-  
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$raw$source_lon)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no source_lon output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  source_lon <- project$output$single_set[[s]]$single_K[[K]]$raw$source_lon
-  source_lat <- project$output$single_set[[s]]$single_K[[K]]$raw$source_lat
-  if (is.null(source_lon) || is.null(source_lat)) {
-    stop(sprintf("no source_lon/source_lat output for K = %s of active set", K))
-  }
-  
-  # get raw sources into ggplot format
-  df <- data.frame(source_lon = as.vector(source_lon),
-                   source_lat = as.vector(source_lat),
-                   source = rep(1:ncol(source_lon), each = nrow(source_lon)))
-  
-  # produce basic empty plot
-  plot1 <- ggplot() + theme_bw()
-  
-  # overlay raw posterior source chains
-  for (i in 1:ncol(source_lon)) {
-    plot1 <- plot1 + geom_path(aes_(x = ~source_lon, y = ~source_lat, color = ~as.factor(source)), alpha = 0.2, data = df)
-  }
-  
-  # overlay circles around sentinel sites
-  n_nodes <- 20
-  sentinel_radius <- project$parameter_sets[[s]]$sentinel_radius
-  for (i in 1:nrow(project$data)) {
-    sentinel_lon <- project$data$longitude
-    sentinel_lat <- project$data$latitude
-    circle_lonlat <- as.data.frame(bearing_to_lonlat(sentinel_lon[i], sentinel_lat[i],
-                                                     seq(0, 360, l=n_nodes), sentinel_radius))
-    plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude),
-                                  col = grey(0.7), fill = NA, data = circle_lonlat)
-  }
-  
-  # overlay count numbers around sentinel sites
-  project$data$count_text <- mapply(function(x) {ifelse(x == 0, "", x)}, project$data$counts)
-  plot1 <- plot1 + geom_text(aes_(x = ~longitude, y = ~latitude, label = ~count_text),
-                             col = grey(0.7), data = project$data)
-  
-  # titles, legends, scales etc.
-  plot1 <- plot1 + scale_color_manual(values = more_colours(K), name = "group")
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
-#' @title Plot surface of source locations
-#'
-#' @description Plot surface of source locations
-#'
-#' @details TODO
-#'
-#' @param project an RgeoProfile project, as produced by the function 
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param source which source to plot. If NULL then plot combined surface
-#' @param zlim z limits. If NULL then chosen automatically
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot_surface <- function(project, K = NULL, source = NULL, zlim = NULL) {
-  
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-  if (!is.null(source)) {
-    assert_single_pos_int(source, zero_allowed = FALSE)
-  }
-  
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$prob_surface)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no prob_surface output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  prob_surface <- project$output$single_set[[s]]$single_K[[K]]$summary$prob_surface
-  if (is.null(prob_surface)) {
-    stop(sprintf("no prob_surface output for K = %s of active set", K))
-  }
-  
-  # choose which surface to plot
-  if (is.null(source)) {
-    source_plot <- "combined"
-  } else {
-    source_plot <- paste0("source", source)
-  }
-  
-  # get into ggplot format
-  df <- data.frame(x = prob_surface$lon,
-                   y = prob_surface$lat,
-                   z = prob_surface[[source_plot]])
-  
-  # produce basic plot
-  plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_raster(aes_(x = ~x, y = ~y, fill = ~z), interpolate = TRUE, data = df)
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-  
-  # add zlim if defined
-  if (is.null(zlim)) {
-    plot1 <- plot1 + scale_fill_gradientn(colours = col_tim(100), name = "probability")
-  } else {
-    plot1 <- plot1 + scale_fill_gradientn(colours = col_tim(100), name = "probability", limits = zlim)
-  }
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
-#' @title Plot geoprofile
-#'
-#' @description Plot geoprofile of selected sources.
-#'
-#' @details TODO
-#'
-#' @param project an RgeoProfile project, as produced by the function 
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to plot
-#' @param source which source to plot. If NULL then plot combined surface
-#'
-#' @export
-#' @examples
-#' # TODO
-
-plot_geoprofile <- function(project, K = NULL, source = NULL) {
-  
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_single_pos_int(K, zero_allowed = FALSE)
-  }
-  if (!is.null(source)) {
-    assert_single_pos_int(source, zero_allowed = FALSE)
-  }
-  
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$geoprofile)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no geoprofile output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  geoprofile <- project$output$single_set[[s]]$single_K[[K]]$summary$geoprofile
-  if (is.null(geoprofile)) {
-    stop(sprintf("no geoprofile output for K = %s of active set", K))
-  }
-  
-  # choose which surface to plot
-  if (is.null(source)) {
-    source_plot <- "combined"
-  } else {
-    source_plot <- paste0("source", source)
-  }
-  
-  # get into ggplot format
-  df <- data.frame(x = geoprofile$lon,
-                   y = geoprofile$lat,
-                   z = geoprofile[[source_plot]])
-  
-  # produce basic plot
-  plot1 <- ggplot() + theme_bw()
-  plot1 <- plot1 + geom_raster(aes_(x = ~x, y = ~y, fill = ~z), interpolate = TRUE, data = df)
-  plot1 <- plot1 + scale_fill_gradientn(colours = col_tim(100), name = "hiscore percentage", limits = c(0,100))
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  plot1 <- plot1 + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0,0))
-  
-  # return plot object
-  return(plot1)
-}
-
-#------------------------------------------------
 #' @title TODO
 #'
 #' @description default plot for class rgeoprofile_qmatrix.
@@ -542,93 +307,6 @@ plot_structure <- function(project, K = NULL, divide_ind_on = FALSE) {
     plot1 <- plot1 + geom_segment(aes_(x = ~x, y = ~y, xend = ~x, yend = ~y+1, col = "white"), size = 0.3, data = data.frame(x = 1:n-0.5, y = rep(0,n)))
   }
   
-  return(plot1)
-}
-
-#------------------------------------------------
-#' @title Posterior allocation plot in space
-#'
-#' @description Produce posterior allocation plot in space of current active set.
-#'
-#' @param project an RgeoProfile project, as produced by the function 
-#'   \code{rgeoprofile_project()}
-#' @param K which value of K to produce the plot for
-#' @param pie_radius radius of pie charts
-#'
-#' @export
-
-plot_spatial_structure <- function(project, K = NULL, pie_radius = 0.5) {
-  
-  # check inputs
-  assert_custom_class(project, "rgeoprofile_project")
-  if (!is.null(K)) {
-    assert_pos_int(K)
-  }
-  
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to all values with output
-  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  qmatrix <- project$output$single_set[[s]]$single_K[[K]]$summary$qmatrix
-  if (is.null(qmatrix)) {
-    stop(sprintf("no qmatrix output for K = %s of active set", K))
-  }
-  
-  # produce basic empty plot
-  plot1 <- ggplot() + theme_bw()
-  
-  # overlay pie charts at sentinel sites
-  n_nodes <- 20
-  for (i in 1:nrow(project$data)) {
-    
-    # make background circle
-    centre_lon <- project$data$longitude[i]
-    centre_lat <- project$data$latitude[i]
-    circle_lonlat <- as.data.frame(bearing_to_lonlat(centre_lon, centre_lat, seq(0, 360, l=n_nodes), pie_radius))
-    
-    # empty circle if no observations
-    if (project$data$counts[i] == 0) {
-      plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude),
-                                    col = grey(0.7), fill = NA, data = circle_lonlat)
-      next()
-    }
-    
-    # add segments
-    q0 <- 0
-    for (k in 1:K) {
-      q1 <- q0 + qmatrix[i,k]
-      x0 <- 1 + round(q0*(n_nodes-1))
-      x1 <- 1 + round(q1*(n_nodes-1))
-      q0 <- q1
-      
-      if (x0 != x1) {
-        df <- rbind(c(centre_lon, centre_lat),
-                    circle_lonlat[x0:x1,])
-        plot1 <- plot1 + geom_polygon(aes_(x = ~longitude, y = ~latitude, fill = as.factor(k)),
-                                      col = "black", data = df)
-      }
-    }
-    
-  }
-  
-  # titles, legends, scales etc.
-  plot1 <- plot1 + scale_fill_manual(values = more_colours(K), name = "group")
-  plot1 <- plot1 + xlab("longitude") + ylab("latitude")
-  
-  # return plot object
   return(plot1)
 }
 
@@ -1205,7 +883,8 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
 #' @param source which source to plot. If NULL then plot combined surface
 #' @param threshold what proportion of geoprofile to plot
 #' @param col set of plotting colours
-#' @param opacity opacity of geoprofile (that is not invisible due to being below threshold)
+#' @param opacity opacity of geoprofile (that is not invisible due to being
+#'   below threshold)
 #'
 #' @export
 
@@ -1270,8 +949,98 @@ overlay_geoprofile <- function(myplot,
   crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
   
   # overlay raster
-  col_pal <- colorNumeric(col, values(r), na.color = "transparent")
-  myplot <- addRasterImage(myplot, x = r, colors = col_pal, opacity = opacity)
+  myplot <- addRasterImage(myplot, x = r, colors = col, opacity = opacity)
+  
+  # add bounding rect
+  myplot <- addRectangles(myplot, min_lon, min_lat, max_lon, max_lat,
+                          fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add posterior probability surface to dynamic map
+#'
+#' @description Add posterior probability surface to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K which value of K to plot
+#' @param source which source to plot. If NULL then plot combined surface
+#' @param threshold what proportion of posterior probability surface to plot
+#' @param col set of plotting colours
+#' @param opacity opacity of posterior probability surface (that is not
+#'   invisible due to being below threshold)
+#'
+#' @export
+
+overlay_surface <- function(myplot,
+                            project,
+                            K = NULL,
+                            source = NULL,
+                            threshold = 0.1,
+                            col = col_hotcold(),
+                            opacity = 0.8) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  if (!is.null(source)) {
+    assert_single_pos_int(source, zero_allowed = FALSE)
+  }
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$prob_surface)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no prob_surface output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  prob_surface <- project$output$single_set[[s]]$single_K[[K]]$summary$prob_surface
+  if (is.null(prob_surface)) {
+    stop(sprintf("no prob_surface output for K = %s of active set", K))
+  }
+  
+  # choose which surface to plot
+  if (is.null(source)) {
+    source_plot <- "combined"
+  } else {
+    assert_leq(source, K)
+    source_plot <- paste0("source", source)
+  }
+  
+  # extract surface into matrix
+  x <- t(matrix(prob_surface[[source_plot]], nrow = length(unique(prob_surface$lon))))
+  x_min <- min(x, na.rm = TRUE)
+  x_max <- max(x, na.rm = TRUE)
+  threshold_final <- x_min + (x_max-x_min)*threshold
+  x[x < threshold_final] <- NA
+  
+  # convert to raster
+  r <- flip(raster(x), direction = 2)
+  
+  # set extents and projection
+  min_lon <- project$parameter_sets[[s]]$min_lon
+  max_lon <- project$parameter_sets[[s]]$max_lon
+  min_lat <- project$parameter_sets[[s]]$min_lat
+  max_lat <- project$parameter_sets[[s]]$max_lat
+  r <- setExtent(r, extent(min_lon, max_lon, min_lat, max_lat))
+  crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+  
+  # overlay raster
+  myplot <- addRasterImage(myplot, x = r, colors = rev(col), opacity = opacity)
   
   # add bounding rect
   myplot <- addRectangles(myplot, min_lon, min_lat, max_lon, max_lat,
@@ -1333,5 +1102,78 @@ overlay_sources <- function(myplot,
   myplot <- addMarkers(myplot, lng = lon, lat = lat, icon = source_icon)
   
   # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
+#' @title Add pie charts to dynamic map
+#'
+#' @description Add pie charts to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param K which value of K to plot
+#' @param min_size lower limit on the size of pie charts
+#' @param max_size upper limit on the size of pie charts
+#' @param col segment colours
+#'
+#' @export
+
+overlay_piecharts <- function(myplot,
+                              project,
+                              K = NULL,
+                              min_size = 10,
+                              max_size = 30,
+                              col = NULL) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no qmatrix output for active parameter set")
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  qmatrix <- project$output$single_set[[s]]$single_K[[K]]$summary$qmatrix
+  if (is.null(qmatrix)) {
+    stop(sprintf("no qmatrix output for K = %s of active set", K))
+  }
+  
+  # set default colours from K
+  col <- define_default(col, col_hotcold(K))
+  
+  # check correct number of colours
+  assert_length(col, K)
+  
+  # get data into ggplot format
+  w <- which(!is.na(qmatrix[,1]))
+  lon <- project$data$longitude[w]
+  lat <- project$data$latitude[w]
+  counts <- project$data$counts[w]
+  pie_size <- min_size + counts/max(counts)*(max_size - min_size)
+  df <- round(qmatrix[w,], digits = 3)
+  
+  # overlay pie charts
+  myplot <- addMinicharts(myplot, lon, lat,
+                          type = "pie",
+                          chartdata = df, 
+                          colorPalette = col, 
+                          width = pie_size,
+                          transitionTime = 20)
+  
   return(myplot)
 }

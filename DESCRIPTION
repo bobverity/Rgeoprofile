@@ -19,6 +19,7 @@ Imports:
     ggplot2,
     gridExtra,
     leaflet,
+    leaflet.minicharts,
     RColorBrewer,
     rgdal,
     raster,
