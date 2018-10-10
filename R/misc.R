@@ -132,7 +132,7 @@ test_convergence <- function(x, n) {
 #' @noRd
 update_progress <- function(pb_list, name, i, max_i) {
   setTxtProgressBar(pb_list[[name]], i)
-  if (i==max_i) {
+  if (i == max_i) {
     close(pb_list[[name]])
   }
 }

@@ -5,8 +5,9 @@
 \title{Add sentinel sites to dynamic map}
 \usage{
 overlay_sentinels(myplot, project, sentinel_radius = NULL, fill = TRUE,
-  fill_colour = c(grey(0.5), "red"), fill_opacity = 0.5, border = FALSE,
-  border_colour = "black", border_weight = 1, border_opacity = 1)
+  fill_colour = c(grey(0.5), "red"), fill_opacity = 0.5,
+  border = FALSE, border_colour = "black", border_weight = 1,
+  border_opacity = 1)
 }
 \arguments{
 \item{myplot}{dynamic map produced by \code{plot_map()} function}

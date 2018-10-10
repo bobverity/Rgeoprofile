@@ -143,18 +143,18 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
     
     // update progress bars
     if (!silent) {
-      if ((rep+1)==burnin) {
+      if ((rep+1) == burnin) {
         update_progress(args_progress, "pb_burnin", rep+1, burnin);
       } else {
         int remainder = rep % int(ceil(double(burnin)/100));
-        if (remainder==0 && !pb_markdown) {
+        if (remainder == 0 && !pb_markdown) {
           update_progress(args_progress, "pb_burnin", rep+1, burnin);
         }
       }
     }
     
     // check for convergence
-    if (auto_converge && (rep+1)==convergence_checkpoint[checkpoint_i]) {
+    if (auto_converge && (rep+1) == convergence_checkpoint[checkpoint_i]) {
       
       // check for convergence of all unconverged chains
       for (int r=0; r<rungs; r++) {

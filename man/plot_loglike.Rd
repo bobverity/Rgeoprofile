@@ -4,8 +4,8 @@
 \alias{plot_loglike}
 \title{Plot loglikelihood 95\% credible intervals}
 \usage{
-plot_loglike(project, K = NULL, axis_type = 1, connect_points = FALSE,
-  connect_whiskers = FALSE)
+plot_loglike(project, K = NULL, axis_type = 1,
+  connect_points = FALSE, connect_whiskers = FALSE)
 }
 \arguments{
 \item{project}{an RgeoProfile project, as produced by the function 
