@@ -26,7 +26,7 @@
 #' @import leaflet
 #' @import leaflet.minicharts
 #' @import rgdal
-#' @importFrom raster raster values setValues addLayer flip crs<- setExtent extent extent<- rasterize projectRaster distance
+#' @importFrom raster raster values setValues addLayer extract xmin xmax ymin ymax disaggregate flip crs<- setExtent extent extent<- rasterize projectRaster distance
 #' @import viridis
 #' @importFrom grDevices colorRampPalette grey
 #' @import graphics

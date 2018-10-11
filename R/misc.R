@@ -633,7 +633,7 @@ get_hitscores <- function(project, source_lon, source_lat) {
   df <- data.frame(longitude = source_lon, latitude = source_lat)
   
   # add ring-search hitscores
-  ringsearch <- p$output$single_set[[s]]$all_K$ringsearch
+  ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
   df$hs_ringsearch <- round(extract(ringsearch, cbind(source_lon, source_lat)), digits = 2)
   
   # add geoprofile hitscores for all K
