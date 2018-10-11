@@ -54,10 +54,10 @@ Parameters::Parameters(const Rcpp::List &args) {
   // model parameters
   K = rcpp_to_int(args["K"]);
   sentinel_radius = rcpp_to_double(args["sentinel_radius"]);
-  min_lon = rcpp_to_double(args["min_lon"]);
-  max_lon = rcpp_to_double(args["max_lon"]);
-  min_lat = rcpp_to_double(args["min_lat"]);
-  max_lat = rcpp_to_double(args["max_lat"]);
+  min_lon = rcpp_to_double(args["min_lon_model"]);
+  max_lon = rcpp_to_double(args["max_lon_model"]);
+  min_lat = rcpp_to_double(args["min_lat_model"]);
+  max_lat = rcpp_to_double(args["max_lat_model"]);
   sigma_model = rcpp_to_int(args["sigma_model_numeric"]);
   
   // get sigma prior mean and sd in log space from raw inputs

@@ -26,7 +26,7 @@
 #' @import leaflet
 #' @import leaflet.minicharts
 #' @import rgdal
-#' @importFrom raster raster values flip crs<- setExtent extent extent<- rasterize projectRaster distance
+#' @importFrom raster raster values setValues addLayer flip crs<- setExtent extent extent<- rasterize projectRaster distance
 #' @import viridis
 #' @importFrom grDevices colorRampPalette grey
 #' @import graphics
@@ -175,10 +175,14 @@ new_set <- function(project,
                                       expected_popsize_prior_mean = expected_popsize_prior_mean,
                                       expected_popsize_prior_sd = expected_popsize_prior_sd)
   
+  # name parameter set
   names(project$parameter_sets)[s] <- paste0("set", s)
   
-  project$output$single_set[[s]] <- list(single_K = list())
+  # create new output at all_K level
+  project$output$single_set[[s]] <- list(single_K = list(),
+                                         all_K = list())
   
+  # name new output
   names(project$output$single_set) <- paste0("set", 1:length(project$output$single_set))
   
   # return
@@ -303,8 +307,17 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     stop("no active parameter set")
   }
   
-  # get useful quantities
-  n_trap <- nrow(project$data)
+  # get user-defined domain limits
+  min_lon <- project$parameter_sets[[s]]$min_lon
+  max_lon <- project$parameter_sets[[s]]$max_lon
+  min_lat <- project$parameter_sets[[s]]$min_lat
+  max_lat <- project$parameter_sets[[s]]$max_lat
+  
+  # get final domain limits used within model
+  min_lon_model <- ceiling(min_lon/precision_lon)*precision_lon
+  max_lon_model <- floor(max_lon/precision_lon)*precision_lon
+  min_lat_model <- ceiling(min_lat/precision_lat)*precision_lat
+  max_lat_model <- floor(max_lat/precision_lat)*precision_lat
   
   # ---------- create argument lists ----------
   
@@ -327,6 +340,10 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   # combine model parameters list with input arguments
   args_model <- c(project$parameter_sets[[s]], args_inputs)
   args_model$sigma_model_numeric <- match(args_model$sigma_model, c("single", "independent"))
+  args_model <- c(args_model, list(min_lon_model = min_lon_model,
+                                   max_lon_model = max_lon_model,
+                                   min_lat_model = min_lat_model,
+                                   max_lat_model = max_lat_model))
   
   # R functions to pass to Rcpp
   args_functions <- list(test_convergence = test_convergence,
@@ -376,8 +393,6 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # create name lists
     rungs <- 1
-    #ind_names <- paste0("ind", 1:n)
-    #locus_names <- paste0("locus", 1:L)
     group_names <- paste0("group", 1:K[i])
     rung_names <- paste0("rung", 1:rungs)
     
@@ -425,40 +440,62 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     colnames(qmatrix) <- group_names
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
-    # get lon/lat midpoins of domain
-    min_lon <- project$parameter_sets[[s]]$min_lon
-    max_lon <- project$parameter_sets[[s]]$max_lon
-    breaks_lon <- seq(min_lon, max_lon, precision_lon)
-    midpoints_lon <- breaks_lon[-1] - precision_lon/2
-    min_lat <- project$parameter_sets[[s]]$min_lat
-    max_lat <- project$parameter_sets[[s]]$max_lat
-    breaks_lat <- seq(min_lat, max_lat, precision_lat)
-    midpoints_lat <- breaks_lat[-1] - precision_lat/2
+    # create empty raster with correct properties
+    cells_lon <- (max_lon_model - min_lon_model)/precision_lon
+    cells_lat <- (max_lat_model - min_lat_model)/precision_lat
+    raster_empty <- raster(xmn = min_lon_model,
+                           xmx = max_lon_model,
+                           ymn = min_lat_model,
+                           ymx = max_lat_model,
+                           nrow = cells_lat,
+                           ncol = cells_lon)
     
-    # produce prob_surface dataframe
-    prob_surface <- expand.grid(midpoints_lon, midpoints_lat)
-    names(prob_surface) <- c("lon", "lat")
-    prob_surface_combined <- 0
+    # get breaks for kernel smoothing
+    breaks_lon <- seq(min_lon_model, max_lon_model, precision_lon)
+    breaks_lat <- seq(min_lat_model, max_lat_model, precision_lat)
+    
+    # produce posterior probability surface rasters
+    prob_surface_split <- raster()
+    prob_surface_mat <- 0
     for (k in 1:K[i]) {
-      smooth_source_k <- kernel_smooth(full_source_lon[,k],
-                                       full_source_lat[,k],
-                                       breaks_lon,
-                                       breaks_lat)
-      smooth_source_k <- smooth_source_k/sum(smooth_source_k)
       
-      prob_surface <- cbind(prob_surface, as.vector(t(smooth_source_k)))
-      names(prob_surface)[ncol(prob_surface)] <- paste0("source", k)
-      prob_surface_combined <- prob_surface_combined + smooth_source_k/K[i]
+      # get prob_surface for this K by smoothing
+      prob_surface_split_mat <- kernel_smooth(full_source_lon[,k],
+                                              full_source_lat[,k],
+                                              breaks_lon,
+                                              breaks_lat)
+      prob_surface_split_mat <- prob_surface_split_mat[nrow(prob_surface_split_mat):1,]
+      prob_surface_split_mat <- prob_surface_split_mat/sum(prob_surface_split_mat)
+      
+      # add raster layer
+      prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
+      prob_surface_split <- addLayer(prob_surface_split, prob_surface_split_k)
+      
+      # add to combined surface matrix
+      prob_surface_mat <- prob_surface_mat + prob_surface_split_mat/K[i]
     }
-    prob_surface$combined <- as.vector(t(prob_surface_combined))
     
-    # produce geoprofile from prob_surface
-    geoprofile <- prob_surface
-    for (k in 3:ncol(prob_surface)) {
-      geoprofile[,k] <- rank(prob_surface[,k], ties.method = "first")
-      geoprofile[,k][is.na(prob_surface[,k])] <- NA
-      geoprofile[,k] <- 100 * (1 - (geoprofile[,k]-1)/max(geoprofile[,k], na.rm = TRUE))
+    # make combined raster
+    prob_surface <- setValues(raster_empty, prob_surface_mat)
+    
+    # produce geoprofile rasters
+    geoprofile_split <- raster()
+    geoprofile_mat <- 0
+    for (k in 1:K[i]) {
+      
+      # make geoprofile matrix from probability surface
+      geoprofile_split_mat <- rank(values(prob_surface_split[[k]]), ties.method = "first")
+      geoprofile_split_mat <- 100 * (1 - geoprofile_split_mat/max(geoprofile_split_mat, na.rm = TRUE))
+      
+      # add raster layer
+      geoprofile_split_k <- setValues(raster_empty, geoprofile_split_mat)
+      geoprofile_split <- addLayer(geoprofile_split, geoprofile_split_k)
     }
+    
+    # make combined raster
+    geoprofile_mat <- rank(values(prob_surface), ties.method = "first")
+    geoprofile_mat <- 100 * (1 - geoprofile_mat/max(geoprofile_mat, na.rm = TRUE))
+    geoprofile <- setValues(raster_empty, geoprofile_mat)
     
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
@@ -472,7 +509,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     ESS <- effectiveSize(loglike_sampling)
     ESS[ESS == 0] <- samples # if no variation then assume zero autocorrelation
     ESS[ESS > samples] <- samples # ESS cannot exceed actual number of samples taken
-    #names(ESS) <- rung_names
+    names(ESS) <- rung_names
     
     # ---------- model comparison statistics ----------
     mu <- mean(loglike_sampling[,ncol(loglike_sampling)])
@@ -508,7 +545,9 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     project$output$single_set[[s]]$single_K[[K[i]]] <- list()
     
     project$output$single_set[[s]]$single_K[[K[i]]]$summary <- list(loglike_intervals = loglike_intervals,
+                                                                    prob_surface_split = prob_surface_split,
                                                                     prob_surface = prob_surface,
+                                                                    geoprofile_split = geoprofile_split,
                                                                     geoprofile = geoprofile,
                                                                     qmatrix = qmatrix,
                                                                     sigma_intervals = sigma_intervals,
@@ -541,6 +580,28 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   
   # reorder qmatrices
   project <- align_qmatrix(project)
+  
+  # run ring-search prior to MCMC
+  ringsearch <- ring_search(project,
+                            precision_lon = precision_lon,
+                            precision_lat = precision_lat,
+                            min_lon_model = min_lon_model,
+                            max_lon_model = max_lon_model,
+                            min_lat_model = min_lat_model,
+                            max_lat_model = max_lat_model)
+  project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
+  
+  # get DIC over all K
+  DIC_gelman <- mapply(function(x) {
+                        ret <- x$summary$DIC_gelman
+                        if (is.null(ret)) {
+                          return(NA)
+                        } else {
+                          return(ret)
+                        }
+                      }, project$output$single_set[[s]]$single_K)
+  DIC_gelman <- as.vector(unlist(DIC_gelman))
+  project$output$single_set[[s]]$all_K$DIC_gelman <- data.frame(K = 1:length(DIC_gelman), DIC_gelman = DIC_gelman)
   
   # end timer
   tdiff <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
@@ -627,21 +688,19 @@ align_qmatrix <- function(project) {
       }
     }
     
-    # reorder prob_surface
-    prob_surface <- x[[i]]$summary$prob_surface
-    nc <- ncol(prob_surface)
-    df_names <- colnames(prob_surface)
-    prob_surface[, -c(1,2,nc)] <- prob_surface[, -c(1,2,nc), drop = FALSE][, best_perm_order]
-    names(prob_surface) <- df_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$prob_surface <- prob_surface
+    # reorder prob_surface_split
+    prob_surface_split <- x[[i]]$summary$prob_surface_split
+    layer_names <- names(prob_surface_split)
+    prob_surface_split <- prob_surface_split[[best_perm_order]]
+    names(prob_surface_split) <- layer_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$prob_surface_split <- prob_surface_split
     
-    # reorder geoprofile
-    geoprofile <- x[[i]]$summary$geoprofile
-    nc <- ncol(geoprofile)
-    df_names <- colnames(geoprofile)
-    geoprofile[, -c(1,2,nc)] <- geoprofile[, -c(1,2,nc), drop = FALSE][, best_perm_order]
-    names(geoprofile) <- df_names
-    project$output$single_set[[s]]$single_K[[i]]$summary$geoprofile <- geoprofile
+    # reorder geoprofile_split
+    geoprofile_split <- x[[i]]$summary$geoprofile_split
+    layer_names <- names(geoprofile_split)
+    geoprofile_split <- geoprofile_split[[best_perm_order]]
+    names(geoprofile_split) <- layer_names
+    project$output$single_set[[s]]$single_K[[i]]$summary$geoprofile_split <- geoprofile_split
     
     # reorder sigma_intervals
     sigma_intervals <- x[[i]]$summary$sigma_intervals[best_perm_order,,drop = FALSE]
@@ -668,4 +727,47 @@ align_qmatrix <- function(project) {
   
   # return modified project
   return(project)
+}
+
+#------------------------------------------------
+# ring-search
+#' @noRd
+ring_search <- function(project,
+                        precision_lon,
+                        precision_lat,
+                        min_lon_model,
+                        max_lon_model,
+                        min_lat_model,
+                        max_lat_model) {
+  
+  # extract sentinel locations with at least one observation
+  data <- subset(project$data, counts > 0)
+  sentinel_lon <- data$longitude
+  sentinel_lat <- data$latitude
+  
+  # get breaks, midpoints, and coordinates of all points in grid
+  breaks_lon <- seq(min_lon_model, max_lon_model, precision_lon)
+  breaks_lat <- seq(min_lat_model, max_lat_model, precision_lat)
+  midpoints_lon <- breaks_lon[-1] - precision_lon/2
+  midpoints_lat <- breaks_lat[-1] - precision_lat/2
+  coords <- expand.grid(midpoints_lon, midpoints_lat)
+  
+  # get distance between all cells and sentinels
+  d <- apply(cbind(sentinel_lon, sentinel_lat), 1,
+             function(x) lonlat_to_bearing(coords[,1], coords[,2], x[1], x[2])$gc_dist)
+  
+  # get minimum distance to any sentinel
+  d_min <- apply(d, 1, min)
+  
+  # convert min distances to hitscore percentages
+  hs <- rank(d_min)/length(d_min) * 100
+  
+  # get into raster format
+  ret <- raster(xmn = min_lon_model, xmx = max_lon_model,
+                ymn = min_lat_model, ymx = max_lat_model,
+                nrow = length(midpoints_lat), ncol = length(midpoints_lon))
+  ret <- setValues(ret, hs)
+  ret <- flip(ret, 2)
+  
+  return(ret)
 }

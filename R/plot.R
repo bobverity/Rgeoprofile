@@ -123,27 +123,8 @@ plot_loglike <- function(project, K = NULL, axis_type = 1, connect_points = FALS
   assert_single_logical(connect_points)
   assert_single_logical(connect_whiskers)
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$loglike_intervals)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no loglike_intervals output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  loglike_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$loglike_intervals
-  if (is.null(loglike_intervals)) {
-    stop(sprintf("no loglike_intervals output for K = %s of active set", K))
-  }
+  # get output
+  loglike_intervals <- get_output(project, "loglike_intervals", K)
   
   # get properties
   rungs <- nrow(loglike_intervals)
@@ -333,27 +314,8 @@ plot_sigma <- function(project, K = NULL) {
     assert_single_pos_int(K, zero_allowed = FALSE)
   }
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$sigma_intervals)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no sigma_intervals output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  sigma_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$sigma_intervals
-  if (is.null(sigma_intervals)) {
-    stop(sprintf("no sigma_intervals output for K = %s of active set", K))
-  }
+  # get output
+  sigma_intervals <- get_output(project, "sigma_intervals", K)
   
   # get properties
   x_vec <- rownames(sigma_intervals)
@@ -392,27 +354,8 @@ plot_expected_popsize <- function(project, K = NULL) {
     assert_single_pos_int(K, zero_allowed = FALSE)
   }
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$expected_popsize_intervals)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no expected_popsize_intervals output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  expected_popsize_intervals <- project$output$single_set[[s]]$single_K[[K]]$summary$expected_popsize_intervals
-  if (is.null(expected_popsize_intervals)) {
-    stop(sprintf("no expected_popsize_intervals output for K = %s of active set", K))
-  }
+  # get output
+  expected_popsize_intervals <- get_output(project, "expected_popsize_intervals", K)
   
   # produce plot
   plot1 <- ggplot(expected_popsize_intervals) + theme_bw()
@@ -449,27 +392,8 @@ plot_trace <- function(project, K = NULL, rung = NULL, col = "black") {
     assert_single_pos_int(rung)
   }
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no loglike_sampling output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
-  if (is.null(loglike_sampling)) {
-    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
-  }
+  # get output
+  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
   
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
@@ -519,27 +443,8 @@ plot_acf <- function(project, K = NULL, rung = NULL, col = "black") {
     assert_single_pos_int(rung)
   }
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no loglike_sampling output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
-  if (is.null(loglike_sampling)) {
-    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
-  }
+  # get output
+  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
   
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
@@ -595,27 +500,8 @@ plot_density <- function(project, K = NULL, rung = NULL, col = "black") {
     assert_single_pos_int(rung)
   }
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s==0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no loglike_sampling output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
-  if (is.null(loglike_sampling)) {
-    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
-  }
+  # get output
+  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
   
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
@@ -664,27 +550,8 @@ plot_loglike_dignostic <- function(project, K = NULL, rung = NULL, col = "black"
     assert_single_pos_int(rung)
   }
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$raw$loglike_sampling)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no loglike_sampling output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  loglike_sampling <- project$output$single_set[[s]]$single_K[[K]]$raw$loglike_sampling
-  if (is.null(loglike_sampling)) {
-    stop(sprintf("no loglike_sampling output for K = %s of active set", K))
-  }
+  # get output
+  loglike_sampling <- get_output(project, "loglike_sampling", K, "raw")
   
   # use cold rung by default
   rungs <- ncol(loglike_sampling)
@@ -726,6 +593,38 @@ plot_map <- function(map_type = 97) {
   
   # return plot object
   return(myplot)
+}
+
+#------------------------------------------------
+#' @title Plot DIC over all K
+#'
+#' @description Plot DIC over all K for the current active parameter set.
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#'
+#' @export
+
+plot_DIC_gelman <- function(project) {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # get DIC values
+  df <- project$output$single_set[[s]]$all_K$DIC_gelman
+  
+  # produce plot
+  plot1 <- ggplot(data = df) + theme_bw()
+  plot1 <- plot1 + geom_point(aes_(x = ~as.factor(K), y = ~DIC_gelman))
+  plot1 <- plot1 + xlab("K") + ylab("DIC (Gelman)")
+  
+  return(plot1)
 }
 
 #------------------------------------------------
@@ -885,6 +784,9 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
 #' @param col set of plotting colours
 #' @param opacity opacity of geoprofile (that is not invisible due to being
 #'   below threshold)
+#' @param smoothing what level of smoothing to apply to geoprofile. Smoothing is
+#'   applied using the \code{raster} function \code{disaggregate}, with
+#'   \code{method = "bilinear"}
 #'
 #' @export
 
@@ -894,7 +796,8 @@ overlay_geoprofile <- function(myplot,
                                source = NULL,
                                threshold = 0.1,
                                col = col_hotcold(),
-                               opacity = 0.8) {
+                               opacity = 0.8,
+                               smoothing = 1) {
   
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -902,57 +805,39 @@ overlay_geoprofile <- function(myplot,
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
-
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("  no active parameter set")
-  }
+  assert_single_numeric(threshold)
+  assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_string(col)
+  assert_single_numeric(opacity)
+  assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_pos(smoothing)
+  assert_greq(smoothing, 1.0)
   
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$geoprofile)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no geoprofile output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  geoprofile <- project$output$single_set[[s]]$single_K[[K]]$summary$geoprofile
-  if (is.null(geoprofile)) {
-    stop(sprintf("no geoprofile output for K = %s of active set", K))
-  }
-  
-  # choose which surface to plot
+  # extract geoprofile
   if (is.null(source)) {
-    source_plot <- "combined"
+    geoprofile <- get_output(p, "geoprofile", K = K)
   } else {
     assert_leq(source, K)
-    source_plot <- paste0("source", source)
+    geoprofile_split <- get_output(p, "geoprofile_split", K = K)
+    geoprofile <- geoprofile_split[[source]]
   }
   
-  # extract geoprofile into matrix
-  gp <- t(matrix(geoprofile[[source_plot]], nrow = length(unique(geoprofile$lon))))
-  gp[gp > threshold*100] <- NA
+  # apply smoothing
+  if (smoothing > 1.0) {
+    geoprofile <- disaggregate(geoprofile, smoothing, method = "bilinear")
+  }
   
-  # convert to raster
-  r <- flip(raster(gp), direction = 2)
-  
-  # set extents and projection
-  min_lon <- project$parameter_sets[[s]]$min_lon
-  max_lon <- project$parameter_sets[[s]]$max_lon
-  min_lat <- project$parameter_sets[[s]]$min_lat
-  max_lat <- project$parameter_sets[[s]]$max_lat
-  r <- setExtent(r, extent(min_lon, max_lon, min_lat, max_lat))
-  crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+  # apply threshold
+  geoprofile_mat <- matrix(values(geoprofile), nrow(geoprofile), byrow = TRUE)
+  geoprofile_mat[geoprofile_mat > threshold*100] <- NA
+  geoprofile <- setValues(geoprofile, geoprofile_mat)
   
   # overlay raster
-  myplot <- addRasterImage(myplot, x = r, colors = col, opacity = opacity)
+  myplot <- addRasterImage(myplot, x = geoprofile, colors = col, opacity = opacity)
   
   # add bounding rect
-  myplot <- addRectangles(myplot, min_lon, min_lat, max_lon, max_lat,
+  myplot <- addRectangles(myplot, xmin(geoprofile), ymin(geoprofile),
+                          xmax(geoprofile), ymax(geoprofile),
                           fill = FALSE, weight = 2, color = grey(0.2))
   
   # return plot object
@@ -973,6 +858,9 @@ overlay_geoprofile <- function(myplot,
 #' @param col set of plotting colours
 #' @param opacity opacity of posterior probability surface (that is not
 #'   invisible due to being below threshold)
+#' @param smoothing what level of smoothing to apply to posterior probability
+#'   surface. Smoothing is applied using the \code{raster} function
+#'   \code{disaggregate}, with \code{method = "bilinear"}
 #'
 #' @export
 
@@ -981,8 +869,9 @@ overlay_surface <- function(myplot,
                             K = NULL,
                             source = NULL,
                             threshold = 0.1,
-                            col = col_hotcold(),
-                            opacity = 0.8) {
+                            col = rev(col_hotcold()),
+                            opacity = 0.8,
+                            smoothing = 1.0) {
   
   # check inputs
   assert_custom_class(myplot, "leaflet")
@@ -990,60 +879,40 @@ overlay_surface <- function(myplot,
   if (!is.null(source)) {
     assert_single_pos_int(source, zero_allowed = FALSE)
   }
+  assert_single_numeric(threshold)
+  assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_string(col)
+  assert_single_numeric(opacity)
+  assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_pos(smoothing)
+  assert_greq(smoothing, 1.0)
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("  no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$prob_surface)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no prob_surface output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  prob_surface <- project$output$single_set[[s]]$single_K[[K]]$summary$prob_surface
-  if (is.null(prob_surface)) {
-    stop(sprintf("no prob_surface output for K = %s of active set", K))
-  }
-  
-  # choose which surface to plot
+  # extract geoprofile
   if (is.null(source)) {
-    source_plot <- "combined"
+    prob_surface <- get_output(p, "prob_surface", K = K)
   } else {
     assert_leq(source, K)
-    source_plot <- paste0("source", source)
+    prob_surface_split <- get_output(p, "prob_surface_split", K = K)
+    prob_surface <- prob_surface[[source]]
   }
   
-  # extract surface into matrix
-  x <- t(matrix(prob_surface[[source_plot]], nrow = length(unique(prob_surface$lon))))
-  x_min <- min(x, na.rm = TRUE)
-  x_max <- max(x, na.rm = TRUE)
-  threshold_final <- x_min + (x_max-x_min)*threshold
-  x[x < threshold_final] <- NA
+  # apply smoothing
+  if (smoothing > 1.0) {
+    prob_surface <- disaggregate(prob_surface, smoothing, method = "bilinear")
+  }
   
-  # convert to raster
-  r <- flip(raster(x), direction = 2)
-  
-  # set extents and projection
-  min_lon <- project$parameter_sets[[s]]$min_lon
-  max_lon <- project$parameter_sets[[s]]$max_lon
-  min_lat <- project$parameter_sets[[s]]$min_lat
-  max_lat <- project$parameter_sets[[s]]$max_lat
-  r <- setExtent(r, extent(min_lon, max_lon, min_lat, max_lat))
-  crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+  # apply threshold
+  prob_surface_mat <- matrix(values(prob_surface), nrow(prob_surface), byrow = TRUE)
+  threshold_final <- sort(prob_surface_mat, decreasing = TRUE)[ceiling(length(prob_surface_mat)*threshold)]
+  prob_surface_mat[prob_surface_mat < threshold_final] <- NA
+  prob_surface <- setValues(prob_surface, prob_surface_mat)
   
   # overlay raster
-  myplot <- addRasterImage(myplot, x = r, colors = rev(col), opacity = opacity)
+  myplot <- addRasterImage(myplot, x = prob_surface, colors = col, opacity = opacity)
   
   # add bounding rect
-  myplot <- addRectangles(myplot, min_lon, min_lat, max_lon, max_lat,
+  myplot <- addRectangles(myplot, xmin(prob_surface), ymin(prob_surface),
+                          xmax(prob_surface), ymax(prob_surface),
                           fill = FALSE, weight = 2, color = grey(0.2))
   
   # return plot object
@@ -1131,27 +1000,9 @@ overlay_piecharts <- function(myplot,
   assert_custom_class(myplot, "leaflet")
   assert_custom_class(project, "rgeoprofile_project")
   
-  # get active set and check non-zero
-  s <- project$active_set
-  if (s == 0) {
-    stop("  no active parameter set")
-  }
-  
-  # set default K to first value with output
-  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
-  if (all(null_output)) {
-    stop("no qmatrix output for active parameter set")
-  }
-  if (is.null(K)) {
-    K <- which(!null_output)[1]
-    message(sprintf("using K = %s by default", K))
-  }
-  
-  # check output exists for chosen K
-  qmatrix <- project$output$single_set[[s]]$single_K[[K]]$summary$qmatrix
-  if (is.null(qmatrix)) {
-    stop(sprintf("no qmatrix output for K = %s of active set", K))
-  }
+  # get output
+  qmatrix <- get_output(project, "qmatrix", K)
+  K <- ncol(qmatrix)
   
   # set default colours from K
   col <- define_default(col, col_hotcold(K))
@@ -1177,3 +1028,75 @@ overlay_piecharts <- function(myplot,
   
   return(myplot)
 }
+
+#------------------------------------------------
+#' @title Add ring-search geoprofile to dynamic map
+#'
+#' @description Add ring-search geoprofile to dynamic map.
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param threshold what proportion of geoprofile to plot
+#' @param col set of plotting colours
+#' @param opacity opacity of geoprofile (that is not invisible due to being
+#'   below threshold)
+#' @param smoothing what level of smoothing to apply to geoprofile. Smoothing is
+#'   applied using the \code{raster} function \code{disaggregate}, with
+#'   \code{method = "bilinear"}
+#'
+#' @export
+
+overlay_ringsearch <- function(myplot,
+                               project,
+                               threshold = 0.1,
+                               col = col_hotcold(),
+                               opacity = 0.8,
+                               smoothing = 1) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_single_numeric(threshold)
+  assert_bounded(threshold, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_string(col)
+  assert_single_numeric(opacity)
+  assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_pos(smoothing)
+  assert_greq(smoothing, 1.0)
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # extract ringsearch output
+  ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
+  if (is.null(ringsearch)) {
+    stop(sprintf("no ringsearch output for K = %s of active set", K))
+  }
+  
+  # apply smoothing
+  if (smoothing > 1.0) {
+    ringsearch <- disaggregate(ringsearch, smoothing, method = "bilinear")
+  }
+  
+  # apply threshold
+  ringsearch_mat <- matrix(values(ringsearch), nrow(ringsearch), byrow = TRUE)
+  ringsearch_mat[ringsearch_mat > threshold*100] <- NA
+  ringsearch <- setValues(ringsearch, ringsearch_mat)
+  
+  # overlay raster
+  myplot <- addRasterImage(myplot, x = ringsearch, colors = col, opacity = opacity)
+  
+  # add bounding rect
+  myplot <- addRectangles(myplot, xmin(ringsearch), ymin(ringsearch),
+                          xmax(ringsearch), ymax(ringsearch),
+                          fill = FALSE, weight = 2, color = grey(0.2))
+  
+  # return plot object
+  return(myplot)
+}
+
+

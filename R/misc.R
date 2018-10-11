@@ -261,6 +261,30 @@ lonlat_to_bearing <- function(origin_lon, origin_lat, dest_lon, dest_lat) {
 }
 
 #------------------------------------------------
+#' @title Calculate pairwise great circle distance between points
+#'
+#' @description Analogue of the \code{dist()} function, but calculating great
+#'   circle distances. Points should be input as a two-column matrix or
+#'   dataframe with longitude in the first column and latitude in the second.
+#'
+#' @param x a two-column matrix or dataframe with longitude in the first column
+#'   and latitude in the second
+#'
+#' @export
+
+dist_gc <- function(x) {
+  
+  # check inputs
+  assert_ncol(x, 2)
+  
+  # calculate distance matrix
+  ret <- apply(x, 1, function(y) {lonlat_to_bearing(x[,1], x[,2], y[1], y[2])$gc_dist})
+  diag(ret) <- 0
+  
+  return(ret)
+}
+
+#------------------------------------------------
 #' @title Convert lat/lon to cartesian coordinates
 #'
 #' @description Convert lat/lon coordinates to cartesian coordinates by first
@@ -522,6 +546,104 @@ get_ESS <- function(project, K = NULL) {
   }
   
   return(ESS)
+}
+
+#------------------------------------------------
+#' @title Get output
+#'
+#' @description Get output from a project for a given value of K.
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param name name of output to get
+#' @param K get output for this value of K
+#' @param type the type of output ("summary" or "raw")
+#'
+#' @export
+
+get_output <- function(project, name, K = NULL, type = "summary") {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_single_string(name)
+  assert_single_string(type)
+  assert_in(type, c("summary", "raw"))
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # set default K to first value with output
+  null_output <- mapply(function(x) {is.null(x[[type]][[name]])}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop(sprintf("no %s output for active parameter set", name))
+  }
+  if (is.null(K)) {
+    K <- which(!null_output)[1]
+    message(sprintf("using K = %s by default", K))
+  }
+  
+  # check output exists for chosen K
+  x <- project$output$single_set[[s]]$single_K[[K]][[type]][[name]]
+  if (is.null(x)) {
+    stop(sprintf("no %s output for K = %s of active set", name, K))
+  }
+  
+  return(x)
+}
+
+#------------------------------------------------
+#' @title Get hitscores
+#'
+#' @description Get hitscores
+#'
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param source_lon longitudes of known sources
+#' @param source_lat latitudes of known sources
+#'
+#' @export
+
+get_hitscores <- function(project, source_lon, source_lat) {
+  
+  # check inputs
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_numeric(source_lon)
+  assert_vector(source_lon)
+  assert_numeric(source_lat)
+  assert_vector(source_lat)
+  assert_same_length(source_lon, source_lat)
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # set default K to all values with output
+  null_output <- mapply(function(x) {is.null(x$summary$qmatrix)}, project$output$single_set[[s]]$single_K)
+  if (all(null_output)) {
+    stop("no output for active parameter set")
+  }
+  K <- which(!null_output)
+  
+  # initialise hitscore dataframe
+  df <- data.frame(longitude = source_lon, latitude = source_lat)
+  
+  # add ring-search hitscores
+  ringsearch <- p$output$single_set[[s]]$all_K$ringsearch
+  df$hs_ringsearch <- round(extract(ringsearch, cbind(source_lon, source_lat)), digits = 2)
+  
+  # add geoprofile hitscores for all K
+  for (k in K) {
+    geoprofile <- get_output(project, "geoprofile", k)
+    df$x <- round(extract(geoprofile, cbind(source_lon, source_lat)), digits = 2)
+    names(df)[ncol(df)] <- paste0("hs_geoprofile_K", k)
+  }
+  
+  return(df)
 }
 
 
