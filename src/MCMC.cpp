@@ -118,10 +118,8 @@ void MCMC::burnin_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) {
       particle_vec[cold_rung].update_qmatrix();
       
       // fix labels
-      if (solve_label_switching_on) {
-        particle_vec[cold_rung].solve_label_switching(log_qmatrix_running);
-        label_order = particle_vec[cold_rung].label_order;
-      }
+      particle_vec[cold_rung].solve_label_switching(log_qmatrix_running);
+      label_order = particle_vec[cold_rung].label_order;
       
       // add particle log_qmatrix to log_qmatrix_running
       for (int i=0; i<n; i++) {
@@ -241,10 +239,8 @@ void MCMC::sampling_mcmc(Rcpp::List &args_functions, Rcpp::List &args_progress) 
       particle_vec[cold_rung].update_qmatrix();
       
       // fix labels
-      if (solve_label_switching_on) {
-        particle_vec[cold_rung].solve_label_switching(log_qmatrix_running);
-        label_order = particle_vec[cold_rung].label_order;
-      }
+      particle_vec[cold_rung].solve_label_switching(log_qmatrix_running);
+      label_order = particle_vec[cold_rung].label_order;
       
       // add particle log_qmatrix to log_qmatrix_running
       for (int i=0; i<n; i++) {

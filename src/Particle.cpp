@@ -79,10 +79,10 @@ Particle::Particle(double beta_raised) {
 // reset particle
 void Particle::reset() {
   
-  // draw source locations from prior
+  // initialise source locations
   for (int k=0; k<K; ++k) {
-    source_lon[k] = runif1(min_lon, max_lon);
-    source_lat[k] = runif1(min_lat, max_lat);
+    source_lon[k] = source_init[0];
+    source_lat[k] = source_init[1];
   }
   
   // draw sigma from prior
@@ -121,8 +121,14 @@ void Particle::reset() {
 // calculate log-likelihood given new proposed source
 double Particle::calculate_loglike_source(double source_lon_prop, double source_lat_prop, int k) {
   
+  // get prior probability
+  double prior_prob = get_value(source_lon_prop, source_lat_prop);
+  if (prior_prob == 0) {
+    return -OVERFLO;
+  }
+  
   // initialise new likelihood
-  double loglike_prop = 0;
+  double loglike_prop = log(prior_prob);
   
   // loop through sentinel sites
   for (int i=0; i<n; ++i) {
@@ -181,7 +187,7 @@ void Particle::update_sources(bool robbins_monro_on, int iteration) {
     double source_lat_prop = rnorm1(source_lat[k], source_propSD[k]);
     
     // check proposed source within defined range
-    if (source_lon_prop < min_lon || source_lon_prop > max_lon || source_lat_prop < min_lat || source_lat_prop > max_lat) {
+    if (source_lon_prop <= min_lon || source_lon_prop >= max_lon || source_lat_prop <= min_lat || source_lat_prop >= max_lat) {
       
       // auto-reject proposed move
       if (robbins_monro_on) {

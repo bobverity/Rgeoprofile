@@ -3,17 +3,17 @@
 # The following commands ensure that package dependencies are listed in the
 # NAMESPACE file.
 
-# Rcpp          - allows C++ integration
-# parallel      - running jobs in parallel
-# coda          - MCMC type objects and methods
-# fftwtools     - fast Fourier transform, used when smoothing posterior draws into final surface
-# ggplot2       - used to produce layered plots
-# ggmap         - needed for the get_map function, although ggmap function itself is broken
-# RColorBrewer  - used to define default colours in geoPlotAllocation
-# rgdal         - required to load shapefiles
-# raster        - required when using masks
-# viridis       - colour palettes
-# ...           - other importFrom declarations recommended by devtools::check
+# Rcpp               - allows C++ integration
+# parallel           - running jobs in parallel
+# coda               - "mcmc" class objects and methods
+# fftwtools          - fast Fourier transform, used when smoothing posterior draws into final surface
+# ggplot2            - used to produce layered plots
+# gridExtra          - multi-panel ggplot objects
+# leaflet            - dynamic mapping
+# leaflet.minicharts - overlay charts on dynamic mapping
+# rgdal              - required to load shapefiles
+# raster             - required when defining spatial priors and geoprofiles
+# ...                - other import and importFrom declarations recommended by devtools::check
 
 #' @useDynLib RgeoProfile
 #' @importFrom Rcpp evalCpp
@@ -22,12 +22,10 @@
 #' @importFrom fftwtools fftw2d
 #' @import ggplot2
 #' @import gridExtra
-#' @import RColorBrewer
 #' @import leaflet
 #' @import leaflet.minicharts
 #' @import rgdal
-#' @importFrom raster raster values setValues addLayer extract xmin xmax ymin ymax disaggregate flip crs<- setExtent extent extent<- rasterize projectRaster distance
-#' @import viridis
+#' @importFrom raster raster values<- values setValues xyFromCell addLayer extract xmin xmax ymin ymax xres yres res<- res disaggregate flip crs crs<- setExtent extent extent<- rasterize projectRaster distance
 #' @importFrom grDevices colorRampPalette grey
 #' @import graphics
 #' @import stats
@@ -65,7 +63,10 @@ check_rgeoprofile_loaded <- function() {
 #'
 #' @export
 
-bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
+bind_data <- function(project,
+                      df,
+                      name = NULL,
+                      check_delete_output = TRUE) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -97,6 +98,75 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 }
 
 #------------------------------------------------
+#' @title Make raster grid
+#'
+#' @description Make raster grid
+#'
+#' @param range_lon min and max longitude
+#' @param range_lat min and max latitude
+#' @param cells_lon number of cells in longitude direction
+#' @param cells_lat number of cells in latitude direction
+#'
+#' @export
+
+raster_grid <- function (range_lon = c(-0.2, 0),
+                         range_lat = c(51.45, 51.55),
+                         cells_lon = 1e2,
+                         cells_lat = 1e2) {
+  
+  # check inputs
+  assert_numeric(range_lon)
+  assert_vector(range_lon)
+  assert_length(range_lon, 2)
+  assert_numeric(range_lat)
+  assert_vector(range_lat)
+  assert_length(range_lat, 2)
+  assert_single_pos_int(cells_lon)
+  assert_single_pos_int(cells_lat)
+  
+  # make raster grid
+  r <- raster(xmn = range_lon[1],
+              xmx = range_lon[2],
+              ymn = range_lat[1],
+              ymx = range_lat[2],
+              ncol = cells_lon,
+              nrow = cells_lat)
+  r <- setValues(r, 1/(cells_lon*cells_lat))
+  
+  return(r)
+}
+
+#------------------------------------------------
+#' @title Make raster from shapefile
+#'
+#' @description Make raster from shapefile
+#'
+#' @param shp shapefile to convert to raster
+#' @param cells_lon number of cells in longitude direction
+#' @param cells_lat number of cells in latitude direction
+#'
+#' @export
+
+raster_from_shapefile <- function (shp,
+                                   cells_lon = 1e2,
+                                   cells_lat = 1e2) {
+  
+  # check inputs
+  assert_in(class(shp), c("SpatialPolygonsDataFrame","SpatialLinesDataFrame"))
+  
+  # make raster from shapefile
+  r <- raster(ncol = cells_lon, nrow = cells_lat)
+  extent(r) <- extent(shp)
+  r <- rasterize(shp, r)
+  r <- projectRaster(r, crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+  
+  # set all non-NA values to 1
+  r@data@values[!is.na(r@data@values)] <- 1
+  
+  return(r)
+}
+
+#------------------------------------------------
 #' @title Create new parameter set
 #'   
 #' @description Create a new parameter set within an \code{rgeoprofile_project}. The new 
@@ -105,11 +175,9 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 #' @param project an rgeoprofile_project, as produced by the function 
 #'   \code{rgeoprofile_project()}
 #' @param name an optional name for the parameter set
+#' @param spatial_prior a raster file defining the spatial prior. Precision
+#'   values are taken from this raster if it is defined
 #' @param sentinel_radius the observation radius of sentinel sites
-#' @param min_lon the minimum possible longitude of source locations
-#' @param max_lon the maximum possible longitude of source locations
-#' @param min_lat the minimum possible latitude of source locations
-#' @param max_lat the maximum possible latitude of source locations
 #' @param sigma_model set as \code{"single"} to assume the same dispersal
 #'   distance for all sources, or \code{"independent"} to assume an
 #'   independently drawn dispersal distance for each source
@@ -127,27 +195,19 @@ bind_data <- function(project, df, name = NULL, check_delete_output = TRUE) {
 #' @export
 
 new_set <- function(project,
-                    name = "(no name)",
+                    spatial_prior,
                     sentinel_radius = 0.2,
-                    min_lon = -10,
-                    max_lon = 10,
-                    min_lat = -10,
-                    max_lat = 10,
                     sigma_model = "single",
                     sigma_prior_mean = 1,
                     sigma_prior_sd = 1,
                     expected_popsize_prior_mean = 100,
-                    expected_popsize_prior_sd = 10) {
+                    expected_popsize_prior_sd = 10,
+                    name = "(no name)") {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
+  assert_custom_class(spatial_prior, "RasterLayer")
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
-  assert_single_numeric(min_lon)
-  assert_single_numeric(max_lon)
-  assert_gr(max_lon, min_lon)
-  assert_single_numeric(min_lat)
-  assert_single_numeric(max_lat)
-  assert_gr(max_lat, min_lat)
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
   assert_single_pos(sigma_prior_sd, zero_allowed = TRUE)
@@ -155,6 +215,7 @@ new_set <- function(project,
   if (expected_popsize_prior_sd != -1) {
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   }
+  assert_single_string(name)
   
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
@@ -164,11 +225,8 @@ new_set <- function(project,
   
   # create new parameter set
   project$parameter_sets[[s]] <- list(name = name,
+                                      spatial_prior = spatial_prior,
                                       sentinel_radius = sentinel_radius,
-                                      min_lon = min_lon,
-                                      max_lon = max_lon,
-                                      min_lat = min_lat,
-                                      max_lat = max_lat,
                                       sigma_model = sigma_model,
                                       sigma_prior_mean = sigma_prior_mean,
                                       sigma_prior_sd = sigma_prior_sd,
@@ -179,8 +237,7 @@ new_set <- function(project,
   names(project$parameter_sets)[s] <- paste0("set", s)
   
   # create new output at all_K level
-  project$output$single_set[[s]] <- list(single_K = list(),
-                                         all_K = list())
+  project$output$single_set[[s]] <- list(single_K = list(), all_K = list())
   
   # name new output
   names(project$output$single_set) <- paste0("set", 1:length(project$output$single_set))
@@ -202,7 +259,9 @@ new_set <- function(project,
 #'   
 #' @export
 
-delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
+delete_set <- function(project,
+                       set = NULL,
+                       check_delete_output = TRUE) {
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
@@ -255,10 +314,6 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' @param project an rgeoprofile_project, as produced by the function 
 #'   \code{rgeoprofile_project()}
 #' @param K the number of sources
-#' @param precision_lon the level of precision at which longitudes are
-#'   represented
-#' @param precision_lat the level of precision at which latitudes are
-#'   represented
 #' @param burnin the number of burn-in iterations
 #' @param samples the number of sampling iterations
 #' @param auto_converge whether convergence should be assessed automatically 
@@ -267,9 +322,6 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #'   used
 #' @param converge_test test for convergence every \code{convergence_test} 
 #'   iterations if \code{auto_converge} is being used
-#' @param solve_label_switching_on whether to implement the Stevens' solution to
-#'   the label-switching problem. If turned off then Q-matrix output will no 
-#'   longer be correct, although evidence estimates will be unaffected
 #' @param cluster option to pass in a cluster environment (see package 
 #'   "parallel")
 #' @param pb_markdown whether to run progress bars in markdown mode, in which 
@@ -280,7 +332,16 @@ delete_set <- function(project, set = NULL, check_delete_output = TRUE) {
 #' 
 #' @export
 
-run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3, burnin = 1e2, samples = 1e3, auto_converge = TRUE, converge_test = ceiling(burnin/10), solve_label_switching_on = TRUE, cluster = NULL, pb_markdown = FALSE, store_raw = TRUE, silent = !is.null(cluster)) {
+run_mcmc <- function(project,
+                     K = 3,
+                     burnin = 1e2,
+                     samples = 1e3,
+                     auto_converge = TRUE,
+                     converge_test = 1e2,
+                     cluster = NULL,
+                     pb_markdown = FALSE,
+                     store_raw = TRUE,
+                     silent = !is.null(cluster)) {
   
   # start timer
   t0 <- Sys.time()
@@ -288,13 +349,10 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
   assert_pos_int(K, zero_allowed = FALSE)
-  assert_single_pos(precision_lon, zero_allowed = TRUE)
-  assert_single_pos(precision_lat, zero_allowed = TRUE)
   assert_single_pos_int(burnin, zero_allowed = FALSE)
   assert_single_pos_int(samples, zero_allowed = FALSE)
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
-  assert_single_logical(solve_label_switching_on)
   if (!is.null(cluster)) {
     assert_custom_class(project, "cluster")
   }
@@ -307,18 +365,6 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     stop("no active parameter set")
   }
   
-  # get user-defined domain limits
-  min_lon <- project$parameter_sets[[s]]$min_lon
-  max_lon <- project$parameter_sets[[s]]$max_lon
-  min_lat <- project$parameter_sets[[s]]$min_lat
-  max_lat <- project$parameter_sets[[s]]$max_lat
-  
-  # get final domain limits used within model
-  min_lon_model <- ceiling(min_lon/precision_lon)*precision_lon
-  max_lon_model <- floor(max_lon/precision_lon)*precision_lon
-  min_lat_model <- ceiling(min_lat/precision_lat)*precision_lat
-  max_lat_model <- floor(max_lat/precision_lat)*precision_lat
-  
   # ---------- create argument lists ----------
   
   # data list
@@ -327,23 +373,39 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
                     counts = project$data$counts)
   
   # input arguments list
-  args_inputs <- list(precision_lon = precision_lon,
-                      precision_lat = precision_lat,
-                      burnin = burnin,
+  args_inputs <- list(burnin = burnin,
                       samples = samples,
                       auto_converge = auto_converge,
                       converge_test = converge_test,
-                      solve_label_switching_on = solve_label_switching_on,
                       pb_markdown = pb_markdown,
                       silent = silent)
   
-  # combine model parameters list with input arguments
-  args_model <- c(project$parameter_sets[[s]], args_inputs)
-  args_model$sigma_model_numeric <- match(args_model$sigma_model, c("single", "independent"))
-  args_model <- c(args_model, list(min_lon_model = min_lon_model,
-                                   max_lon_model = max_lon_model,
-                                   min_lat_model = min_lat_model,
-                                   max_lat_model = max_lat_model))
+  # extract spatial prior object
+  spatial_prior <- project$parameter_sets[[s]]$spatial_prior
+  spatial_prior_values <- values(spatial_prior)
+  spatial_prior_values[is.na(spatial_prior_values)] <- 0
+  
+  # initialise sources in a non-NA cell
+  source_init <- xyFromCell(spatial_prior, which(!is.na(values(spatial_prior)))[1])
+  
+  # convert sigma_model to numeric
+  sigma_model_numeric <- match(project$parameter_sets[[s]]$sigma_model, c("single", "independent"))
+  
+  # misc properties list
+  args_properties <- list(min_lon = xmin(spatial_prior),
+                          max_lon = xmax(spatial_prior),
+                          res_lon = xres(spatial_prior),
+                          n_lon = ncol(spatial_prior),
+                          min_lat = ymin(spatial_prior),
+                          max_lat = ymax(spatial_prior),
+                          res_lat = yres(spatial_prior),
+                          n_lat = nrow(spatial_prior),
+                          spatial_prior_values = spatial_prior_values,
+                          source_init = source_init,
+                          sigma_model_numeric = sigma_model_numeric)
+  
+  # combine parameters, inputs and properties into single list
+  args_model <- c(project$parameter_sets[[s]], args_inputs, args_properties)
   
   # R functions to pass to Rcpp
   args_functions <- list(test_convergence = test_convergence,
@@ -441,18 +503,13 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     class(qmatrix) <- "rgeoprofile_qmatrix"
     
     # create empty raster with correct properties
-    cells_lon <- (max_lon_model - min_lon_model)/precision_lon
-    cells_lat <- (max_lat_model - min_lat_model)/precision_lat
-    raster_empty <- raster(xmn = min_lon_model,
-                           xmx = max_lon_model,
-                           ymn = min_lat_model,
-                           ymx = max_lat_model,
-                           nrow = cells_lat,
-                           ncol = cells_lon)
+    raster_empty <- raster()
+    extent(raster_empty) <- extent(spatial_prior)
+    res(raster_empty) <- res(spatial_prior)
     
     # get breaks for kernel smoothing
-    breaks_lon <- seq(min_lon_model, max_lon_model, precision_lon)
-    breaks_lat <- seq(min_lat_model, max_lat_model, precision_lat)
+    breaks_lon <- seq(xmin(raster_empty), xmax(raster_empty), xres(raster_empty))
+    breaks_lat <- seq(ymin(raster_empty), ymax(raster_empty), yres(raster_empty))
     
     # produce posterior probability surface rasters
     prob_surface_split <- raster()
@@ -469,6 +526,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
       
       # add raster layer
       prob_surface_split_k <- setValues(raster_empty, prob_surface_split_mat)
+      values(prob_surface_split_k)[is.na(values(spatial_prior))] <- NA
       prob_surface_split <- addLayer(prob_surface_split, prob_surface_split_k)
       
       # add to combined surface matrix
@@ -477,6 +535,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # make combined raster
     prob_surface <- setValues(raster_empty, prob_surface_mat)
+    values(prob_surface)[is.na(values(spatial_prior))] <- NA
     
     # produce geoprofile rasters
     geoprofile_split <- raster()
@@ -493,9 +552,10 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     }
     
     # make combined raster
-    geoprofile_mat <- rank(values(prob_surface), ties.method = "first")
+    geoprofile_mat <- rank(values(prob_surface), ties.method = "first", na.last = FALSE)
     geoprofile_mat <- 100 * (1 - geoprofile_mat/max(geoprofile_mat, na.rm = TRUE))
     geoprofile <- setValues(raster_empty, geoprofile_mat)
+    values(geoprofile)[is.na(values(spatial_prior))] <- NA
     
     # get whether rungs have converged
     converged <- output_raw[[i]]$rung_converged
@@ -529,13 +589,10 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
     
     # ---------- save arguments ----------
     
-    output_args <- list(precision_lat = precision_lat,
-                        precision_lon = precision_lon,
-                        burnin = burnin,
+    output_args <- list(burnin = burnin,
                         samples = samples,
                         auto_converge = auto_converge,
                         converge_test = converge_test,
-                        solve_label_switching_on = solve_label_switching_on,
                         pb_markdown = pb_markdown,
                         silent = silent)
     
@@ -582,13 +639,7 @@ run_mcmc <- function(project, K = 3, precision_lon = 1e-3, precision_lat = 1e-3,
   project <- align_qmatrix(project)
   
   # run ring-search prior to MCMC
-  ringsearch <- ring_search(project,
-                            precision_lon = precision_lon,
-                            precision_lat = precision_lat,
-                            min_lon_model = min_lon_model,
-                            max_lon_model = max_lon_model,
-                            min_lat_model = min_lat_model,
-                            max_lat_model = max_lat_model)
+  ringsearch <- ring_search(project, spatial_prior)
   project$output$single_set[[s]]$all_K$ringsearch <- ringsearch
   
   # get DIC over all K
@@ -732,13 +783,7 @@ align_qmatrix <- function(project) {
 #------------------------------------------------
 # ring-search
 #' @noRd
-ring_search <- function(project,
-                        precision_lon,
-                        precision_lat,
-                        min_lon_model,
-                        max_lon_model,
-                        min_lat_model,
-                        max_lat_model) {
+ring_search <- function(project, r) {
   
   # extract sentinel locations with at least one observation
   data <- subset(project$data, counts > 0)
@@ -746,10 +791,10 @@ ring_search <- function(project,
   sentinel_lat <- data$latitude
   
   # get breaks, midpoints, and coordinates of all points in grid
-  breaks_lon <- seq(min_lon_model, max_lon_model, precision_lon)
-  breaks_lat <- seq(min_lat_model, max_lat_model, precision_lat)
-  midpoints_lon <- breaks_lon[-1] - precision_lon/2
-  midpoints_lat <- breaks_lat[-1] - precision_lat/2
+  breaks_lon <- seq(xmin(r), xmax(r), xres(r))
+  breaks_lat <- seq(ymin(r), ymax(r), yres(r))
+  midpoints_lon <- breaks_lon[-1] - xres(r)/2
+  midpoints_lat <- breaks_lat[-1] - yres(r)/2
   coords <- expand.grid(midpoints_lon, midpoints_lat)
   
   # get distance between all cells and sentinels
@@ -763,9 +808,9 @@ ring_search <- function(project,
   hs <- rank(d_min)/length(d_min) * 100
   
   # get into raster format
-  ret <- raster(xmn = min_lon_model, xmx = max_lon_model,
-                ymn = min_lat_model, ymx = max_lat_model,
-                nrow = length(midpoints_lat), ncol = length(midpoints_lon))
+  ret <- raster()
+  extent(ret) <- extent(r)
+  res(ret) <- res(r)
   ret <- setValues(ret, hs)
   ret <- flip(ret, 2)
   

@@ -2,7 +2,6 @@
 #pragma once
 
 #include <Rcpp.h>
-#include "misc.h"
 
 //------------------------------------------------
 // run main MCMC

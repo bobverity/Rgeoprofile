@@ -3,13 +3,12 @@
 
 #include <Rcpp.h>
 
-#include "Data.h"
-#include "Parameters.h"
 #include "Lookup.h"
+#include "Spatial_prior.h"
 
 //------------------------------------------------
 // class defining particle
-class Particle : public Data, public Parameters, public Lookup {
+class Particle : public Lookup, public Spatial_prior {
 
 public:
   // PUBLIC OBJECTS

@@ -4,26 +4,19 @@
 \alias{new_set}
 \title{Create new parameter set}
 \usage{
-new_set(project, name = "(no name)", sentinel_radius = 0.2,
-  min_lon = -10, max_lon = 10, min_lat = -10, max_lat = 10,
+new_set(project, spatial_prior, sentinel_radius = 0.2,
   sigma_model = "single", sigma_prior_mean = 1, sigma_prior_sd = 1,
-  expected_popsize_prior_mean = 100, expected_popsize_prior_sd = 10)
+  expected_popsize_prior_mean = 100, expected_popsize_prior_sd = 10,
+  name = "(no name)")
 }
 \arguments{
 \item{project}{an rgeoprofile_project, as produced by the function 
 \code{rgeoprofile_project()}}
 
-\item{name}{an optional name for the parameter set}
+\item{spatial_prior}{a raster file defining the spatial prior. Precision
+values are taken from this raster if it is defined}
 
 \item{sentinel_radius}{the observation radius of sentinel sites}
-
-\item{min_lon}{the minimum possible longitude of source locations}
-
-\item{max_lon}{the maximum possible longitude of source locations}
-
-\item{min_lat}{the minimum possible latitude of source locations}
-
-\item{max_lat}{the maximum possible latitude of source locations}
 
 \item{sigma_model}{set as \code{"single"} to assume the same dispersal
 distance for all sources, or \code{"independent"} to assume an
@@ -42,6 +35,8 @@ population size}
 total population size. Set to 0 to use a fixed value (fixed at
 \code{expected_popsize_prior_mean}), or set to -1 to use an improper,
 infinitely diffuse prior}
+
+\item{name}{an optional name for the parameter set}
 }
 \description{
 Create a new parameter set within an \code{rgeoprofile_project}. The new 

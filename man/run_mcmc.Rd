@@ -4,10 +4,8 @@
 \alias{run_mcmc}
 \title{Run main MCMC}
 \usage{
-run_mcmc(project, K = 3, precision_lon = 0.001,
-  precision_lat = 0.001, burnin = 100, samples = 1000,
-  auto_converge = TRUE, converge_test = ceiling(burnin/10),
-  solve_label_switching_on = TRUE, cluster = NULL,
+run_mcmc(project, K = 3, burnin = 100, samples = 1000,
+  auto_converge = TRUE, converge_test = 100, cluster = NULL,
   pb_markdown = FALSE, store_raw = TRUE, silent = !is.null(cluster))
 }
 \arguments{
@@ -15,12 +13,6 @@ run_mcmc(project, K = 3, precision_lon = 0.001,
 \code{rgeoprofile_project()}}
 
 \item{K}{the number of sources}
-
-\item{precision_lon}{the level of precision at which longitudes are
-represented}
-
-\item{precision_lat}{the level of precision at which latitudes are
-represented}
 
 \item{burnin}{the number of burn-in iterations}
 
@@ -33,10 +25,6 @@ used}
 
 \item{converge_test}{test for convergence every \code{convergence_test} 
 iterations if \code{auto_converge} is being used}
-
-\item{solve_label_switching_on}{whether to implement the Stevens' solution to
-the label-switching problem. If turned off then Q-matrix output will no 
-longer be correct, although evidence estimates will be unaffected}
 
 \item{cluster}{option to pass in a cluster environment (see package 
 "parallel")}

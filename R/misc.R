@@ -19,6 +19,25 @@ rgeoprofile_file <- function(name) {
 }
 
 #------------------------------------------------
+#' @title Import shapefile
+#'
+#' @description Import shapefile from the inst/extdata folder of this package
+#' 
+#' @param name name of file
+#'
+#' @export
+
+rgeoprofile_shapefile <- function(name) {
+  
+  # load file from inst/extdata folder
+  name_full <- system.file("extdata/", name, package = 'RgeoProfile', mustWork = TRUE)
+  ret <- readOGR(name_full)
+  
+  # return
+  return(ret)
+}
+
+#------------------------------------------------
 # replace NULL value with default
 #' @noRd
 define_default <- function(x, default_value) {

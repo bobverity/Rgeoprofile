@@ -4,11 +4,12 @@
 #include "main.h"
 #include "Data.h"
 #include "Parameters.h"
+#include "Spatial_prior.h"
 #include "Lookup.h"
 #include "MCMC.h"
 #include "misc.h"
-#include "probability.h"
-//#include "Hungarian.h"
+//#include "probability.h"
+//#include "hungarian.h"
 
 using namespace std;
 
@@ -29,12 +30,27 @@ Rcpp::List run_mcmc_cpp(Rcpp::List args) {
   // read in parameters into separate class
   Parameters parameters(args_model);
   
+  // define spatial prior
+  Spatial_prior spatial_prior(args_model);
+  /*
+  vector<vector<double>> z(parameters.n_lat, vector<double>(parameters.n_lon));
+  int i2 = 0;
+  for (int i=0; i<parameters.n_lat; ++i) {
+    for (int j=0; j<parameters.n_lon; ++j) {
+      //z[i][j] = spatial_prior.spatial_prior_mask[i2++];
+    }
+  }
+  
+  Rcpp::List ret2 = Rcpp::List::create(Rcpp::Named("z") = z);
+  return(ret2);
+  */
   // define lookup table from data and parameters. The lookup table 
   // precalculates the distance in km of every data point from every possible 
   // source location in a lon/lat grid. The grid is defined from the lon/lat min
   // and max values ()in the parameter set), and the lon/lat precision (in the
   // MCMC arguments).
-  Lookup lookup(data, parameters);
+  //Lookup lookup(data, parameters);
+  Lookup lookup;
   
   // start timer
   chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();

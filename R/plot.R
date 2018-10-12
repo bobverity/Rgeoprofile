@@ -771,6 +771,58 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
 }
 
 #------------------------------------------------
+#' @title Add spatial prior to dynamic map
+#'
+#' @description Add spatial prior to dynamic map
+#'
+#' @param myplot dynamic map produced by \code{plot_map()} function
+#' @param project an RgeoProfile project, as produced by the function 
+#'   \code{rgeoprofile_project()}
+#' @param col set of plotting colours
+#' @param opacity opacity of spatial prior
+#' @param smoothing what level of smoothing to apply to spatial prior Smoothing
+#'   is applied using the \code{raster} function \code{disaggregate}, with
+#'   \code{method = "bilinear"}
+#'
+#' @export
+
+overlay_spatial_prior <- function(myplot,
+                                  project,
+                                  col = col_hotcold(),
+                                  opacity = 0.8,
+                                  smoothing = 1) {
+  
+  # check inputs
+  assert_custom_class(myplot, "leaflet")
+  assert_custom_class(project, "rgeoprofile_project")
+  assert_string(col)
+  assert_single_numeric(opacity)
+  assert_bounded(opacity, left = 0, right = 1, inclusive_left = TRUE, inclusive_right = TRUE)
+  assert_single_pos(smoothing)
+  assert_greq(smoothing, 1.0)
+  
+  # get active set and check non-zero
+  s <- project$active_set
+  if (s == 0) {
+    stop("  no active parameter set")
+  }
+  
+  # get spatial prior
+  spatial_prior <- project$parameter_sets[[s]]$spatial_prior
+  
+  # apply smoothing
+  if (smoothing > 1.0) {
+    spatial_prior <- disaggregate(spatial_prior, smoothing, method = "bilinear")
+  }
+  
+  # overlay raster
+  myplot <- addRasterImage(myplot, x = spatial_prior, colors = col, opacity = opacity)
+  
+  # return plot object
+  return(myplot)
+}
+
+#------------------------------------------------
 #' @title Add geoprofile to dynamic map
 #'
 #' @description Add geoprofile to dynamic map
@@ -815,10 +867,10 @@ overlay_geoprofile <- function(myplot,
   
   # extract geoprofile
   if (is.null(source)) {
-    geoprofile <- get_output(p, "geoprofile", K = K)
+    geoprofile <- get_output(project, "geoprofile", K = K)
   } else {
     assert_leq(source, K)
-    geoprofile_split <- get_output(p, "geoprofile_split", K = K)
+    geoprofile_split <- get_output(project, "geoprofile_split", K = K)
     geoprofile <- geoprofile_split[[source]]
   }
   
@@ -889,10 +941,10 @@ overlay_surface <- function(myplot,
   
   # extract geoprofile
   if (is.null(source)) {
-    prob_surface <- get_output(p, "prob_surface", K = K)
+    prob_surface <- get_output(project, "prob_surface", K = K)
   } else {
     assert_leq(source, K)
-    prob_surface_split <- get_output(p, "prob_surface_split", K = K)
+    prob_surface_split <- get_output(project, "prob_surface_split", K = K)
     prob_surface <- prob_surface[[source]]
   }
   
@@ -1074,7 +1126,7 @@ overlay_ringsearch <- function(myplot,
   # extract ringsearch output
   ringsearch <- project$output$single_set[[s]]$all_K$ringsearch
   if (is.null(ringsearch)) {
-    stop(sprintf("no ringsearch output for K = %s of active set", K))
+    stop("no ringsearch output for active set")
   }
   
   # apply smoothing
