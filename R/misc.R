@@ -468,21 +468,10 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
   kernel_lat_mat <- outer(kernel_lat, rep(1,length(kernel_lon)))
   kernel_s_mat <- sqrt(kernel_lon_mat^2 + kernel_lat_mat^2)
   
-  # set lambda (bandwidth) range to be explored
-  if (is.null(lambda)) {
-    lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
-    lambda_vec <- lambda_step*(1:100)
-  } else {
-    lambda_vec <- lambda
-  }
-  
-  # loop through range of values of lambda
-  logLike <- -Inf
-  for (i in 1:length(lambda_vec)) {
+  # create loss function to minimise
+  loss <- function(x, return_loss = TRUE) {
     
-    # calculate Fourier transform of kernel
-    lambda_this <- lambda_vec[i]
-    kernel <- dts(kernel_s_mat, df=3, scale=lambda_this)
+    kernel <- dts(kernel_s_mat, df = 3, scale = x)
     f2 = fftw2d(kernel)
     
     # combine Fourier transformed surfaces and take inverse. f4 will ultimately
@@ -492,26 +481,29 @@ kernel_smooth <- function(longitude, latitude, breaks_lon, breaks_lat, lambda = 
     
     # subtract from f4 the probability density of each point measured from
     # itself. In other words, move towards a leave-one-out kernel density method
-    f5 <- f4 - surface_normalised*dts(0, df = nu, scale = lambda_this)
+    f5 <- f4 - surface_normalised*dts(0, df = nu, scale = x)
     f5[f5<0] <- 0
     f5 <- f5/sum(f4)
     
     # calculate leave-one-out log-likelihood at each point on surface
     f6 <- surface_normalised*log(f5)
+    loglike <- sum(f6,na.rm=T)
     
-    # break if total log-likelihood is at a local maximum
-    if (sum(f6, na.rm = T) < logLike) {
-      break()
+    # return negative log-likelihood
+    if (return_loss) {
+      return(-loglike)
     }
     
-    # otherwise update logLike
-    logLike <- sum(f6,na.rm=T)
+    # return surface
+    return(f4)
   }
   
-  # report chosen value of lambda
-  #if (is.null(lambda)) {
-  #  message(sprintf("maximum likelihood lambda = %s", round(lambda_this,3)))
-  #}
+  # find best lambda using optim
+  lambda_step <- min(cellSize_trans_lon, cellSize_trans_lat)/5
+  lambda_ml <- optim(lambda_step, loss, method = "Brent", lower = lambda_step, upper = lambda_step*100)
+  
+  # get smoothed surface
+  f4 <- loss(lambda_ml$par, return_loss = FALSE)
   
   # remove guard rail
   f4 <- f4[,(rail_size_lon+1):(ncol(f4)-rail_size_lon)]

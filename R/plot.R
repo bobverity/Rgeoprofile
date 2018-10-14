@@ -808,7 +808,7 @@ overlay_points <- function(myplot, lon, lat, col = "black", size = 1, opacity = 
   assert_single_pos(size, zero_allowed = FALSE)
   
   # add circle markers
-  myplot <- addCircleMarkers(myplot, lng = lon, lat = lat, radius = 2,
+  myplot <- addCircleMarkers(myplot, lng = lon, lat = lat, radius = size,
                              fillColor = col, stroke = FALSE, fillOpacity = opacity)
   
   # return plot object
