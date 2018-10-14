@@ -16,6 +16,7 @@ Imports:
     parallel,
     coda,
     fftwtools,
+    RColorBrewer,
     ggplot2,
     gridExtra,
     leaflet,

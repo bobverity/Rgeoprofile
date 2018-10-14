@@ -7,6 +7,7 @@
 # parallel           - running jobs in parallel
 # coda               - "mcmc" class objects and methods
 # fftwtools          - fast Fourier transform, used when smoothing posterior draws into final surface
+# RColorBrewer       - colours
 # ggplot2            - used to produce layered plots
 # gridExtra          - multi-panel ggplot objects
 # leaflet            - dynamic mapping
@@ -20,6 +21,7 @@
 #' @import parallel
 #' @import coda
 #' @importFrom fftwtools fftw2d
+#' @import RColorBrewer
 #' @import ggplot2
 #' @import gridExtra
 #' @import leaflet
@@ -160,8 +162,8 @@ raster_from_shapefile <- function (shp,
   r <- rasterize(shp, r)
   r <- projectRaster(r, crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
   
-  # set all non-NA values to 1
-  r@data@values[!is.na(r@data@values)] <- 1
+  # set all non-NA values to 1 over number of non-NA cells
+  values(r)[!is.na(values(r))] <- 1/sum(!is.na(values(r)))
   
   return(r)
 }

@@ -46,26 +46,28 @@ col_tim <- function(n = 10) {
 #'
 #' @export
 
-more_colours <- function(n = 5, raw_cols = col_hotcold()) {
+more_colours <- function(n = 5, raw_cols = brewer.pal(12, "Paired")) {
   
   # check inputs
   assert_single_pos_int(n, zero_allowed = FALSE)
   assert_string(raw_cols)
   assert_vector(raw_cols)
+  assert_greq(length(raw_cols), 2)
+  
+  # simple case if n within raw cols
+  n_raw <- length(raw_cols)
+  if (n <= n_raw) {
+    return(raw_cols[1:n])
+  }
   
   # generate colour palette from raw colours
   my_palette <- colorRampPalette(raw_cols)
   
-  # simple case if n small
-  if (n <= 2) {
-    return(my_palette(3)[1:n])
-  }
-  
   # interpolate colours by repeatedly splitting the [0,1] interval until we have
   # enough values. n_steps is the number of times we have to do this. n_breaks
   # is the number of breaks for each step
-  n_steps <- ceiling(log(n-1)/log(2))
-  n_breaks <- 2^(1:n_steps) + 1
+  n_steps <- ceiling(log(n-1)/log(2) - log(n_raw-1)/log(2)) + 1
+  n_breaks <- (n_raw-1)*2^(1:n_steps - 1) + 1
   
   # split the [0,1] interval this many times and drop duplicated values
   s <- unlist(mapply(function(x) seq(0,1,l=x), n_breaks, SIMPLIFY = FALSE))
@@ -628,6 +630,49 @@ plot_DIC_gelman <- function(project) {
 }
 
 #------------------------------------------------
+#' @title Produce Lorenz plot of hitscores
+#'
+#' @description Produce Lorenz plot of hitscores
+#'
+#' @param hs dataframe of hitscores
+#' @param col vector of group colours. Uses \code{more_colours()} by default
+#'
+#' @export
+
+plot_lorenz <- function(hs, col = NULL) {
+  
+  # check inputs
+  assert_dataframe(hs)
+  
+  # drop lon/lat columns
+  hs <- hs[ , !names(hs) %in% c("longitude", "latitude"), drop = FALSE]
+  
+  # get properties
+  ns <- nrow(hs)
+  hs_names <- colnames(hs)
+  
+  # set default colours
+  col <- define_default(col, more_colours(ncol(hs)))
+  
+  # get sorted values
+  hs_sort <- apply(hs, 2, function(x) c(0,sort(x, na.last = TRUE)))
+  
+  # get into ggplot format
+  df <- data.frame(x = as.vector(hs_sort), y = 0:ns, col = rep(hs_names, each = ns+1))
+  
+  # make ggplot object
+  plot1 <- ggplot(data = df, aes(x = x, y = y, color = col)) + theme_bw()
+  plot1 <- plot1 + theme_bw() + geom_point() + geom_line()
+  plot1 <- plot1 + geom_abline(slope = ns/100, linetype = "dashed")
+  plot1 <- plot1 + scale_colour_manual(values = col, name = "Search method")
+  #plot1 <- plot1 + scale_x_continuous(limits = c(0,100), expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
+  plot1 <- plot1 + scale_x_continuous(limits = c(0,100))
+  plot1 <- plot1 + xlab("search effort (%)") + ylab("sources found")
+  
+  return(plot1)
+}
+
+#------------------------------------------------
 #' @title Add sentinel sites to dynamic map
 #'
 #' @description Add sentinel sites to dynamic map
@@ -1057,7 +1102,7 @@ overlay_piecharts <- function(myplot,
   K <- ncol(qmatrix)
   
   # set default colours from K
-  col <- define_default(col, col_hotcold(K))
+  col <- define_default(col, more_colours(K))
   
   # check correct number of colours
   assert_length(col, K)
@@ -1150,5 +1195,4 @@ overlay_ringsearch <- function(myplot,
   # return plot object
   return(myplot)
 }
-
 

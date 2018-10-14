@@ -119,10 +119,13 @@ summary.rgeoprofile_project <- function(object, ...) {
     
     # get details of active set
     sentinel_radius <- object$parameter_sets[[s]]$sentinel_radius
-    min_lon <- object$parameter_sets[[s]]$min_lon
-    max_lon <- object$parameter_sets[[s]]$max_lon
-    min_lat <- object$parameter_sets[[s]]$min_lat
-    max_lat <- object$parameter_sets[[s]]$max_lat
+    spatial_prior <- object$parameter_sets[[s]]$spatial_prior
+    min_lon <- round(xmin(spatial_prior), digits = 3)
+    max_lon <- round(xmax(spatial_prior), digits = 3)
+    min_lat <- round(ymin(spatial_prior), digits = 3)
+    max_lat <- round(ymax(spatial_prior), digits = 3)
+    cells_lon <- ncol(spatial_prior)
+    cells_lat <- nrow(spatial_prior)
     sigma_model <- object$parameter_sets[[s]]$sigma_model
     sigma_prior_mean <- object$parameter_sets[[s]]$sigma_prior_mean
     sigma_prior_sd <- object$parameter_sets[[s]]$sigma_prior_sd
@@ -132,9 +135,11 @@ summary.rgeoprofile_project <- function(object, ...) {
     # print details of active set
     cat(sprintf("ACTIVE SET: SET%s\n", s))
     cat(sprintf("   sentinel radius = %s\n", sentinel_radius))
-    cat(sprintf("   longitude range = [%s, %s]\n", min_lon, max_lon))
-    cat(sprintf("   latitude range = [%s, %s]\n", min_lat, max_lat))
-    cat(sprintf("   sigma:\n"))
+    cat(sprintf("   spatial prior:\n"))
+    cat(sprintf("      longitude range = [%s, %s]\n", min_lon, max_lon))
+    cat(sprintf("      latitude range = [%s, %s]\n", min_lat, max_lat))
+    cat(sprintf("      cells = %s, %s (lon, lat)\n", cells_lon, cells_lat))
+    cat(sprintf("   sigma prior:\n"))
     cat(sprintf("      model = %s\n", sigma_model))
     if (sigma_prior_sd == 0) {
       cat(sprintf("      value = %s (exact prior)\n", sigma_prior_mean))
@@ -142,7 +147,7 @@ summary.rgeoprofile_project <- function(object, ...) {
       cat(sprintf("      prior mean = %s\n", sigma_prior_mean))
       cat(sprintf("      prior SD = %s\n", sigma_prior_sd))
     }
-    cat(sprintf("   expected population size:\n"))
+    cat(sprintf("   expected population size prior:\n"))
     if (expected_popsize_prior_sd == -1) {
       cat(sprintf("      (improper prior)\n"))
     } else if (expected_popsize_prior_sd == 0) {
