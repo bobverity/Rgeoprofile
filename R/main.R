@@ -818,3 +818,38 @@ ring_search <- function(project, r) {
   
   return(ret)
 }
+
+#------------------------------------------------
+#' @title Calculate Gini coefficient
+#'
+#' @description Calculate Gini coefficient
+#'
+#' @param hs dataframe of hitscores
+#'
+#' @export
+
+gini <- function(hs) {
+  
+  # check inputs
+  assert_dataframe(hs)
+  
+  # drop lon/lat columns
+  hs <- hs[ , !names(hs) %in% c("longitude", "latitude"), drop = FALSE]
+  
+  # get properties
+  ns <- nrow(hs)
+  hs_names <- colnames(hs)
+  
+  # get sorted values
+  hs_sort <- apply(hs, 2, function(x) c(0, sort(x, na.last = TRUE)/100, 1))
+  
+  # get areas using trapezoidal rule
+  y <- c(0:ns/ns, 1)
+  hs_area <- apply(hs_sort, 2, function(x) sum(0.5*(y[-1]+y[-length(y)])*(x[-1]-x[-length(x)])) )
+  
+  # get Gini coefficient
+  ret <- hs_area - 0.5
+  
+  return(ret)
+}
+
