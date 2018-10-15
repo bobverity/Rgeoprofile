@@ -38,9 +38,19 @@ Lookup::Lookup() {
 // source lon/lat
 double Lookup::get_data_dist(double source_lon, double source_lat, int data_index) {
   
-  // convert lon/lat to index using precision
-  int lon_index = floor(source_lon / res_lon) - index_lon_min;
-  int lat_index = floor(source_lat / res_lat) - index_lat_min;
+  // convert lon/lat to index
+  int lon_index;
+  int lat_index;
+  if (source_lon > 0) {
+    lon_index = floor(source_lon / res_lon) - index_lon_min;
+  } else {
+    lon_index = ceil(source_lon / res_lon) - index_lon_min;
+  }
+  if (source_lat > 0) {
+    lat_index = floor(source_lat / res_lat) - index_lat_min;
+  } else {
+    lat_index = ceil(source_lat / res_lat) - index_lat_min;
+  }
   
   // lookup value
   return lookup_dist[(lon_index*n_lat + lat_index)*n + data_index];

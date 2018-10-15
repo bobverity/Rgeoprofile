@@ -636,13 +636,21 @@ plot_DIC_gelman <- function(project) {
 #'
 #' @param hs dataframe of hitscores
 #' @param col vector of group colours. Uses \code{more_colours()} by default
+#' @param counts optional vector of counts corresponding to each source. If
+#'   specified, the y-axis is in terms of total counts found, rather than total
+#'   sources found
 #'
 #' @export
 
-plot_lorenz <- function(hs, col = NULL) {
+plot_lorenz <- function(hs, col = NULL, counts = NULL) {
   
   # check inputs
   assert_dataframe(hs)
+  if (!is.null(counts)) {
+    assert_pos_int(counts, zero_allowed = FALSE)
+    assert_vector(counts)
+    assert_length(counts, nrow(hs))
+  }
   
   # drop lon/lat columns
   hs <- hs[ , !names(hs) %in% c("longitude", "latitude"), drop = FALSE]
@@ -654,20 +662,37 @@ plot_lorenz <- function(hs, col = NULL) {
   # set default colours
   col <- define_default(col, more_colours(ncol(hs)))
   
-  # get sorted values
-  hs_sort <- apply(hs, 2, function(x) c(0,sort(x, na.last = TRUE)))
+  # get sorted hitscores on x-axis
+  x_list <- mapply(function(x) c(0, sort(x, na.last = NA), 100), as.list(hs), SIMPLIFY = FALSE)
+  
+  # get number of sources found on y axis
+  if (is.null(counts)) {
+    y_list <- mapply(function(x) {
+      l <- length(x)
+      c(0:(l-2), l-2)/ns*100
+    }, x_list, SIMPLIFY = FALSE)
+  } else {
+    print("bar")
+    y_list <- mapply(function(x) {
+      l <- length(x)
+      c(0, cumsum(counts), sum(counts))/sum(counts)*100
+    }, x_list,  SIMPLIFY = FALSE)
+  }
+  
+  # get number of points in each group
+  z_list <- rep(hs_names, times = mapply(length, x_list))
+  
   
   # get into ggplot format
-  df <- data.frame(x = as.vector(hs_sort), y = 0:ns, col = rep(hs_names, each = ns+1))
+  df <- data.frame(x = unlist(x_list), y = unlist(y_list), col = unlist(z_list))
   
   # make ggplot object
   plot1 <- ggplot(data = df, aes(x = x, y = y, color = col)) + theme_bw()
   plot1 <- plot1 + theme_bw() + geom_point() + geom_line()
-  plot1 <- plot1 + geom_abline(slope = ns/100, linetype = "dashed")
+  plot1 <- plot1 + geom_abline(slope = 1, linetype = "dashed")
   plot1 <- plot1 + scale_colour_manual(values = col, name = "Search method")
-  #plot1 <- plot1 + scale_x_continuous(limits = c(0,100), expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
-  plot1 <- plot1 + scale_x_continuous(limits = c(0,100))
-  plot1 <- plot1 + xlab("search effort (%)") + ylab("sources found")
+  plot1 <- plot1 + scale_x_continuous(limits = c(0,100)) + scale_y_continuous(limits = c(0,100))
+  plot1 <- plot1 + xlab("search effort (%)") + ylab("sources found (%)")
   
   return(plot1)
 }

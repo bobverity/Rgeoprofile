@@ -197,7 +197,7 @@ raster_from_shapefile <- function (shp,
 #' @export
 
 new_set <- function(project,
-                    spatial_prior,
+                    spatial_prior = NULL,
                     sentinel_radius = 0.2,
                     sigma_model = "single",
                     sigma_prior_mean = 1,
@@ -208,7 +208,9 @@ new_set <- function(project,
   
   # check inputs
   assert_custom_class(project, "rgeoprofile_project")
-  assert_custom_class(spatial_prior, "RasterLayer")
+  if (!is.null(spatial_prior)) {
+    assert_custom_class(spatial_prior, "RasterLayer")
+  }
   assert_single_pos(sentinel_radius, zero_allowed = FALSE)
   assert_in(sigma_model, c("single", "independent"))
   assert_single_pos(sigma_prior_mean, zero_allowed = FALSE)
@@ -218,6 +220,15 @@ new_set <- function(project,
     assert_single_pos(expected_popsize_prior_sd, zero_allowed = TRUE)
   }
   assert_single_string(name)
+  
+  # make spatial_prior from data limits if unspecified
+  if (is.null(spatial_prior)) {
+    range_lon <- range(project$data$longitude)
+    range_lon <- mean(range_lon) + 1.1*c(-1,1)*diff(range_lon)/2
+    range_lat <- range(project$data$latitude)
+    range_lat <- mean(range_lat) + 1.1*c(-1,1)*diff(range_lat)/2
+    spatial_prior <- raster_grid(range_lon, range_lat)
+  }
   
   # count current parameter sets and add one
   s <- length(project$parameter_sets) + 1
@@ -848,7 +859,12 @@ gini <- function(hs) {
   hs_area <- apply(hs_sort, 2, function(x) sum(0.5*(y[-1]+y[-length(y)])*(x[-1]-x[-length(x)])) )
   
   # get Gini coefficient
-  ret <- hs_area - 0.5
+  ret <- (hs_area - 0.5)/0.5
+  
+  # message if any NAs
+  if (any(is.na(ret))) {
+    message("Hitscores contain NA values (most likely due to sources outside the search area) leading to NA Gini coefficients")
+  }
   
   return(ret)
 }
