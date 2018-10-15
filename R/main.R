@@ -367,7 +367,7 @@ run_mcmc <- function(project,
   assert_single_logical(auto_converge)
   assert_single_pos_int(converge_test, zero_allowed = FALSE)
   if (!is.null(cluster)) {
-    assert_custom_class(project, "cluster")
+    assert_custom_class(cluster, "cluster")
   }
   assert_single_logical(pb_markdown)
   assert_single_logical(silent)
