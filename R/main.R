@@ -448,7 +448,7 @@ run_mcmc <- function(project,
   
   # split into parallel and serial implementations
   if (!is.null(cluster)) { # run in parallel
-    clusterEvalQ(cluster, library(rmaverick))
+    clusterEvalQ(cluster, library(RgeoProfile))
     output_raw <- clusterApplyLB(cl = cluster, parallel_args, run_mcmc_cpp)
   } else { # run in serial
     output_raw <- lapply(parallel_args, run_mcmc_cpp)
