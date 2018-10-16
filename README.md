@@ -62,7 +62,7 @@ Once installed, run `??RgeoProfile` to open the help for the package, which cont
 
 ## References
 
-<sup>1</sup> Rossmo, D.K., 1999. Geographic profiling. CRC press.
+<sup>1</sup> Rossmo, D.K., 1999. Geographic profiling. CRC press.\
 The theory of geographic profiling, including the Criminal Geographic Targeting (CGT) algorithm used in criminology.
 
 <sup>2</sup> Verity R, Stevenson MD, Rossmo DK, Nichols RA, Le Comber SC (2014). Spatial targeting of infectious disease control: Identifying multiple, unknown sources. Methods in Ecology and Evolution vol. 5 (7), 647-655. DOI: 10.1111/2041-210X.12190
