@@ -65,17 +65,17 @@ Once installed, run `??RgeoProfile` to open the help for the package, which cont
 <sup>1</sup> Rossmo, D.K., 1999. Geographic profiling. CRC press.<br/>
 The theory of geographic profiling, including the Criminal Geographic Targeting (CGT) algorithm used in criminology.
 
-<sup>2</sup> Verity R, Stevenson MD, Rossmo DK, Nichols RA, Le Comber SC (2014). Spatial targeting of infectious disease control: Identifying multiple, unknown sources. Methods in Ecology and Evolution vol. 5 (7), 647-655. DOI: 10.1111/2041-210X.12190
+<sup>2</sup> Verity R, Stevenson MD, Rossmo DK, Nichols RA, Le Comber SC (2014). Spatial targeting of infectious disease control: Identifying multiple, unknown sources. Methods in Ecology and Evolution vol. 5 (7), 647-655. DOI: 10.1111/2041-210X.12190<br/>
 Introducing the Dirichlet Process Mixture (DPM) model of geographic profiling.
 
-<sup>3</sup> Faulkner SC, Verity R, Roberts D, Roy SS, Robertson PA, Stevenson MD, Le Comber SC (2016). Using geographic profiling to compare the value of sightings vs trap data in a biological invasion. Diversity and Distributions 23 (1), 104-112. DOI: 10.1111/ddi.12498
+<sup>3</sup> Faulkner SC, Verity R, Roberts D, Roy SS, Robertson PA, Stevenson MD, Le Comber SC (2016). Using geographic profiling to compare the value of sightings vs trap data in a biological invasion. Diversity and Distributions 23 (1), 104-112. DOI: 10.1111/ddi.12498<br/>
 Using citizen science data with geographic profiling, and extending the DPM model to fit sigma, the dispersal parameter.
 
-<sup>4</sup> Faulkner SC, Stevens MCA, Romañach SS, Lindsey PA, Le Comber SC (2018). A spatial approach to combatting wildlife crime. Conservation Biology 32 (3), 685-693. DOI: 10.1111/cobi.13027
+<sup>4</sup> Faulkner SC, Stevens MCA, Romañach SS, Lindsey PA, Le Comber SC (2018). A spatial approach to combatting wildlife crime. Conservation Biology 32 (3), 685-693. DOI: 10.1111/cobi.13027<br/>
 A study of poaching in Zimbabwe showing how geospatial information can be incorporated within the GP framework.
 
-<sup>5</sup> Struebig MJ, Linkie M, Deere N, Martyr DJ, Millyanawati B, Faulkner SC, Le Comber SC, Mangunjaya FM, Fachruddin M, Leader-Williams N, McKay JE, St John FAV (2018). Addressing human-tiger conflict using socio-ecological information on tolerance and risk. Nature Communications 9 (1), article 3455. DOI: 10.1038/s41467-018-05983-y
+<sup>5</sup> Struebig MJ, Linkie M, Deere N, Martyr DJ, Millyanawati B, Faulkner SC, Le Comber SC, Mangunjaya FM, Fachruddin M, Leader-Williams N, McKay JE, St John FAV (2018). Addressing human-tiger conflict using socio-ecological information on tolerance and risk. Nature Communications 9 (1), article 3455. DOI: 10.1038/s41467-018-05983-y<br/>
 A recent paper using geographic profiling to improve predictions of human-tiger conflict.
 
-<sup>6</sup> Rossmo DK, Lutermann H, Stevenson MD, Le Comber SC (2014). Geographic profiling in Nazi Berlin: fact and fiction. Geospatial Intelligence Review (Fall 2014).
+<sup>6</sup> Rossmo DK, Lutermann H, Stevenson MD, Le Comber SC (2014). Geographic profiling in Nazi Berlin: fact and fiction. Geospatial Intelligence Review (Fall 2014).<br/>
 Applying geographic profiling to a case of German resistance to the Nazis which formed the basis of the classic novel, ‘Alone in Berlin’.
