@@ -39,13 +39,26 @@ Next, ensure that you have devtools installed by running
 install.packages("devtools")
 library(devtools)
 ```
+Next you need an API key for Google Maps. Earlier this year GoogleMaps changed the way they price API calls – see here (https://cloud.google.com/maps-platform/pricing/#details). Under the new system there is a lower limit on API calls below which you won’t be charged, but annoyingly you still need to sign up for an API key otherwise it produces a 403 error.
+
+Instructions on signing up for a GoogleMaps API key can be found here (https://developers.google.com/maps/documentation/javascript/get-api-key). Then – just to be extra sure that you will never be charged - you can limit your budget to something very low (like £1) by following these instructions (https://cloud.google.com/billing/docs/how-to/budgets?hl=en). This way you can be sure you will only use the free API calls, and your account will cap before you start being charged any significant amount of money.
+
+Once you have a key (which should look like a long string of letters and numbers) you need to register it in R as below, replacing 'xxxxxxx' with your key. Start by installing and loading the “ggmap” package. Note that this should be installed from GitHub since the CRAN version doesn’t currently include the function register_google(). After loading the ggmap library, load RgeoProfile as normal. Once your key is registered mapping functions in RgeoProfile should work again.
+```r
+install_github("dkahle/ggmap")
+library(ggmap)
+register_google(key ="xxxxxxxx")
+```
+More details can be found here: (https://rdrr.io/github/fresques/ggmap/man/register_google.html
+
+We know this is inconvenient and makes it more difficult for users to work with our package. For this reason the next version of RgeoProfile is likely to switch to open sources alternatives in the new version of the program.
+
 Finally, install the RgeoProfile package directly from GitHub by running
 ```r
 install_github("bobverity/RgeoProfile")
 library(RgeoProfile)
 ```
 Once installed, run `??RgeoProfile` to open the help for the package, which contains a number of worked examples.
-
 
 ## References
 
