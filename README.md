@@ -63,15 +63,23 @@ Once installed, run `??RgeoProfile` to open the help for the package, which cont
 ## References
 
 <sup>1</sup> Rossmo, D.K., 1999. Geographic profiling. CRC press.
+The theory of geographic profiling, including the Criminal Geographic Targeting (CGT) algorithm used in criminology.
 
-<sup>2</sup> Le Comber, S.C., Nicholls, B., Rossmo, D.K. and Racey, P.A., 2006. Geographic profiling and animal foraging. Journal of Theoretical Biology, 240(2), pp.233-240.
+<sup>2</sup> Verity R, Stevenson MD, Rossmo DK, Nichols RA, Le Comber SC (2014). Spatial targeting of infectious disease control: Identifying multiple, unknown sources. Methods in Ecology and Evolution vol. 5 (7), 647-655.
+DOI: 10.1111/2041-210X.12190
+Introducing the Dirichlet Process Mixture (DPM) model of geographic profiling.
 
-<sup>3</sup> Martin, R.A., Rossmo, D.K. and Hammerschlag, N., 2009. Hunting patterns and geographic profiling of white shark predation. Journal of Zoology, 279(2), pp.111-118.
+<sup>3</sup> Faulkner SC, Verity R, Roberts D, Roy SS, Robertson PA, Stevenson MD, Le Comber SC (2016). Using geographic profiling to compare the value of sightings vs trap data in a biological invasion. Diversity and Distributions 23 (1), 104-112.
+DOI: 10.1111/ddi.12498
+Using citizen science data with geographic profiling, and extending the DPM model to fit sigma, the dispersal parameter.
 
-<sup>4</sup> Raine, N.E., Rossmo, D.K. and Le Comber, S.C., 2009. Geographic profiling applied to testing models of bumble-bee foraging. Journal of the Royal Society Interface, 6(32), pp.307-319.
+<sup>4</sup> Faulkner SC, Stevens MCA, Romañach SS, Lindsey PA, Le Comber SC (2018). A spatial approach to combatting wildlife crime. Conservation Biology 32 (3), 685-693.
+DOI: 10.1111/cobi.13027
+A study of poaching in Zimbabwe showing how geospatial information can be incorporated within the GP framework.
 
-<sup>5</sup> Le Comber, S.C. and Stevenson, M.D., 2012. From Jack the Ripper to epidemiology and ecology. Trends in ecology & evolution, 27(6), pp.307-308.
+<sup>5</sup> Struebig MJ, Linkie M, Deere N, Martyr DJ, Millyanawati B, Faulkner SC, Le Comber SC, Mangunjaya FM, Fachruddin M, Leader-Williams N, McKay JE, St John FAV (2018). Addressing human-tiger conflict using socio-ecological information on tolerance and risk. Nature Communications 9 (1), article 3455.
+DOI: 10.1038/s41467-018-05983-y
+A recent paper using geographic profiling to improve predictions of human-tiger conflict.
 
-<sup>6</sup>Le Comber, S.C., Rossmo, D., Hassan, A.N., Fuller, D.O. and Beier, J.C., 2011. Geographic profiling as a novel spatial tool for targeting infectious disease control. International journal of health geographics, 10(1), p.35.
-
-<sup>7</sup> Verity, R., Stevenson, M.D., Rossmo, D.K., Nichols, R.A. and Le Comber, S.C., 2014. Spatial targeting of infectious disease control: identifying multiple, unknown sources. Methods in Ecology and Evolution, 5(7), pp.647-655.
+<sup>6</sup> Rossmo DK, Lutermann H, Stevenson MD, Le Comber SC (2014). Geographic profiling in Nazi Berlin: fact and fiction. Geospatial Intelligence Review (Fall 2014).
+Applying geographic profiling to a case of German resistance to the Nazis which formed the basis of the classic novel, ‘Alone in Berlin’.
